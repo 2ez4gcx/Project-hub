@@ -1,5 +1,18 @@
 # Lịch sử phiên bản — Trạm Dự Án
 
+## v3.8.1 — 14/08/2026
+
+### Gia cố bản dùng thử
+- Hạn dùng thử được KÝ SỐ và lưu 3 bản (config.json, tài khoản chủ,
+  kho dữ liệu). Sửa số hạn ở đâu thì bản đó mất hiệu lực và các bản còn lại
+  tự khôi phục; sửa cả 3 nơi thì phần mềm chuyển CHỈ ĐỌC (không cấp lại
+  hạn mới cho dấu vết giả). Muốn xóa dấu vết để "làm mới" thì phải xóa cả
+  dữ liệu công việc lẫn tài khoản.
+- Chống lùi đồng hồ máy: lùi quá 3 ngày so với lần chạy gần nhất -> CHỈ ĐỌC.
+- Bản đang dùng nâng cấp lên: hạn hiện tại tự chuyển sang dạng ký, không đổi hạn.
+- Dữ liệu KHÔNG bao giờ bị xóa vì giấy phép — hết hạn chỉ chuyển chế độ CHỈ ĐỌC
+  như trước nay.
+
 ## v3.8.0 — 14/08/2026
 
 ### Siết quyền xem tệp theo dự án (THAY ĐỔI HÀNH VI)

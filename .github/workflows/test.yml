@@ -27,9 +27,12 @@ jobs:
           node --check "Chạy nội bộ/server.js"
           node --check "Chạy nội bộ/reset-password.js"
 
-      - name: Test phân quyền server-side (25 ca)
+      - name: Test phân quyền server-side (36 ca)
         run: |
           mkdir -p /tmp/tda-data
           DATA_DIR=/tmp/tda-data PORT=3211 SETUP_CODE=TEST123 node "Chạy nội bộ/server.js" &
           for i in $(seq 1 20); do curl -sf http://localhost:3211/api/config >/dev/null && break; sleep 0.5; done
           node tests/test-authz.mjs
+
+      - name: Test gia cố bản dùng thử (8 ca)
+        run: node tests/test-license.mjs /tmp/tda-data
