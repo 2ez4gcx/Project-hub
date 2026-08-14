@@ -13,6 +13,13 @@ if errorlevel 1 (
   exit /b
 )
 echo Dang khoi dong Tram Du An...
-start "" http://localhost:3000
+rem Co chung chi trong data\tls thi may chu chay HTTPS -> mo dung dia chi https
+if exist "data\tls\server.pfx" (
+  start "" https://localhost:3000
+) else if exist "data\tls\cert.pem" (
+  start "" https://localhost:3000
+) else (
+  start "" http://localhost:3000
+)
 node server.js
 pause

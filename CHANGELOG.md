@@ -1,5 +1,14 @@
 # Lịch sử phiên bản — Trạm Dự Án
 
+## v3.9.1 — 14/08/2026 (hiệu chỉnh)
+
+- File Khởi động (Windows/Mac) tự mở đúng địa chỉ https:// khi đã bật HTTPS
+  (trước đó mở cứng http:// -> trang lỗi sau khi bật chứng chỉ).
+- "CÓ GÌ MỚI.txt" viết lại đầy đủ v3.7 → v3.9, nêu rõ thay đổi hành vi
+  về quyền xem tệp (v3.8) và cách mở lại chế độ cũ; sửa lỗi gõ "%%".
+- CHANGELOG.md được đóng kèm vào gói zip giao khách.
+- Thêm README.md cho repo (cấu trúc, quy trình build/test/đóng gói).
+
 ## v3.9.0 — 14/08/2026
 
 ### HTTPS cho bản chạy nội bộ

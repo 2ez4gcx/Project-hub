@@ -1,0 +1,48 @@
+═══════════════════════════════════════════════════════════════
+  TRẠM DỰ ÁN v3.9 — CÓ GÌ MỚI (so với v3.5)
+═══════════════════════════════════════════════════════════════
+
+⚠ THAY ĐỔI CẦN BIẾT (từ v3.8):
+   Tệp đính kèm, biên bản và ảnh nhật ký của một dự án giờ CHỈ những
+   người sau xem được: Chủ sở hữu, Lãnh đạo, Teamlead, người được chỉ
+   định ghi nhật ký, và người CÓ VIỆC ĐƯỢC GIAO trong dự án đó.
+   → Ai kêu "không thấy biên bản": giao cho họ một việc trong dự án
+     là thấy ngay. Muốn mở lại như cũ (mọi người xem hết): Cài đặt →
+     tắt "Chỉ người trong dự án xem được tệp / biên bản / nhật ký".
+
+1) BOQ – KHỐI LƯỢNG – CHI PHÍ (menu Chi phí → thẻ "BOQ & Khối lượng")
+   • Nhập bảng khối lượng hợp đồng theo dự án: dán thẳng từ Excel.
+   • Khối lượng nghiệm thu nhập theo TỪNG KỲ — lũy kế tự tính,
+     sửa kỳ cũ thì các kỳ sau tự đúng.
+   • Gắn hạng mục với công việc: bấm nút gợi ý là khối lượng kỳ
+     tự điền theo % tiến độ ngoài công trường.
+   • Xuất bảng nghiệm thu kỳ ra Excel (CSV) để nộp chủ đầu tư.
+   • Tự đối chiếu tổng BOQ với giá trị hợp đồng; vượt là báo đỏ.
+   • Báo cáo HTML (nút Tải báo cáo) cũng kèm bảng BOQ này.
+
+2) ĐƯỜNG GĂNG TRÊN DÒNG THỜI GIAN (view Dòng thời gian)
+   • Việc màu ĐỎ + nhãn "Găng" = trễ ngày nào cả dự án trễ ngày đó.
+   • Việc màu cam rê chuột thấy số ngày dự trữ.
+   • Kéo GIỮA thanh để dời lịch; kéo MÉP trái/phải để đổi ngày
+     bắt đầu / hạn chót (đổi thời lượng).
+   • Tự cảnh báo xếp lịch sai (bắt đầu trước khi việc phụ thuộc
+     xong) và phụ thuộc lòng vòng. Có vạch "Hôm nay".
+
+3) BẬT HTTPS TRONG 2 PHÚT (bản chạy nội bộ)
+   • Bấm đúp "Tạo chứng chỉ HTTPS (Windows).bat" rồi khởi động lại
+     — mật khẩu và dữ liệu đi trong wifi công ty được mã hóa.
+   • Chi tiết: xem "BẢO MẬT - Bật HTTPS (nội bộ).txt".
+
+4) AN TOÀN & MƯỢT HƠN
+   • Máy chủ tự chặn thao tác vượt quyền (xóa dự án, xóa vĩnh viễn,
+     tự duyệt việc, sửa lịch sử...) — kể cả người rành máy tính cố
+     vượt qua giao diện. Mọi lần chặn đều ghi nhật ký bảo mật.
+   • Tự sao lưu dữ liệu MỖI NGÀY vào data/snapshots (giữ 14 ngày) —
+     lỡ xóa nhầm là lấy lại được, không phải chờ email thứ Bảy.
+   • Email sao lưu không còn kèm mật khẩu email trong file cấu hình.
+   • Đồng bộ giữa các máy nhẹ hơn hẳn — hợp với NAS yếu; hết cảnh báo
+     "có người khác vừa cập nhật" oan.
+
+Lịch sử chi tiết từng phiên bản: file CHANGELOG.md kèm trong gói này.
+Cách cập nhật: chép ĐÈ toàn bộ thư mục (trừ thư mục "data") rồi khởi
+động lại. Dữ liệu cũ giữ nguyên; hạn dùng thử hiện tại giữ nguyên.

@@ -34,8 +34,9 @@ for (const [folder, zipName] of [["Chạy trên NAS", "tram-du-an-nas"], ["Chạ
   const files = collect(src, src, []);
   const zip = new AdmZip();
   for (const f of files) zip.addLocalFile(f.full, path.dirname(f.rel.split(path.sep).join("/")) === "." ? "" : path.dirname(f.rel.split(path.sep).join("/")));
+  zip.addLocalFile(path.join(root, "CHANGELOG.md"), ""); // lịch sử phiên bản đi kèm gói giao khách
   const dest = path.join(OUT, zipName + ".zip");
   zip.writeZip(dest);
-  console.log("  ✔ " + zipName + ".zip — " + files.length + " file");
+  console.log("  ✔ " + zipName + ".zip — " + (files.length + 1) + " file");
 }
 console.log("\n  Zip nằm trong: " + OUT + "\n");

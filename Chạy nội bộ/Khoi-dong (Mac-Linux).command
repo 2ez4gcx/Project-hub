@@ -8,5 +8,8 @@ if ! command -v node >/dev/null 2>&1; then
   exit 1
 fi
 echo "Dang khoi dong Tram Du An..."
-( sleep 1; (open http://localhost:3000 || xdg-open http://localhost:3000) >/dev/null 2>&1 ) &
+# Có chứng chỉ trong data/tls thì máy chủ chạy HTTPS -> mở đúng địa chỉ https
+URL="http://localhost:3000"
+if [ -f "data/tls/server.pfx" ] || [ -f "data/tls/cert.pem" ]; then URL="https://localhost:3000"; fi
+( sleep 1; (open "$URL" || xdg-open "$URL") >/dev/null 2>&1 ) &
 node server.js
