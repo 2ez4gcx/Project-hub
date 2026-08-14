@@ -3336,6 +3336,50 @@ function buildReportHTML({ t, lang, project, projects, tasks, members, finance, 
         <td style="padding:6px 8px">${esc(t.priorities[x.priority] || x.priority)}</td></tr>`;
     });
     body += `</tbody></table>`;
+
+    // ---- BOQ – khối lượng – chi phí của dự án (chỉ khi người xuất có quyền tài chính) ----
+    if (canFinance && finance) {
+      const bb = boqOf((finance.boq || {})[p.id]);
+      if (bb.items.length) {
+        const kys = [...bb.kys].sort((a, b) => (Number(a.soKy) || 0) - (Number(b.soKy) || 0));
+        const cumOf = (id) => kys.reduce((s, k) => s + (Number((k.kl || {})[id]) || 0), 0);
+        const fmtQty = (n) => { const v = Number(n) || 0; try { return new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 3 }).format(v); } catch { return String(v); } };
+        const last = kys[kys.length - 1];
+        const kyInfo = kys.length
+          ? (lang === "vi" ? kys.length + " kỳ nghiệm thu" : kys.length + " acceptance period(s)") + (last && last.denNgay ? " · " + (lang === "vi" ? "kỳ mới nhất" : "latest") + ": " + esc(String(last.denNgay).split("-").reverse().join("/")) : "")
+          : (lang === "vi" ? "chưa có kỳ nghiệm thu" : "no acceptance periods yet");
+        const thR = 'style="padding:6px 8px;text-align:right"';
+        const tdR = 'style="padding:6px 8px;text-align:right;font-variant-numeric:tabular-nums"';
+        let totVal = 0, totDone = 0;
+        let rowsHtml = "";
+        bb.items.forEach((it) => {
+          if (it.laNhom) { rowsHtml += `<tr style="background:#f8fafc;font-weight:600"><td style="padding:6px 8px">${esc(it.stt)}</td><td style="padding:6px 8px" colspan="8">${esc(it.ten)}</td></tr>`; return; }
+          const klHd = Number(it.khoiLuong) || 0, dg = Number(it.donGia) || 0, cum = cumOf(it.id);
+          totVal += klHd * dg; totDone += cum * dg;
+          const pctKl = klHd > 0 ? Math.round(cum / klHd * 100) : 0;
+          rowsHtml += `<tr style="border-bottom:1px solid #e2e8f0">
+            <td style="padding:6px 8px">${esc(it.stt)}</td><td style="padding:6px 8px">${esc(it.ten)}</td><td style="padding:6px 8px">${esc(it.donVi)}</td>
+            <td ${tdR}>${fmtQty(klHd)}</td><td ${tdR}>${fmtMoney2(dg)}</td><td ${tdR}>${fmtMoney2(klHd * dg)}</td>
+            <td ${tdR}>${fmtQty(cum)}</td><td style="padding:6px 8px;text-align:right;font-variant-numeric:tabular-nums${pctKl > 100 ? ";color:#dc2626;font-weight:700" : ""}">${pctKl}%</td><td ${tdR}>${fmtMoney2(cum * dg)}</td></tr>`;
+        });
+        const totPct = totVal > 0 ? Math.round(totDone / totVal * 100) : 0;
+        body += `<h3 style="margin:16px 0 2px;color:#0d9488">${esc(t.finTabBoq)}</h3>
+          <div style="color:#64748b;font-size:12px;margin-bottom:6px">${kyInfo}</div>
+          <table style="width:100%;border-collapse:collapse;font-size:12.5px"><thead><tr style="background:#f0fdfa;text-align:left">
+          <th style="padding:6px 8px">${esc(t.boqCode)}</th><th style="padding:6px 8px">${esc(t.boqName)}</th><th style="padding:6px 8px">${esc(t.boqUnit)}</th>
+          <th ${thR}>${esc(t.boqQty)}</th><th ${thR}>${esc(t.boqPrice)}</th><th ${thR}>${esc(t.boqAmount)}</th>
+          <th ${thR}>${esc(t.boqDoneQty)}</th><th ${thR}>${esc(t.boqPercent)}</th><th ${thR}>${esc(t.boqDoneVal)}</th></tr></thead>
+          <tbody>${rowsHtml}</tbody>
+          <tfoot><tr style="border-top:2px solid #cbd5e1;font-weight:700">
+          <td style="padding:6px 8px" colspan="5">${lang === "vi" ? "Tổng cộng" : "Total"}</td>
+          <td ${tdR}>${fmtMoney2(totVal)}</td><td></td><td ${tdR}>${totPct}%</td><td style="padding:6px 8px;text-align:right;font-variant-numeric:tabular-nums;color:#059669">${fmtMoney2(totDone)}</td></tr></tfoot></table>`;
+        const invValP = (finance.investorContracts || []).filter((c) => c.projectId === p.id).reduce((s, c) => s + (Number(c.value) || 0), 0);
+        if (invValP > 0) {
+          const delta = totVal - invValP;
+          body += `<div style="font-size:12px;color:#64748b;margin-top:4px">${esc(t.boqVsContract)}: <b>${fmtMoney2(invValP)}</b> · ${esc(t.boqDelta)}: <b style="color:${delta > 0 ? "#dc2626" : "#059669"}">${fmtMoney2(delta)}</b></div>`;
+        }
+      }
+    }
   });
   if (canFinance && finance) {
     const inv = finance.investorContracts || [], sub = finance.subContracts || [];

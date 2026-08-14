@@ -1,5 +1,14 @@
 # Lịch sử phiên bản — Trạm Dự Án
 
+## v3.7.3 — 14/08/2026
+
+### BOQ trong báo cáo HTML xuất ra
+- "Tải báo cáo" (HTML) giờ kèm bảng BOQ – khối lượng – chi phí của từng dự án:
+  đủ dòng nhóm, KL hợp đồng / đơn giá / thành tiền, KL thực hiện lũy kế, %KL
+  (đỏ khi vượt hợp đồng), giá trị thực hiện, dòng tổng, số kỳ nghiệm thu và
+  đối chiếu với giá trị hợp đồng CĐT.
+- Phần BOQ chỉ xuất hiện khi người tải báo cáo có quyền xem tài chính.
+
 ## v3.7.2 — 14/08/2026
 
 ### Gantt: kéo giãn thanh để đổi thời lượng
