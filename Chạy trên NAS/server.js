@@ -142,6 +142,99 @@ function saveAccounts(a) { writeJsonAtomic(ACCOUNTS, JSON.stringify(a, null, 2))
 const FINANCE = path.join(DATA_DIR, "finance.json");
 function loadFinance() { try { const f = JSON.parse(fs.readFileSync(FINANCE, "utf8")); return { investorContracts: f.investorContracts || [], subContracts: f.subContracts || [] }; } catch { return { investorContracts: [], subContracts: [] }; } }
 function saveFinance(f) { writeJsonAtomic(FINANCE, JSON.stringify(f)); }
+// ---- Cache rev của khối dữ liệu chung (phục vụ /api/kv/rev, tránh parse cả file mỗi lần poll) ----
+let SHARED_REV_CACHE = null;
+function sharedRev() {
+  if (SHARED_REV_CACHE == null) {
+    try { SHARED_REV_CACHE = JSON.parse(loadData()[SHARED_KEY] || "{}").rev || 0; } catch { SHARED_REV_CACHE = 0; }
+  }
+  return SHARED_REV_CACHE;
+}
+
+/* ===================== PHÂN QUYỀN PHÍA MÁY CHỦ (giai đoạn 1) =====================
+   Client giữ nguyên mô hình đồng bộ cả khối; máy chủ so sánh bản MỚI với bản HIỆN TẠI
+   và CHẶN các thay đổi phá hoại vượt quyền. Nguyên tắc: chỉ chặn khi vi phạm rõ ràng
+   (thêm mới/cập nhật thông thường luôn được phép để không chặn nhầm thao tác hợp lệ,
+   ví dụ client tự sinh việc lặp lại hoặc tự dọn thùng rác quá 90 ngày). */
+const TRASH_TTL_MS = 90 * 86400000; // khớp với auto-prune phía client
+function validateSharedWrite(me, inc, curStr) {
+  if (!me) return "Chưa đăng nhập.";
+  if (me.role === "owner") return null; // Chủ sở hữu: toàn quyền
+  let cur; try { cur = JSON.parse(curStr || "{}") || {}; } catch { cur = {}; }
+  if (!inc || typeof inc !== "object") return "Dữ liệu không hợp lệ.";
+  const arr = (x) => (Array.isArray(x) ? x : []);
+  const idSet = (list) => new Set(arr(list).map((x) => x && x.id).filter(Boolean));
+  const sameJson = (a, b) => { try { return JSON.stringify(a) === JSON.stringify(b); } catch { return false; } };
+
+  // 1. Xóa dự án: chỉ Chủ sở hữu (client cũng chỉ cho owner xóa).
+  const incProjIds = idSet(inc.projects);
+  for (const pr of arr(cur.projects)) {
+    if (pr && pr.id && !incProjIds.has(pr.id)) return "Chỉ Chủ sở hữu mới được xóa dự án.";
+  }
+
+  // 2. Thùng rác: không được sửa nội dung; chỉ được bỏ mục khi KHÔI PHỤC dự án
+  //    hoặc mục đã quá 90 ngày (client tự dọn). Xóa vĩnh viễn là quyền của Chủ sở hữu.
+  const incTrash = new Map(arr(inc.trash).map((e) => [e && e.id, e]));
+  for (const e of arr(cur.trash)) {
+    if (!e || !e.id) continue;
+    const kept = incTrash.get(e.id);
+    if (!kept) {
+      const restored = incProjIds.has(e.id);
+      const expired = (e.deletedAt || 0) < Date.now() - TRASH_TTL_MS;
+      if (!restored && !expired) return "Chỉ Chủ sở hữu mới được xóa vĩnh viễn dự án trong thùng rác.";
+    } else if (!sameJson(kept, e)) {
+      return "Không được sửa nội dung mục trong thùng rác.";
+    }
+  }
+
+  // 3. Cột (sections): thành viên không có thao tác hợp lệ nào xóa cột
+  //    (cột chỉ mất khi xóa dự án — việc của Chủ sở hữu).
+  const incSecIds = idSet(inc.sections);
+  for (const s of arr(cur.sections)) {
+    if (s && s.id && !incSecIds.has(s.id)) return "Bạn không có quyền xóa cột.";
+  }
+
+  // 4. Xóa công việc: cần quyền giao việc (canAssign); chặn xóa hàng loạt trong một lần ghi.
+  const incTasks = new Map(arr(inc.tasks).map((x) => [x && x.id, x]));
+  const curTasks = new Map(arr(cur.tasks).map((x) => [x && x.id, x]));
+  let removedTasks = 0;
+  for (const id of curTasks.keys()) if (id && !incTasks.has(id)) removedTasks++;
+  if (removedTasks > 0 && !me.canAssign) return "Bạn không có quyền xóa công việc.";
+  if (removedTasks > 10) return "Không thể xóa nhiều công việc như vậy trong một thao tác. Hãy xóa từng việc.";
+
+  // 5. Duyệt hoàn thành (chờ duyệt -> hoàn thành): phải đúng người có quyền duyệt.
+  for (const [id, tk] of incTasks) {
+    const old = id && curTasks.get(id);
+    if (old && old.status === "review" && tk && tk.status === "done") {
+      const okApprove = old.approver === "leader" ? !!me.isLeader : !!me.isTeamlead;
+      if (!okApprove) return "Chỉ người có quyền duyệt (Teamlead / Lãnh đạo) mới được duyệt hoàn thành công việc.";
+    }
+  }
+
+  // 6. Lịch sử thay đổi: chỉ được THÊM mục mới (ghi đúng tên mình), gộp mục mới nhất
+  //    của chính mình, hoặc cắt bớt mục cũ ở cuối (client giữ tối đa 500). Cấm sửa/xóa.
+  const curH = arr(cur.history), incH = arr(inc.history);
+  const isMine = (e) => e && (e.actor === me.name || e.actor === me.email);
+  if (curH.length === 0) {
+    for (const e of incH) if (!isMine(e)) return "Mục lịch sử mới phải ghi đúng tên người thao tác.";
+  } else {
+    const headId = curH[0] && curH[0].id;
+    const j = incH.findIndex((e) => e && e.id === headId);
+    if (j === -1) return "Không được sửa hoặc xóa lịch sử thay đổi.";
+    for (let i = 0; i < j; i++) if (!isMine(incH[i])) return "Mục lịch sử mới phải ghi đúng tên người thao tác.";
+    const restLen = incH.length - j;
+    if (restLen > curH.length) return "Không được sửa hoặc xóa lịch sử thay đổi.";
+    // Chỉ được cắt bớt mục cũ khi lịch sử đã chạm trần 500 mục (đúng hành vi client);
+    // còn lại, thiếu mục cũ = có người cố xóa lén lịch sử.
+    if (restLen < curH.length && incH.length < 500) return "Không được sửa hoặc xóa lịch sử thay đổi.";
+    for (let k = 1; k < restLen; k++) {
+      if (!sameJson(incH[j + k], curH[k])) return "Không được sửa hoặc xóa lịch sử thay đổi.";
+    }
+    if (!sameJson(incH[j], curH[0]) && !isMine(incH[j])) return "Không được sửa lịch sử của người khác.";
+  }
+  return null;
+}
+
 function canFinance(a) { return !!a && (a.role === "owner" || a.canViewFinance); }
 function canManageMembers(a) { return !!a && (a.role === "owner" || a.canManageMembers); }
 
@@ -702,6 +795,8 @@ const server = http.createServer(async (req, res) => {
   }
 
   // ---- data KV (token required) ----
+  // Kiểm tra rev nhẹ: client poll 4 giây chỉ cần so rev, không phải tải cả khối dữ liệu.
+  if (p === "/api/kv/rev" && req.method === "GET") return json(res, 200, { rev: sharedRev() });
   // Chỉ cho phép các key hợp lệ: chặn việc đọc/ghi key tùy ý trong data.json
   // (vd __reminders_sent, hoặc nhồi key lạ làm phình file dữ liệu).
   const KV_READ_KEYS = new Set([SHARED_KEY, "pm_shared_v2"]);
@@ -715,17 +810,25 @@ const server = http.createServer(async (req, res) => {
     const { key, value } = await readBody(req);
     if (key !== SHARED_KEY) return json(res, 403, { error: "bad_key" });
     if (typeof value !== "string") return json(res, 400, { error: "bad_value" });
-    try { JSON.parse(value); } catch { return json(res, 400, { error: "bad_value", message: "Dữ liệu không phải JSON hợp lệ." }); }
+    let incoming;
+    try { incoming = JSON.parse(value); } catch { return json(res, 400, { error: "bad_value", message: "Dữ liệu không phải JSON hợp lệ." }); }
     const d = loadData();
-    if (key === SHARED_KEY) {
-      let inRev = null, curRev = null;
-      try { inRev = JSON.parse(value).rev; } catch {}
+    {
+      let curRev = null;
+      const inRev = incoming && incoming.rev;
       try { curRev = JSON.parse(d[key] || "{}").rev; } catch {}
       if (typeof inRev === "number" && typeof curRev === "number" && inRev <= curRev) {
         return json(res, 409, { error: "conflict", rev: curRev });
       }
     }
+    // PHÂN QUYỀN PHÍA MÁY CHỦ (giai đoạn 1): thẩm định phần thay đổi, chặn hành vi phá hoại.
+    const problem = validateSharedWrite(me, incoming, d[key] || "");
+    if (problem) {
+      slog("TỪ CHỐI ghi dữ liệu chung bởi " + me.email + ": " + problem);
+      return json(res, 403, { error: "forbidden_change", message: problem });
+    }
     d[key] = value; saveData(d);
+    SHARED_REV_CACHE = (incoming && typeof incoming.rev === "number") ? incoming.rev : null;
     return json(res, 200, { ok: true });
   }
 

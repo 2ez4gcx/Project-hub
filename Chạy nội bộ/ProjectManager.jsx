@@ -752,7 +752,11 @@ function ProjectManagerInner() {
       const payload = { projects, sections, tasks, history, dailyReports, trash, rev, updatedBy: meNow?.name || "", updatedAt: Date.now() };
       if (!serverMode) { payload.members = members; payload.finance = finance; }
       window.storage.set(SHARED_KEY, JSON.stringify(payload), true)
-        .then((resKv) => { if (resKv === "conflict") { pullRemote(true); antMessage.warning(lang === "vi" ? "Có người khác vừa cập nhật — đã tải lại dữ liệu mới, vui lòng thao tác lại." : "Someone else just updated — reloaded latest data, please redo."); } else setLastSync(Date.now()); })
+        .then((resKv) => {
+          if (resKv === "conflict") { pullRemote(true); antMessage.warning(lang === "vi" ? "Có người khác vừa cập nhật — đã tải lại dữ liệu mới, vui lòng thao tác lại." : "Someone else just updated — reloaded latest data, please redo."); }
+          else if (resKv && typeof resKv === "object" && resKv.error) { pullRemote(true); antMessage.error(resKv.error); } // máy chủ từ chối (vượt quyền / hết hạn giấy phép) -> tải lại dữ liệu đúng
+          else setLastSync(Date.now());
+        })
         .catch(() => setStorageOK(false));
     }, 500);
     return () => clearTimeout(id);
@@ -771,6 +775,11 @@ function ProjectManagerInner() {
   const pullRemote = async (force) => {
     if (!storageOK || !window.storage) return;
     try {
+      // Poll nhẹ: hỏi rev trước, chỉ tải cả khối dữ liệu khi có bản mới (giảm hẳn băng thông với NAS)
+      if (serverMode && !force) {
+        const rv = await api("/api/kv/rev");
+        if (rv.ok && typeof rv.body?.rev === "number" && rv.body.rev <= localRev.current) { setLastSync(Date.now()); return; }
+      }
       const r = await window.storage.get(SHARED_KEY, true);
       if (r?.value) {
         const remote = JSON.parse(r.value);
@@ -796,9 +805,10 @@ function ProjectManagerInner() {
   };
   useEffect(() => {
     if (!loaded || !storageOK) return;
+    if (serverMode && !authUser) return; // chưa đăng nhập thì không poll (tránh spam 401 lên máy chủ)
     const iv = setInterval(pullRemote, 4000);
     return () => clearInterval(iv);
-  }, [loaded, storageOK]); // eslint-disable-line
+  }, [loaded, storageOK, serverMode, authUser]); // eslint-disable-line
   const syncNow = async () => { setSyncing(true); await pullRemote(); setTimeout(() => setSyncing(false), 400); };
 
   /* identity / permissions */

@@ -19,6 +19,11 @@
         if (t) h.Authorization = "Bearer " + t;
         var r = await fetch("/api/kv", { method: "POST", headers: h, body: JSON.stringify({ key: key, value: value }) });
         if (r.status === 409) return "conflict";
+        if (r.status === 403 || r.status === 423) {
+          // Máy chủ TỪ CHỐI thay đổi (vượt quyền hoặc giấy phép hết hạn) — trả thông báo để app hiển thị.
+          try { var d = await r.json(); return { error: (d && d.message) || "Thay đổi bị máy chủ từ chối." }; }
+          catch (e) { return { error: "Thay đổi bị máy chủ từ chối." }; }
+        }
         return r.ok;
       } catch (e) { return false; }
     }
