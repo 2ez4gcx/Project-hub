@@ -103,6 +103,10 @@ const T = {
     tasksOpen: "việc đang mở", primaryTasks: "phụ trách chính", overdueTasks: "quá hạn",
     // timeline / gantt
     timeline: "Dòng thời gian", ganttHint: "Kéo thanh để dời lịch (đổi ngày bắt đầu & hạn). Đường nối thể hiện phụ thuộc.",
+    criticalPath: "Đường găng", criticalBadge: "Găng", normalTask: "Việc thường", depLine: "Phụ thuộc",
+    criticalTip: "ĐƯỜNG GĂNG — việc này trễ ngày nào, cả dự án trễ ngày đó", slackDays: "Dự trữ", daysUnit: "ngày",
+    depViolation: "Bắt đầu trước khi việc phụ thuộc hoàn thành — kiểm tra lại lịch!",
+    undatedHint: "việc chưa đặt ngày (không hiển thị trên sơ đồ)", cycleWarn: "Phụ thuộc vòng tròn — không tính được đường găng.",
     noTimelineData: "Chưa có công việc nào có ngày để vẽ. Hãy đặt Ngày bắt đầu và Hạn chót.",
     startDate: "Ngày bắt đầu", plannedDays: "Tiến độ dự kiến (ngày)", today2: "Hôm nay", statuses: { todo: "Cần làm", doing: "Đang làm", review: "Chờ phê duyệt", onhold: "On hold / Blocked", done: "Hoàn thành" }, statusLabel: "Trạng thái", approver: "Người phê duyệt", byLeader: "Lãnh đạo phê duyệt", byTeamlead: "Teamlead phê duyệt", approveBtn: "Phê duyệt", dailyReport: "Báo cáo ngày", todayReport: "Báo cáo hôm nay", myReports: "Của tôi", reportTracking: "Theo dõi nộp", submitReport: "Gửi báo cáo", reportSubmitted: "Đã gửi", reportMissing: "Chưa gửi", reportAddLine: "Thêm dòng", reportWhatDone: "Đã làm gì", reportPct: "% phần mình", reportIssue: "Vướng mắc / đề xuất", reportOf: "Báo cáo của", reportNone: "Chưa có báo cáo.", reportDeadlineNote: "Hạn nộp: trong 48 giờ kể từ 17:30 của ngày báo cáo.", reportSel: "Chọn công tác...", reportComment: "Bình luận báo cáo...", constructionSite: "Nhật ký thi công", siteTab: "Nhật ký", recordsTab: "Biên bản", addSiteLog: "Thêm nhật ký", siteDate: "Ngày", siteWeather: "Thời tiết", siteAM: "Sáng", sitePM: "Chiều", wSun: "Nắng", wRain: "Mưa", siteManpower: "Nhân lực", siteWork: "Hạng mục + khối lượng", siteEquip: "Thiết bị & vật tư", siteIssues: "Vướng mắc ảnh hưởng tiến độ", siteNext: "Kế hoạch ngày tiếp theo", sitePhotos: "Ảnh hiện trường", siteNoLogs: "Chưa có nhật ký.", siteAssign: "Chỉ định người lập", siteSave: "Lưu nhật ký", siteRequired: "Cần điền Hạng mục và ít nhất 1 ảnh.", positionLabel: "Chức vụ", featuresTitle: "Tính năng", featuresHint: "Bật/tắt nhóm tính năng cho công ty này; tắt sẽ ẩn khỏi mọi người dùng.", presetLabel: "Cấu hình nhanh", presetFull: "Đầy đủ", presetTask: "Chỉ công việc", presetDesign: "Thiết kế", trashTitle: "Thùng rác", trashEmpty: "Thùng rác trống.", restore: "Khôi phục", deleteForever: "Xóa vĩnh viễn", movedToTrash: "Đã chuyển vào thùng rác", undo: "Hoàn tác", trashHint: "Dự án đã xóa được giữ ở đây; chỉ Chủ sở hữu mới xóa vĩnh viễn.", searchAll: "Tìm kiếm", searchAllPlaceholder: "Tìm công việc trong mọi dự án...", resultsFound: "kết quả", noResults: "Không tìm thấy công việc nào.", attachments: "Tệp đính kèm", posLeader: "Lãnh đạo", posStaff: "Nhân viên", posTeamlead: "Teamlead (trưởng bộ phận)", posDeputy: "Phó giám đốc", posCustom: "Tùy chỉnh", advancedPerms: "Tùy chỉnh nâng cao", recur: "Lặp lại", recurNone: "Không lặp", recurWeekly: "Hàng tuần", recurMonthly: "Hàng tháng",
     records: "Biên bản", addRecord: "Thêm biên bản", noRecords: "Chưa có biên bản nào.", allTypes: "Tất cả loại", more: "khác", recDate: "Ngày", recType: "Loại biên bản", recNumber: "Số biên bản (tùy chọn)", recNumberPh: "Ví dụ: 06", recNote: "Ghi chú nội dung (bắt buộc)", recFiles: "Tệp (PDF / ảnh)", recFilesChosen: "tệp đã chọn", recFieldType: "Biên bản hiện trường", recMeetingType: "Biên bản họp", recDirectiveType: "Chỉ thị công trường", recSaving: "Đang lưu...", confirmDeleteRecord: "Xóa biên bản này (kèm các tệp)?", saveFailed: "Lưu thất bại.",
@@ -266,6 +270,10 @@ const T = {
     capacity: "Capacity", overloaded: "Overloaded", lightLoad: "Light", balanced: "Balanced",
     tasksOpen: "open tasks", primaryTasks: "primary", overdueTasks: "overdue",
     timeline: "Timeline", ganttHint: "Drag a bar to reschedule (start & due). Lines show dependencies.",
+    criticalPath: "Critical path", criticalBadge: "Critical", normalTask: "Normal task", depLine: "Dependency",
+    criticalTip: "CRITICAL PATH — any delay here delays the whole project", slackDays: "Slack", daysUnit: "days",
+    depViolation: "Starts before its dependency finishes — check the schedule!",
+    undatedHint: "task(s) without dates (hidden from chart)", cycleWarn: "Circular dependencies — cannot compute critical path.",
     noTimelineData: "No tasks with dates yet. Set Start date and Due date.",
     startDate: "Start date", plannedDays: "Planned duration (days)", today2: "Today", statuses: { todo: "To do", doing: "In progress", review: "Pending approval", onhold: "On hold / Blocked", done: "Done" }, statusLabel: "Status", approver: "Approver", byLeader: "Leader approves", byTeamlead: "Teamlead approves", approveBtn: "Approve", dailyReport: "Daily report", todayReport: "Today\u2019s report", myReports: "Mine", reportTracking: "Submission tracking", submitReport: "Submit report", reportSubmitted: "Submitted", reportMissing: "Not submitted", reportAddLine: "Add line", reportWhatDone: "What you did", reportPct: "My %", reportIssue: "Issues / suggestions", reportOf: "Report of", reportNone: "No report yet.", reportDeadlineNote: "Deadline: within 48h from 5:30 PM of the report day.", reportSel: "Select task...", reportComment: "Comment on report...", constructionSite: "Site log", siteTab: "Site log", recordsTab: "Records", addSiteLog: "Add log", siteDate: "Date", siteWeather: "Weather", siteAM: "AM", sitePM: "PM", wSun: "Sunny", wRain: "Rain", siteManpower: "Manpower", siteWork: "Work + quantity", siteEquip: "Equipment & materials", siteIssues: "Issues affecting progress", siteNext: "Next-day plan", sitePhotos: "Site photos", siteNoLogs: "No log yet.", siteAssign: "Assign loggers", siteSave: "Save log", siteRequired: "Fill Work and at least 1 photo.", positionLabel: "Position", featuresTitle: "Features", featuresHint: "Enable/disable feature groups for this company; disabling hides them from everyone.", presetLabel: "Quick preset", presetFull: "Full", presetTask: "Tasks only", presetDesign: "Design", trashTitle: "Trash", trashEmpty: "Trash is empty.", restore: "Restore", deleteForever: "Delete forever", movedToTrash: "Moved to trash", undo: "Undo", trashHint: "Deleted projects are kept here; only the owner can delete forever.", searchAll: "Search", searchAllPlaceholder: "Search tasks across all projects...", resultsFound: "results", noResults: "No matching tasks.", attachments: "Attachments", posLeader: "Leader", posStaff: "Staff", posTeamlead: "Teamlead", posDeputy: "Deputy director", posCustom: "Custom", advancedPerms: "Advanced permissions", recur: "Repeat", recurNone: "No repeat", recurWeekly: "Weekly", recurMonthly: "Monthly",
     records: "Records", addRecord: "Add record", noRecords: "No records yet.", allTypes: "All types", more: "more", recDate: "Date", recType: "Record type", recNumber: "Record no. (optional)", recNumberPh: "e.g. 06", recNote: "Content note (required)", recFiles: "Files (PDF / photos)", recFilesChosen: "file(s) chosen", recFieldType: "Site record", recMeetingType: "Meeting minutes", recDirectiveType: "Site directive", recSaving: "Saving...", confirmDeleteRecord: "Delete this record (with its files)?", saveFailed: "Save failed.",
@@ -2816,25 +2824,9 @@ function isoOf(d) { return d.toISOString().slice(0, 10); }
 function parseISO(s) { return s ? new Date(s + "T00:00:00") : null; }
 function TimelineView({ t, lang, canEdit, tasks, memberById, onOpenTask, onReschedule }) {
   const [drag, setDrag] = useState(null); // {id, startX, origStart, origEnd, deltaDays}
-  const items = tasks.map((tk) => {
-    let s = parseISO(tk.startDate) || parseISO(tk.dueDate);
-    let e = parseISO(tk.dueDate) || parseISO(tk.startDate);
-    if (!s || !e) return null;
-    if (e < s) e = s;
-    return { tk, start: s, end: e };
-  }).filter(Boolean);
-  if (items.length === 0) return <div className="p-6"><Empty2 icon={<CalendarRange size={44} />} text={t.noTimelineData} /></div>;
-  let min = items[0].start, max = items[0].end;
-  items.forEach((it) => { if (it.start < min) min = it.start; if (it.end > max) max = it.end; });
-  min = new Date(min.getTime() - 2 * DAY_MS); max = new Date(max.getTime() + 3 * DAY_MS);
-  const totalDays = Math.round((max - min) / DAY_MS) + 1;
-  const PX = 26, LABEL_W = 200;
-  const idIndex = Object.fromEntries(items.map((it, i) => [it.tk.id, i]));
-  const geo = {};
-  items.forEach((it, i) => { const so = Math.round((it.start - min) / DAY_MS); const sp = Math.round((it.end - it.start) / DAY_MS) + 1; geo[it.tk.id] = { i, so, sp }; });
-  const depLines = [];
-  items.forEach((it) => { (it.tk.dependsOn || []).forEach((dep) => { const a = geo[dep], b = geo[it.tk.id]; if (a && b) depLines.push({ x1: (a.so + a.sp) * PX, y1: a.i * 38 + 19, x2: b.so * PX, y2: b.i * 38 + 19 }); }); });
+  const PX = 26, ROW = 38, LABEL_W = 224;
 
+  // (hooks phải chạy trước mọi early-return — bản cũ đặt effect sau return khi rỗng, vi phạm rules of hooks)
   useEffect(() => {
     if (!drag) return;
     const move = (ev) => { const dx = (ev.touches ? ev.touches[0].clientX : ev.clientX) - drag.startX; setDrag((d) => d ? { ...d, deltaDays: Math.round(dx / PX) } : d); };
@@ -2853,13 +2845,80 @@ function TimelineView({ t, lang, canEdit, tasks, memberById, onOpenTask, onResch
     return () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); window.removeEventListener("touchmove", move); window.removeEventListener("touchend", up); };
   }, [drag, onReschedule]);
 
+  const undated = tasks.filter((tk) => !parseISO(tk.startDate) && !parseISO(tk.dueDate)).length;
+  const items = tasks.map((tk) => {
+    let s = parseISO(tk.startDate) || parseISO(tk.dueDate);
+    let e = parseISO(tk.dueDate) || parseISO(tk.startDate);
+    if (!s || !e) return null;
+    if (e < s) e = s;
+    return { tk, start: s, end: e };
+  }).filter(Boolean).sort((a, b) => (a.start - b.start) || (a.end - b.end) || String(a.tk.title || "").localeCompare(String(b.tk.title || "")));
+  if (items.length === 0) return <div className="p-6"><Empty2 icon={<CalendarRange size={44} />} text={t.noTimelineData} /></div>;
+
+  let min = items[0].start, max = items[0].end;
+  items.forEach((it) => { if (it.start < min) min = it.start; if (it.end > max) max = it.end; });
+  min = new Date(min.getTime() - 2 * DAY_MS); max = new Date(max.getTime() + 3 * DAY_MS);
+  const totalDays = Math.round((max - min) / DAY_MS) + 1;
+  const dayOf = (d) => Math.round((d - min) / DAY_MS);
+
+  /* ---- CPM (Critical Path Method) trên lịch thực tế ----
+     ES = muộn nhất giữa ngày bắt đầu tự đặt và lúc các việc phụ thuộc xong (ràng buộc "không sớm hơn").
+     Dự trữ (slack) = LS - ES. Slack = 0 => nằm trên ĐƯỜNG GĂNG: trễ 1 ngày là cả dự án trễ 1 ngày. */
+  const nodeById = {};
+  items.forEach((it, i) => { nodeById[it.tk.id] = { i, startDay: dayOf(it.start), dur: Math.round((it.end - it.start) / DAY_MS) + 1, deps: [] }; });
+  items.forEach((it) => { nodeById[it.tk.id].deps = (it.tk.dependsOn || []).filter((d) => nodeById[d]); });
+  const succ = {}; Object.keys(nodeById).forEach((id) => { succ[id] = []; });
+  Object.keys(nodeById).forEach((id) => nodeById[id].deps.forEach((d) => succ[d].push(id)));
+  const indeg = {}; Object.keys(nodeById).forEach((id) => { indeg[id] = nodeById[id].deps.length; });
+  const topo = []; const tq = Object.keys(nodeById).filter((id) => !indeg[id]);
+  while (tq.length) { const id = tq.shift(); topo.push(id); for (const s of succ[id]) if (--indeg[s] === 0) tq.push(s); }
+  const hasCycle = topo.length !== items.length; // có phụ thuộc vòng tròn -> bỏ tính đường găng, chỉ cảnh báo
+  const es = {}, ef = {}, ls = {}, lf = {}, slackOf = {}; const violated = new Set();
+  if (!hasCycle) {
+    for (const id of topo) {
+      const n = nodeById[id];
+      const depEnd = n.deps.length ? Math.max(...n.deps.map((d) => ef[d])) : 0;
+      es[id] = Math.max(n.startDay, depEnd); ef[id] = es[id] + n.dur;
+      for (const d of n.deps) { const dn = nodeById[d]; if (n.startDay < dn.startDay + dn.dur - 1) { violated.add(id); break; } } // bắt đầu khi việc phụ thuộc còn đang chạy
+    }
+    const projEnd = Math.max(...Object.values(ef));
+    for (const id of [...topo].reverse()) {
+      lf[id] = succ[id].length ? Math.min(...succ[id].map((s) => ls[s])) : projEnd;
+      ls[id] = lf[id] - nodeById[id].dur; slackOf[id] = ls[id] - es[id];
+    }
+  }
+  const isCritical = (id) => !hasCycle && slackOf[id] === 0;
+
+  const geo = {};
+  items.forEach((it, i) => { const so = dayOf(it.start); const sp = Math.round((it.end - it.start) / DAY_MS) + 1; geo[it.tk.id] = { i, so, sp }; });
+  const depLines = [];
+  items.forEach((it) => { (it.tk.dependsOn || []).forEach((dep) => {
+    const a = geo[dep], b = geo[it.tk.id]; if (!a || !b) return;
+    const tight = isCritical(dep) && isCritical(it.tk.id) && ef[dep] === es[it.tk.id]; // cạnh nằm trên đường găng
+    const dn = nodeById[dep];
+    const bad = !hasCycle && nodeById[it.tk.id].startDay < dn.startDay + dn.dur - 1; // vi phạm lịch
+    depLines.push({ x1: (a.so + a.sp) * PX, y1: a.i * ROW + 19, x2: b.so * PX, y2: b.i * ROW + 19, tight, bad });
+  }); });
+
   // month header ticks
   const ticks = []; let cur = new Date(min);
   while (cur <= max) { const dayOffset = Math.round((cur - min) / DAY_MS); ticks.push({ off: dayOffset, label: `${cur.getDate()}/${cur.getMonth() + 1}` }); cur = new Date(cur.getTime() + 7 * DAY_MS); }
+  const now0 = new Date();
+  const todayOff = dayOf(new Date(now0.getFullYear(), now0.getMonth(), now0.getDate()));
+  const showToday = todayOff >= 0 && todayOff <= totalDays;
 
   return (
     <div className="p-6">
-      <p className="text-sm text-slate-500 mb-3">{t.ganttHint}</p>
+      <p className="text-sm text-slate-500 mb-2">{t.ganttHint}</p>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-3 text-xs text-slate-500">
+        <span className="flex items-center gap-1.5"><span className="inline-block w-4 rounded-sm" style={{ height: 10, background: "#dc2626" }} />{t.criticalPath}</span>
+        <span className="flex items-center gap-1.5"><span className="inline-block w-4 rounded-sm" style={{ height: 10, background: "#f97316" }} />{t.normalTask}</span>
+        <span className="flex items-center gap-1.5"><span className="inline-block w-4 rounded-sm" style={{ height: 10, background: "#10b981" }} />{t.done}</span>
+        <span className="flex items-center gap-1.5"><svg width="22" height="8"><line x1="0" y1="4" x2="22" y2="4" stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="3 2" /></svg>{t.depLine}</span>
+        {showToday && <span className="flex items-center gap-1.5"><span className="inline-block" style={{ width: 2, height: 12, background: "#0ea5e9" }} />{t.today}</span>}
+        {undated > 0 && <span className="text-slate-400">• {undated} {t.undatedHint}</span>}
+        {hasCycle && <span className="text-red-500 flex items-center gap-1"><AlertTriangle size={13} />{t.cycleWarn}</span>}
+      </div>
       <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
         <div style={{ minWidth: LABEL_W + totalDays * PX }}>
           {/* header */}
@@ -2871,13 +2930,17 @@ function TimelineView({ t, lang, canEdit, tasks, memberById, onOpenTask, onResch
           </div>
           {/* rows */}
           <div style={{ position: "relative" }}>
-            <svg width={totalDays * PX} height={items.length * 38} style={{ position: "absolute", left: LABEL_W, top: 0, pointerEvents: "none", overflow: "visible", zIndex: 5 }}>
-              {depLines.map((l, i) => (
-                <g key={i}>
-                  <path d={`M ${l.x1} ${l.y1} C ${l.x1 + 16} ${l.y1}, ${l.x2 - 16} ${l.y2}, ${l.x2} ${l.y2}`} fill="none" stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="3 2" />
-                  <polygon points={`${l.x2},${l.y2} ${l.x2 - 6},${l.y2 - 3} ${l.x2 - 6},${l.y2 + 3}`} fill="#f59e0b" />
-                </g>
-              ))}
+            {showToday && <div style={{ position: "absolute", left: LABEL_W + todayOff * PX, top: 0, height: items.length * ROW, width: 2, background: "#0ea5e9", opacity: 0.45, zIndex: 4, pointerEvents: "none" }} />}
+            <svg width={totalDays * PX} height={items.length * ROW} style={{ position: "absolute", left: LABEL_W, top: 0, pointerEvents: "none", overflow: "visible", zIndex: 5 }}>
+              {depLines.map((l, i) => {
+                const color = l.bad ? "#ef4444" : l.tight ? "#dc2626" : "#f59e0b";
+                return (
+                  <g key={i}>
+                    <path d={`M ${l.x1} ${l.y1} C ${l.x1 + 16} ${l.y1}, ${l.x2 - 16} ${l.y2}, ${l.x2} ${l.y2}`} fill="none" stroke={color} strokeWidth={l.tight ? 2.5 : l.bad ? 2 : 1.5} strokeDasharray={l.tight ? undefined : l.bad ? "4 3" : "3 2"} />
+                    <polygon points={`${l.x2},${l.y2} ${l.x2 - 6},${l.y2 - 3} ${l.x2 - 6},${l.y2 + 3}`} fill={color} />
+                  </g>
+                );
+              })}
             </svg>
             {items.map((it) => {
             const isDrag = drag && drag.id === it.tk.id;
@@ -2886,18 +2949,25 @@ function TimelineView({ t, lang, canEdit, tasks, memberById, onOpenTask, onResch
             const span = Math.round((it.end - it.start) / DAY_MS) + 1;
             const m = it.tk.primaryAssigneeId ? memberById[it.tk.primaryAssigneeId] : null;
             const wd = it.tk.workdone || 0;
-            const barColor = it.tk.completed ? "#10b981" : "#f97316";
+            const critical = isCritical(it.tk.id) && !it.tk.completed;
+            const barColor = it.tk.completed ? "#10b981" : critical ? "#dc2626" : "#f97316";
+            const slackDays = !hasCycle && !it.tk.completed ? slackOf[it.tk.id] : null;
+            const barTip = critical ? t.criticalTip : (slackDays != null ? t.slackDays + ": " + slackDays + " " + t.daysUnit : "");
             const depCount = (it.tk.dependsOn || []).length;
+            const isBad = violated.has(it.tk.id);
             return (
-              <div key={it.tk.id} className="flex items-center border-b border-slate-50" style={{ height: 38 }}>
+              <div key={it.tk.id} className="flex items-center border-b border-slate-50" style={{ height: ROW }}>
                 <div style={{ width: LABEL_W }} className="shrink-0 px-3 border-r border-slate-100 flex items-center gap-1.5">
                   <button onClick={() => onOpenTask(it.tk.id)} className="text-sm text-slate-700 truncate hover:text-orange-600 text-left flex-1">{it.tk.title || t.untitled}</button>
-                  {depCount > 0 && <span title={t.waitingOn} className="text-xs text-amber-500 flex items-center"><Network size={12} />{depCount}</span>}
+                  {critical && <span className="text-[10px] font-bold text-red-600 bg-red-50 rounded px-1 py-0.5 shrink-0">{t.criticalBadge}</span>}
+                  {isBad && <span title={t.depViolation} className="text-red-500 shrink-0 flex items-center"><AlertTriangle size={13} /></span>}
+                  {depCount > 0 && <span title={t.waitingOn} className="text-xs text-amber-500 flex items-center shrink-0"><Network size={12} />{depCount}</span>}
                 </div>
                 <div className="relative flex-1" style={{ height: "100%" }}>
                   <div onMouseDown={(ev) => canEdit && setDrag({ id: it.tk.id, startX: ev.clientX, origStart: it.start, origEnd: it.end, deltaDays: 0 })}
                     onTouchStart={(ev) => canEdit && setDrag({ id: it.tk.id, startX: ev.touches[0].clientX, origStart: it.start, origEnd: it.end, deltaDays: 0 })}
                     onClick={() => { if (!isDrag) onOpenTask(it.tk.id); }}
+                    title={barTip}
                     className="absolute rounded-md flex items-center px-2 gap-1 text-white shadow-sm"
                     style={{ left: startOff * PX, width: Math.max(span * PX - 3, 18), top: 7, height: 24, background: barColor, cursor: canEdit ? "grab" : "pointer", opacity: isDrag ? 0.8 : 1 }}>
                     <span className="absolute left-0 top-0 bottom-0 rounded-md" style={{ width: `${wd}%`, background: "rgba(255,255,255,0.25)" }} />
