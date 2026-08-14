@@ -1,6 +1,6 @@
 {
   "name": "tram-du-an",
-  "version": "3.7.1",
+  "version": "3.7.2",
   "description": "Tram Du An - LAN/NAS project manager",
   "main": "server.js",
   "scripts": { "start": "node server.js" },

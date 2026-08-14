@@ -1,5 +1,14 @@
 # Lịch sử phiên bản — Trạm Dự Án
 
+## v3.7.2 — 14/08/2026
+
+### Gantt: kéo giãn thanh để đổi thời lượng
+- Kéo **mép trái** thanh = đổi ngày bắt đầu; kéo **mép phải** = đổi hạn chót;
+  kéo giữa thanh = dời cả lịch như trước.
+- Trong lúc kéo giãn, thanh hiện số ngày thời lượng; có chặn không cho
+  kéo mép trái vượt qua hạn (và ngược lại).
+- Đường găng và cảnh báo vi phạm lịch tự tính lại ngay khi thả tay.
+
 ## v3.7.1 — 14/08/2026
 
 ### Sao lưu cục bộ hằng ngày (tự động, không cần cấu hình)

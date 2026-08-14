@@ -102,7 +102,7 @@ const T = {
     capacity: "Sức chứa", overloaded: "Quá tải", lightLoad: "Còn rảnh", balanced: "Vừa phải",
     tasksOpen: "việc đang mở", primaryTasks: "phụ trách chính", overdueTasks: "quá hạn",
     // timeline / gantt
-    timeline: "Dòng thời gian", ganttHint: "Kéo thanh để dời lịch (đổi ngày bắt đầu & hạn). Đường nối thể hiện phụ thuộc.",
+    timeline: "Dòng thời gian", ganttHint: "Kéo thanh để dời lịch; kéo MÉP trái/phải để đổi ngày bắt đầu / hạn chót. Đường nối thể hiện phụ thuộc.",
     criticalPath: "Đường găng", criticalBadge: "Găng", normalTask: "Việc thường", depLine: "Phụ thuộc",
     criticalTip: "ĐƯỜNG GĂNG — việc này trễ ngày nào, cả dự án trễ ngày đó", slackDays: "Dự trữ", daysUnit: "ngày",
     depViolation: "Bắt đầu trước khi việc phụ thuộc hoàn thành — kiểm tra lại lịch!",
@@ -280,7 +280,7 @@ const T = {
     workloadHint: "Open tasks assigned to each person. Red = overloaded, green = light.",
     capacity: "Capacity", overloaded: "Overloaded", lightLoad: "Light", balanced: "Balanced",
     tasksOpen: "open tasks", primaryTasks: "primary", overdueTasks: "overdue",
-    timeline: "Timeline", ganttHint: "Drag a bar to reschedule (start & due). Lines show dependencies.",
+    timeline: "Timeline", ganttHint: "Drag a bar to reschedule; drag its LEFT/RIGHT edge to change start / due date. Lines show dependencies.",
     criticalPath: "Critical path", criticalBadge: "Critical", normalTask: "Normal task", depLine: "Dependency",
     criticalTip: "CRITICAL PATH — any delay here delays the whole project", slackDays: "Slack", daysUnit: "days",
     depViolation: "Starts before its dependency finishes — check the schedule!",
@@ -3126,7 +3126,7 @@ const DAY_MS = 86400000;
 function isoOf(d) { return d.toISOString().slice(0, 10); }
 function parseISO(s) { return s ? new Date(s + "T00:00:00") : null; }
 function TimelineView({ t, lang, canEdit, tasks, memberById, onOpenTask, onReschedule }) {
-  const [drag, setDrag] = useState(null); // {id, startX, origStart, origEnd, deltaDays}
+  const [drag, setDrag] = useState(null); // {id, startX, origStart, origEnd, deltaDays, mode: "move"|"left"|"right"}
   const PX = 26, ROW = 38, LABEL_W = 224;
 
   // (hooks phải chạy trước mọi early-return — bản cũ đặt effect sau return khi rỗng, vi phạm rules of hooks)
@@ -3136,8 +3136,11 @@ function TimelineView({ t, lang, canEdit, tasks, memberById, onOpenTask, onResch
     const up = () => {
       setDrag((d) => {
         if (d && d.deltaDays) {
-          const ns = new Date(d.origStart.getTime() + d.deltaDays * DAY_MS);
-          const ne = new Date(d.origEnd.getTime() + d.deltaDays * DAY_MS);
+          const spanGap = Math.round((d.origEnd - d.origStart) / DAY_MS); // số ngày giữa bắt đầu và hạn
+          let ns = d.origStart, ne = d.origEnd;
+          if (d.mode === "left") { const dd = Math.min(d.deltaDays, spanGap); ns = new Date(d.origStart.getTime() + dd * DAY_MS); }        // đổi ngày bắt đầu, không vượt qua hạn
+          else if (d.mode === "right") { const dd = Math.max(d.deltaDays, -spanGap); ne = new Date(d.origEnd.getTime() + dd * DAY_MS); }   // đổi hạn, không lùi trước ngày bắt đầu
+          else { ns = new Date(d.origStart.getTime() + d.deltaDays * DAY_MS); ne = new Date(d.origEnd.getTime() + d.deltaDays * DAY_MS); } // dời cả thanh
           onReschedule(d.id, isoOf(ns), isoOf(ne));
         }
         return null;
@@ -3248,8 +3251,14 @@ function TimelineView({ t, lang, canEdit, tasks, memberById, onOpenTask, onResch
             {items.map((it) => {
             const isDrag = drag && drag.id === it.tk.id;
             const delta = isDrag ? drag.deltaDays : 0;
-            const startOff = Math.round((it.start - min) / DAY_MS) + delta;
-            const span = Math.round((it.end - it.start) / DAY_MS) + 1;
+            const spanGap = Math.round((it.end - it.start) / DAY_MS);
+            let startOff = Math.round((it.start - min) / DAY_MS);
+            let span = spanGap + 1;
+            if (isDrag) {
+              if (drag.mode === "left") { const dd = Math.min(delta, spanGap); startOff += dd; span -= dd; }
+              else if (drag.mode === "right") { span += Math.max(delta, -spanGap); }
+              else startOff += delta;
+            }
             const m = it.tk.primaryAssigneeId ? memberById[it.tk.primaryAssigneeId] : null;
             const wd = it.tk.workdone || 0;
             const critical = isCritical(it.tk.id) && !it.tk.completed;
@@ -3267,8 +3276,8 @@ function TimelineView({ t, lang, canEdit, tasks, memberById, onOpenTask, onResch
                   {depCount > 0 && <span title={t.waitingOn} className="text-xs text-amber-500 flex items-center shrink-0"><Network size={12} />{depCount}</span>}
                 </div>
                 <div className="relative flex-1" style={{ height: "100%" }}>
-                  <div onMouseDown={(ev) => canEdit && setDrag({ id: it.tk.id, startX: ev.clientX, origStart: it.start, origEnd: it.end, deltaDays: 0 })}
-                    onTouchStart={(ev) => canEdit && setDrag({ id: it.tk.id, startX: ev.touches[0].clientX, origStart: it.start, origEnd: it.end, deltaDays: 0 })}
+                  <div onMouseDown={(ev) => canEdit && setDrag({ id: it.tk.id, startX: ev.clientX, origStart: it.start, origEnd: it.end, deltaDays: 0, mode: "move" })}
+                    onTouchStart={(ev) => canEdit && setDrag({ id: it.tk.id, startX: ev.touches[0].clientX, origStart: it.start, origEnd: it.end, deltaDays: 0, mode: "move" })}
                     onClick={() => { if (!isDrag) onOpenTask(it.tk.id); }}
                     title={barTip}
                     className="absolute rounded-md flex items-center px-2 gap-1 text-white shadow-sm"
@@ -3276,6 +3285,18 @@ function TimelineView({ t, lang, canEdit, tasks, memberById, onOpenTask, onResch
                     <span className="absolute left-0 top-0 bottom-0 rounded-md" style={{ width: `${wd}%`, background: "rgba(255,255,255,0.25)" }} />
                     {m && <span className="relative"><Avatar name={m.name} size={16} /></span>}
                     <span className="relative text-xs truncate">{wd > 0 ? wd + "%" : ""}</span>
+                    {/* tay cầm kéo giãn 2 mép: đổi ngày bắt đầu / hạn chót (đổi thời lượng) */}
+                    {canEdit && <span
+                      onMouseDown={(ev) => { ev.stopPropagation(); setDrag({ id: it.tk.id, startX: ev.clientX, origStart: it.start, origEnd: it.end, deltaDays: 0, mode: "left" }); }}
+                      onTouchStart={(ev) => { ev.stopPropagation(); setDrag({ id: it.tk.id, startX: ev.touches[0].clientX, origStart: it.start, origEnd: it.end, deltaDays: 0, mode: "left" }); }}
+                      onClick={(ev) => ev.stopPropagation()}
+                      style={{ position: "absolute", left: -2, top: -3, bottom: -3, width: 9, cursor: "col-resize" }} />}
+                    {canEdit && <span
+                      onMouseDown={(ev) => { ev.stopPropagation(); setDrag({ id: it.tk.id, startX: ev.clientX, origStart: it.start, origEnd: it.end, deltaDays: 0, mode: "right" }); }}
+                      onTouchStart={(ev) => { ev.stopPropagation(); setDrag({ id: it.tk.id, startX: ev.touches[0].clientX, origStart: it.start, origEnd: it.end, deltaDays: 0, mode: "right" }); }}
+                      onClick={(ev) => ev.stopPropagation()}
+                      style={{ position: "absolute", right: -2, top: -3, bottom: -3, width: 9, cursor: "col-resize" }} />}
+                    {isDrag && drag.mode !== "move" && <span className="relative text-xs font-semibold" style={{ marginLeft: "auto" }}>{span}{lang === "vi" ? "ng" : "d"}</span>}
                   </div>
                 </div>
               </div>
