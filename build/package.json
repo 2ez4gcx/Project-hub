@@ -4,7 +4,8 @@
   "description": "Build client bundle (public/app.js) tu ProjectManager.jsx cho ca 2 ban (noi bo + NAS)",
   "type": "module",
   "scripts": {
-    "build": "node build.mjs"
+    "build": "node build.mjs",
+    "dong-goi": "node dong-goi.mjs"
   },
   "dependencies": {
     "@ant-design/v5-patch-for-react-19": "^1.0.3",
@@ -14,6 +15,7 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "adm-zip": "^0.6.0",
     "esbuild": "^0.25.0"
   }
 }
