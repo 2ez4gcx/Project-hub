@@ -104,6 +104,11 @@ const T = {
     // timeline / gantt
     timeline: "Dòng thời gian", ganttHint: "Kéo thanh để dời lịch; kéo MÉP trái/phải để đổi ngày bắt đầu / hạn chót. Đường nối thể hiện phụ thuộc.",
     taskKind: "Công việc", restoreNoProject: "Dự án của việc này không còn — hãy khôi phục dự án trước.",
+    builtinTemplates: "Mẫu có sẵn (xây dựng)", copyFromProject: "Sao chép từ dự án",
+    baselineSave: "Lưu kế hoạch gốc", baselineUpdate: "Cập nhật kế hoạch gốc", baselineLabel: "Kế hoạch gốc",
+    baselineConfirm: "Ghi đè kế hoạch gốc đã lưu? Mốc so sánh trễ/sớm sẽ tính theo lịch hiện tại.",
+    baselineSaved: "Đã lưu kế hoạch gốc.", baselineLate: "trễ", baselineEarly: "sớm", baselineDays: "ngày so với kế hoạch gốc",
+    sCurveTitle: "Đường cong S — % giá trị", sPlanned: "Kế hoạch (theo hạn công việc liên kết)", sActual: "Thực hiện (theo kỳ nghiệm thu)",
     rejectBtn: "Trả về", rejectReason: "Lý do trả về (bắt buộc)...", rejectSend: "Trả về làm lại",
     criticalPath: "Đường găng", criticalBadge: "Găng", normalTask: "Việc thường", depLine: "Phụ thuộc",
     criticalTip: "ĐƯỜNG GĂNG — việc này trễ ngày nào, cả dự án trễ ngày đó", slackDays: "Dự trữ", daysUnit: "ngày",
@@ -285,6 +290,11 @@ const T = {
     tasksOpen: "open tasks", primaryTasks: "primary", overdueTasks: "overdue",
     timeline: "Timeline", ganttHint: "Drag a bar to reschedule; drag its LEFT/RIGHT edge to change start / due date. Lines show dependencies.",
     taskKind: "Task", restoreNoProject: "This task's project is gone — restore the project first.",
+    builtinTemplates: "Built-in templates (construction)", copyFromProject: "Copy from a project",
+    baselineSave: "Save baseline", baselineUpdate: "Update baseline", baselineLabel: "Baseline",
+    baselineConfirm: "Overwrite the saved baseline? Late/early comparison will use the current schedule.",
+    baselineSaved: "Baseline saved.", baselineLate: "late", baselineEarly: "early", baselineDays: "day(s) vs baseline",
+    sCurveTitle: "S-curve — % of value", sPlanned: "Planned (by linked tasks' due dates)", sActual: "Executed (by acceptance periods)",
     rejectBtn: "Return", rejectReason: "Reason for returning (required)...", rejectSend: "Return for rework",
     criticalPath: "Critical path", criticalBadge: "Critical", normalTask: "Normal task", depLine: "Dependency",
     criticalTip: "CRITICAL PATH — any delay here delays the whole project", slackDays: "Slack", daysUnit: "days",
@@ -407,6 +417,41 @@ const FEATURE_LIST = [
   { key: "fileByProject", vi: "Chỉ người trong dự án xem được tệp / biên bản / nhật ký", en: "Only project members can view files / records / logs" },
 ];
 const FEATURE_ALL_ON = FEATURE_LIST.reduce((o, f) => { o[f.key] = true; return o; }, {});
+
+/* ---- Bộ mẫu dự án xây dựng đóng gói sẵn (v3.11) ----
+   Mỗi mẫu: các cột + danh sách công việc chuẩn ngành, task dạng [chỉ số cột, tiêu đề, ưu tiên?].
+   Chọn trong hộp "Dự án mới" — tạo xong sửa thoải mái như dự án thường. */
+const BUILTIN_TEMPLATES = [
+  { id: "tpl:nha-pho", vi: "Thi công nhà phố", en: "Townhouse construction",
+    sections: ["Chuẩn bị", "Phần móng", "Phần thân", "Hoàn thiện", "Điện nước (MEP)", "Nghiệm thu & bàn giao"],
+    tasks: [
+      [0, "Xin phép xây dựng / thông báo khởi công", "high"], [0, "Dọn dẹp mặt bằng, rào chắn, lán trại"], [0, "Định vị tim mốc, cao độ chuẩn", "high"], [0, "Ký hợp đồng điện nước thi công"],
+      [1, "Ép cọc / khoan cọc nhồi", "high"], [1, "Đào đất hố móng, hầm tự hoại"], [1, "Bê tông lót, cốt thép móng"], [1, "Đổ bê tông móng, giằng móng", "high"], [1, "Xây bể tự hoại, lấp đất tôn nền"],
+      [2, "Cốt thép, cốp pha, đổ cột tầng trệt"], [2, "Cốp pha, cốt thép, đổ sàn lầu 1", "high"], [2, "Cột + sàn các lầu tiếp theo"], [2, "Đổ sàn mái, chống thấm sàn mái", "high"], [2, "Xây tường bao che, tường ngăn"], [2, "Cầu thang bê tông + xây bậc"],
+      [3, "Tô trát trong ngoài"], [3, "Cán nền, chống thấm WC, ban công", "high"], [3, "Ốp lát gạch nền, WC"], [3, "Trần thạch cao"], [3, "Sơn nước trong ngoài"], [3, "Lắp cửa chính, cửa sổ, cửa WC"], [3, "Lan can, tay vịn cầu thang"],
+      [4, "Đi ống điện, nước âm tường âm sàn", "high"], [4, "Kéo dây điện, lắp tủ điện"], [4, "Lắp đặt thiết bị vệ sinh"], [4, "Lắp đèn, công tắc, ổ cắm"], [4, "Bồn nước, máy bơm, năng lượng mặt trời"],
+      [5, "Vệ sinh công nghiệp toàn nhà"], [5, "Nghiệm thu khối lượng với chủ đầu tư", "high"], [5, "Hoàn công, bàn giao hồ sơ", "high"],
+    ] },
+  { id: "tpl:fitout", vi: "Fit-out văn phòng / nội thất", en: "Office fit-out / interior",
+    sections: ["Khảo sát & thiết kế", "Tháo dỡ & xây sửa", "Trần – vách – sàn", "Điện – nước – ĐHKK", "Nội thất & hoàn thiện", "Nghiệm thu & bàn giao"],
+    tasks: [
+      [0, "Khảo sát hiện trạng, đo đạc", "high"], [0, "Chốt layout, phối cảnh với khách", "high"], [0, "Hồ sơ kỹ thuật thi công, bảng vật liệu"], [0, "Xin phép tòa nhà / đăng ký thi công"],
+      [1, "Tháo dỡ hiện trạng, vận chuyển xà bần"], [1, "Xây / sửa tường ngăn theo layout"],
+      [2, "Khung xương, thả trần thạch cao"], [2, "Vách thạch cao, vách kính", "high"], [2, "Sàn nâng / trải thảm / sàn gỗ"],
+      [3, "Đi ống ĐHKK, ống gió", "high"], [3, "Điện động lực + chiếu sáng, tủ điện"], [3, "Mạng LAN, camera, access control"], [3, "PCCC: đầu báo, sprinkler (nếu có)", "high"],
+      [4, "Sơn nước, giấy dán tường"], [4, "Sản xuất & lắp đồ gỗ cố định", "high"], [4, "Bàn ghế, đồ rời, cây xanh"], [4, "Logo, chữ ký hiệu, phim dán kính"],
+      [5, "Vệ sinh công nghiệp"], [5, "Nghiệm thu với khách + tòa nhà", "high"], [5, "Bàn giao hồ sơ, bảo hành"],
+    ] },
+  { id: "tpl:thiet-ke", vi: "Thiết kế nhà (hồ sơ)", en: "House design (documents)",
+    sections: ["Concept", "Hồ sơ cơ sở", "Hồ sơ kỹ thuật", "Xin phép", "Bàn giao"],
+    tasks: [
+      [0, "Nhận nhiệm vụ thiết kế, khảo sát khu đất", "high"], [0, "Phương án mặt bằng các tầng", "high"], [0, "Phối cảnh ngoại thất 3D"], [0, "Chốt phương án với chủ đầu tư", "high"],
+      [1, "Kiến trúc: mặt bằng, mặt đứng, mặt cắt"], [1, "Kết cấu sơ bộ, phương án móng"], [1, "Dự toán sơ bộ"],
+      [2, "Kiến trúc chi tiết + khai triển"], [2, "Kết cấu: móng, cột, dầm, sàn, thang", "high"], [2, "Điện – nước – ĐHKK chi tiết"], [2, "Nội thất (nếu có trong hợp đồng)"], [2, "Dự toán chi tiết theo hồ sơ"],
+      [3, "Hồ sơ xin phép xây dựng", "high"], [3, "Nộp và theo dõi kết quả"],
+      [4, "In ấn, đóng bộ hồ sơ"], [4, "Bàn giao + hướng dẫn giám sát tác giả"],
+    ] },
+];
 const FEATURE_PRESETS = {
   full: { ...FEATURE_ALL_ON },
   task: { ...FEATURE_ALL_ON, finance: false, dailyReport: false, workload: false, sitelog: false, records: false },
@@ -1071,6 +1116,14 @@ function ProjectManagerInner() {
     return task;
   };
   const setProjectSiteLoggers = (pid, ids) => { if (!(myRole === "owner" || me?.isLeader)) return; setProjects((pp) => pp.map((x) => x.id === pid ? { ...x, siteLoggers: ids } : x)); };
+  // Lưu lịch hiện tại của dự án làm KẾ HOẠCH GỐC (baseline) để Gantt so trễ/sớm. Chỉ Chủ sở hữu / Lãnh đạo.
+  const saveBaseline = (pid) => {
+    if (!(myRole === "owner" || me?.isLeader)) return;
+    const map = {};
+    tasks.filter((x) => x.projectId === pid).forEach((x) => { const s = x.startDate || x.dueDate, e = x.dueDate || x.startDate; if (s && e) map[x.id] = { s, e }; });
+    setProjects((pp) => pp.map((p) => p.id === pid ? { ...p, baseline: { savedAt: Date.now(), by: me?.name || "", tasks: map } } : p));
+    antMessage.success(t.baselineSaved);
+  };
   const setMemberPosition = (id, pos) => {
     if (myRole !== "owner") return;
     const preset = { ...BLANK_CAPS, ...(POSITION_PRESETS[pos] || {}) };
@@ -1085,6 +1138,21 @@ function ProjectManagerInner() {
     log({ action: "section_add", projectId: activeProject, projectName: projName(activeProject), to: name.trim() }); };
   const addProject = (name, templateId) => { if (!canEdit || !name?.trim()) return;
     const pid = uid(); const color = PROJECT_COLORS[projects.length % PROJECT_COLORS.length];
+    const tpl = templateId && String(templateId).startsWith("tpl:") ? BUILTIN_TEMPLATES.find((x) => x.id === templateId) : null;
+    if (tpl) { // mẫu xây dựng đóng gói sẵn
+      const secs = tpl.sections.map((n, i) => ({ id: uid(), projectId: pid, name: n, order: i }));
+      const newTasks = tpl.tasks.map(([si, title, pr], i) => ({
+        id: uid(), projectId: pid, sectionId: (secs[si] || secs[0]).id, status: "todo", approver: "teamlead",
+        title, description: "", priority: pr || "medium", assignees: [], primaryAssigneeId: null, workdone: 0,
+        tags: [], completed: false, subtasks: [], comments: [], dueDate: "", startDate: "", duration: null,
+        dependsOn: [], assignedAt: null, completedAt: null, reminderLead: null, reminderSentKey: "", recur: "none",
+        createdAt: Date.now(), order: i,
+      }));
+      setProjects((p) => [...p, { id: pid, name: name.trim(), color }]);
+      setSections((p) => [...p, ...secs]); setTasks((p) => [...p, ...newTasks]);
+      log({ action: "project_create", projectId: pid, projectName: name.trim() });
+      setActiveProject(pid); setView("list"); return;
+    }
     if (templateId && projects.some((p) => p.id === templateId)) {
       // copy columns + tasks from template, WITHOUT assignment/progress/comments/dates
       const srcSecs = sections.filter((s) => s.projectId === templateId).sort((a, b) => a.order - b.order);
@@ -1417,7 +1485,7 @@ function ProjectManagerInner() {
           {project && view === "list" && <ListView t={t} lang={lang} canEdit={canEdit} memberById={memberById} sections={STATUS_ORDER.map((s) => ({ id: s, name: t.statuses[s] }))} tasks={projectTasks} blockedIds={blockedIds} onToggle={(id, c) => c ? setWorkdone(id, 100) : setWorkdone(id, 0)} onOpenTask={(id) => setDetailTask(id)} onQuickAdd={(sid, title) => addTask(sid, title)} onImport={importFromCSV} />}
           {project && view === "board" && <BoardView t={t} lang={lang} canEdit={canEdit} memberById={memberById} sections={STATUS_ORDER.map((s) => ({ id: s, name: t.statuses[s] }))} tasks={projectTasks} blockedIds={blockedIds} onMove={(id, sid) => setStatus(id, sid)} onOpenTask={(id) => setDetailTask(id)} onQuickAdd={(sid, title) => addTask(sid, title)} />}
           {project && view === "calendar" && <CalendarView t={t} lang={lang} tasks={projectTasks} onOpenTask={(id) => setDetailTask(id)} />}
-          {project && view === "timeline" && <TimelineView t={t} lang={lang} canEdit={canEdit} tasks={projectTasks} memberById={memberById} onOpenTask={(id) => setDetailTask(id)} onReschedule={(id, sd, dd) => patchTask(id, { startDate: sd, dueDate: dd })} />}
+          {project && view === "timeline" && <TimelineView t={t} lang={lang} canEdit={canEdit} tasks={projectTasks} memberById={memberById} project={project} canBaseline={myRole === "owner" || !!me?.isLeader} onSaveBaseline={() => { if (!project.baseline || window.confirm(t.baselineConfirm)) saveBaseline(project.id); }} onOpenTask={(id) => setDetailTask(id)} onReschedule={(id, sd, dd) => patchTask(id, { startDate: sd, dueDate: dd })} />}
           {project && view === "construction" && <ConstructionSiteView t={t} lang={lang} project={project} me={me} myRole={myRole} members={members} features={features} canEdit={canEdit} readOnly={!!(license && license.readOnly)} onSetLoggers={(ids) => setProjectSiteLoggers(project.id, ids)} />}
           {!project && !isBoardlessView && (
             <div className="h-full flex flex-col items-center justify-center text-center text-slate-400"><Folder size={48} className="mb-3 opacity-40" /><p className="text-lg font-medium text-slate-500">{t.welcome}</p><p className="text-sm">{t.welcomeHint}</p></div>
@@ -1438,7 +1506,7 @@ function ProjectManagerInner() {
           onReminder={(l) => setReminder(detailTask, l)} onDelete={() => removeTask(detailTask)} onComment={(text) => addComment(detailTask, text)} onStatus={(st) => setStatus(detailTask, st)} onApprove={() => approveTask(detailTask)} onReject={(reason) => rejectTask(detailTask, reason)} onApprover={(a) => setApprover(detailTask, a)} canApprove={canApproveTask(task)} assignableIds={assignableIds} canRemind={feat("notifications")} serverMode={serverMode} />;
       })()}
 
-      {modal === "newProject" && <NewProjectModal t={t} projects={projects} onClose={() => setModal(null)} onCreate={(n, tpl) => { addProject(n, tpl); setModal(null); }} />}
+      {modal === "newProject" && <NewProjectModal t={t} lang={lang} projects={projects} onClose={() => setModal(null)} onCreate={(n, tpl) => { addProject(n, tpl); setModal(null); }} />}
       {modal === "identity" && !serverMode && <IdentityModal t={t} members={members} currentUserId={currentUserId} onPick={setIdentity} onCreate={createAndJoin} onClose={() => currentUserId && setModal(null)} closable={!!currentUserId} effRole={effRole} />}
       {modal === "members" && canManageMembers && <MembersModal t={t} members={members} meId={currentUserId} canManage={canManageMembers} actorIsOwner={myRole === "owner"} serverMode={serverMode} features={features} effRole={effRole} onSetCap={setMemberCap} onSetPosition={setMemberPosition} onAdd={addMember} onRemove={removeMember} onResetPassword={resetMemberPassword} onClose={() => setModal(null)} />}
       {modal === "connect" && <ConnectModal t={t} members={members} storageOK={storageOK} onClose={() => setModal(null)} />}
@@ -2589,6 +2657,59 @@ function BoqTxt({ v, onCh, w, bold, ph }) {
 function BoqNum({ v, onCh, w }) {
   return <input type="number" step="any" value={v ?? ""} onChange={(e) => onCh(e.target.value)} className="text-sm tabular-nums" style={{ ...boqCellStyle, width: w, textAlign: "right" }} />;
 }
+/* Đường cong S — % giá trị theo thời gian: KẾ HOẠCH lấy từ hạn chót các công việc
+   liên kết với từng hạng mục (hạn muộn nhất = lúc hạng mục xong theo kế hoạch);
+   THỰC HIỆN lấy từ giá trị lũy kế các kỳ nghiệm thu (theo ngày chốt kỳ). */
+function BoqSCurve({ t, lang, items, kys, projTasks, totVal }) {
+  if (!totVal) return null;
+  const pts = (list) => list.filter((p) => p.d).sort((a, b) => a.d.localeCompare(b.d));
+  // thực hiện: lũy kế theo kỳ
+  let cum = 0;
+  const actual = pts(kys.map((k) => {
+    const v = items.filter((it) => !it.laNhom).reduce((s, it) => s + (Number((k.kl || {})[it.id]) || 0) * (Number(it.donGia) || 0), 0);
+    cum += v; return { d: k.denNgay || "", pct: Math.min(150, cum / totVal * 100) };
+  }));
+  // kế hoạch: hạng mục xong khi công việc liên kết muộn nhất đến hạn
+  const planRaw = items.filter((it) => !it.laNhom && (it.taskIds || []).length).map((it) => {
+    const dues = projTasks.filter((x) => (it.taskIds || []).includes(x.id)).map((x) => x.dueDate).filter(Boolean);
+    return dues.length ? { d: dues.sort()[dues.length - 1], v: (Number(it.khoiLuong) || 0) * (Number(it.donGia) || 0) } : null;
+  }).filter(Boolean).sort((a, b) => a.d.localeCompare(b.d));
+  let cumP = 0;
+  const planned = planRaw.map((p) => { cumP += p.v; return { d: p.d, pct: Math.min(150, cumP / totVal * 100) }; });
+  if (actual.length < 1 && planned.length < 2) return null;
+  const dates = [...actual.map((p) => p.d), ...planned.map((p) => p.d)].sort();
+  const d0 = Date.parse(dates[0]) - 5 * 86400000, d1 = Date.parse(dates[dates.length - 1]) + 5 * 86400000;
+  const W = 640, H = 200, L = 40, B = 26, T = 12, R = 12;
+  const X = (d) => L + (Date.parse(d) - d0) / (d1 - d0) * (W - L - R);
+  const Y = (pct) => T + (1 - Math.min(pct, 110) / 110) * (H - T - B);
+  const line = (ps, withStart) => (withStart ? [{ d: new Date(d0).toISOString().slice(0, 10), pct: 0 }, ...ps] : ps).map((p, i) => (i ? "L" : "M") + " " + X(p.d).toFixed(1) + " " + Y(p.pct).toFixed(1)).join(" ");
+  const fmtD = (ms) => { const d = new Date(ms); return d.getDate() + "/" + (d.getMonth() + 1); };
+  const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => d0 + (d1 - d0) * f);
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 p-4">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-2">
+        <span className="text-sm font-semibold text-slate-700">{t.sCurveTitle}</span>
+        {planned.length > 1 && <span className="text-xs text-slate-500 flex items-center gap-1.5"><svg width="20" height="6"><line x1="0" y1="3" x2="20" y2="3" stroke="#94a3b8" strokeWidth="2" strokeDasharray="4 3" /></svg>{t.sPlanned}</span>}
+        {actual.length > 0 && <span className="text-xs text-slate-500 flex items-center gap-1.5"><svg width="20" height="6"><line x1="0" y1="3" x2="20" y2="3" stroke="#10b981" strokeWidth="2.5" /></svg>{t.sActual}</span>}
+      </div>
+      <div style={{ overflowX: "auto" }}>
+        <svg viewBox={"0 0 " + W + " " + H} style={{ width: "100%", minWidth: 480, display: "block" }}>
+          {[0, 25, 50, 75, 100].map((p) => (
+            <g key={p}>
+              <line x1={L} y1={Y(p)} x2={W - R} y2={Y(p)} stroke={p === 100 ? "#cbd5e1" : "#f1f5f9"} strokeWidth="1" strokeDasharray={p === 100 ? "4 3" : undefined} />
+              <text x={L - 6} y={Y(p) + 3.5} textAnchor="end" fontSize="10" fill="#94a3b8">{p}%</text>
+            </g>
+          ))}
+          {ticks.map((ms, i) => <text key={i} x={L + (W - L - R) * i / 4} y={H - 8} textAnchor="middle" fontSize="10" fill="#94a3b8">{fmtD(ms)}</text>)}
+          {planned.length > 1 && <path d={line(planned, true)} fill="none" stroke="#94a3b8" strokeWidth="2" strokeDasharray="5 4" />}
+          {actual.length > 0 && <path d={line(actual, true)} fill="none" stroke="#10b981" strokeWidth="2.5" />}
+          {actual.map((p, i) => <circle key={i} cx={X(p.d)} cy={Y(p.pct)} r="3.5" fill="#10b981"><title>{p.d.split("-").reverse().join("/") + " · " + Math.round(p.pct) + "%"}</title></circle>)}
+        </svg>
+      </div>
+    </div>
+  );
+}
+
 function BOQTab({ t, lang, finance, onChange, projects, proj, tasks, inv }) {
   const { message: antMessage } = AntApp.useApp();
   const [kySel, setKySel] = useState("");
@@ -2828,6 +2949,7 @@ function BOQTab({ t, lang, finance, onChange, projects, proj, tasks, inv }) {
           </table>
         </div>
       )}
+      {items.length > 0 && <BoqSCurve t={t} lang={lang} items={items} kys={kys} projTasks={projTasks} totVal={totVal} />}
     </div>
   );
 }
@@ -3150,7 +3272,7 @@ function WorkloadView({ t, lang, members, tasks, projects }) {
 const DAY_MS = 86400000;
 function isoOf(d) { return d.toISOString().slice(0, 10); }
 function parseISO(s) { return s ? new Date(s + "T00:00:00") : null; }
-function TimelineView({ t, lang, canEdit, tasks, memberById, onOpenTask, onReschedule }) {
+function TimelineView({ t, lang, canEdit, tasks, memberById, project, canBaseline, onSaveBaseline, onOpenTask, onReschedule }) {
   const [drag, setDrag] = useState(null); // {id, startX, origStart, origEnd, deltaDays, mode: "move"|"left"|"right"}
   const PX = 26, ROW = 38, LABEL_W = 224;
 
@@ -3186,8 +3308,10 @@ function TimelineView({ t, lang, canEdit, tasks, memberById, onOpenTask, onResch
   }).filter(Boolean).sort((a, b) => (a.start - b.start) || (a.end - b.end) || String(a.tk.title || "").localeCompare(String(b.tk.title || "")));
   if (items.length === 0) return <div className="p-6"><Empty2 icon={<CalendarRange size={44} />} text={t.noTimelineData} /></div>;
 
+  const baseline = (project && project.baseline && project.baseline.tasks) || null;
   let min = items[0].start, max = items[0].end;
   items.forEach((it) => { if (it.start < min) min = it.start; if (it.end > max) max = it.end; });
+  if (baseline) for (const id in baseline) { const b = baseline[id]; const bs = parseISO(b.s), be = parseISO(b.e); if (bs && bs < min) min = bs; if (be && be > max) max = be; }
   min = new Date(min.getTime() - 2 * DAY_MS); max = new Date(max.getTime() + 3 * DAY_MS);
   const totalDays = Math.round((max - min) / DAY_MS) + 1;
   const dayOf = (d) => Math.round((d - min) / DAY_MS);
@@ -3247,8 +3371,10 @@ function TimelineView({ t, lang, canEdit, tasks, memberById, onOpenTask, onResch
         <span className="flex items-center gap-1.5"><span className="inline-block w-4 rounded-sm" style={{ height: 10, background: "#10b981" }} />{t.done}</span>
         <span className="flex items-center gap-1.5"><svg width="22" height="8"><line x1="0" y1="4" x2="22" y2="4" stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="3 2" /></svg>{t.depLine}</span>
         {showToday && <span className="flex items-center gap-1.5"><span className="inline-block" style={{ width: 2, height: 12, background: "#0ea5e9" }} />{t.today}</span>}
+        {baseline && <span className="flex items-center gap-1.5"><span className="inline-block w-4 rounded-sm" style={{ height: 4, background: "#94a3b8" }} />{t.baselineLabel}</span>}
         {undated > 0 && <span className="text-slate-400">• {undated} {t.undatedHint}</span>}
         {hasCycle && <span className="text-red-500 flex items-center gap-1"><AlertTriangle size={13} />{t.cycleWarn}</span>}
+        {canBaseline && <span className="ml-auto"><AntBtn size="small" onClick={onSaveBaseline}>{baseline ? t.baselineUpdate : t.baselineSave}</AntBtn>{baseline && project.baseline.savedAt ? <span className="text-slate-400 ml-2">{new Date(project.baseline.savedAt).toLocaleDateString(lang === "vi" ? "vi-VN" : "en-US")}</span> : null}</span>}
       </div>
       <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
         <div style={{ minWidth: LABEL_W + totalDays * PX }}>
@@ -3289,18 +3415,26 @@ function TimelineView({ t, lang, canEdit, tasks, memberById, onOpenTask, onResch
             const critical = isCritical(it.tk.id) && !it.tk.completed;
             const barColor = it.tk.completed ? "#10b981" : critical ? "#dc2626" : "#f97316";
             const slackDays = !hasCycle && !it.tk.completed ? slackOf[it.tk.id] : null;
-            const barTip = critical ? t.criticalTip : (slackDays != null ? t.slackDays + ": " + slackDays + " " + t.daysUnit : "");
             const depCount = (it.tk.dependsOn || []).length;
             const isBad = violated.has(it.tk.id);
+            // kế hoạch gốc: thanh xám mảnh + số ngày lệch so với hạn gốc
+            const bl = baseline && baseline[it.tk.id];
+            const blS = bl && parseISO(bl.s), blE = bl && parseISO(bl.e);
+            const drift = blE ? Math.round((it.end - blE) / DAY_MS) : 0;
+            const driftTxt = bl && drift !== 0 ? ((drift > 0 ? "+" : "") + drift + (lang === "vi" ? "ng " : "d ") + (drift > 0 ? t.baselineLate : t.baselineEarly) + " " + t.baselineDays) : "";
+            const barTip = (critical ? t.criticalTip : (slackDays != null ? t.slackDays + ": " + slackDays + " " + t.daysUnit : "")) + (driftTxt ? " · " + driftTxt : "");
             return (
               <div key={it.tk.id} className="flex items-center border-b border-slate-50" style={{ height: ROW }}>
                 <div style={{ width: LABEL_W }} className="shrink-0 px-3 border-r border-slate-100 flex items-center gap-1.5">
                   <button onClick={() => onOpenTask(it.tk.id)} className="text-sm text-slate-700 truncate hover:text-orange-600 text-left flex-1">{it.tk.title || t.untitled}</button>
                   {critical && <span className="text-[10px] font-bold text-red-600 bg-red-50 rounded px-1 py-0.5 shrink-0">{t.criticalBadge}</span>}
+                  {bl && drift > 0 && <span title={driftTxt} className="text-[10px] font-bold shrink-0" style={{ color: "#dc2626" }}>+{drift}{lang === "vi" ? "ng" : "d"}</span>}
                   {isBad && <span title={t.depViolation} className="text-red-500 shrink-0 flex items-center"><AlertTriangle size={13} /></span>}
                   {depCount > 0 && <span title={t.waitingOn} className="text-xs text-amber-500 flex items-center shrink-0"><Network size={12} />{depCount}</span>}
                 </div>
                 <div className="relative flex-1" style={{ height: "100%" }}>
+                  {blS && blE && <div title={t.baselineLabel + ": " + bl.s.split("-").reverse().join("/") + " → " + bl.e.split("-").reverse().join("/")}
+                    style={{ position: "absolute", left: dayOf(blS) * PX, width: Math.max((Math.round((blE - blS) / DAY_MS) + 1) * PX - 3, 8), top: 32, height: 4, borderRadius: 2, background: "#94a3b8", opacity: 0.8 }} />}
                   <div onMouseDown={(ev) => canEdit && setDrag({ id: it.tk.id, startX: ev.clientX, origStart: it.start, origEnd: it.end, deltaDays: 0, mode: "move" })}
                     onTouchStart={(ev) => canEdit && setDrag({ id: it.tk.id, startX: ev.touches[0].clientX, origStart: it.start, origEnd: it.end, deltaDays: 0, mode: "move" })}
                     onClick={() => { if (!isDrag) onOpenTask(it.tk.id); }}
@@ -4116,7 +4250,7 @@ function ConnectModal({ t, members, storageOK, onClose }) {
 }
 
 /* ============================ NEW PROJECT ============================ */
-function NewProjectModal({ t, projects, onClose, onCreate }) {
+function NewProjectModal({ t, lang, projects, onClose, onCreate }) {
   const [name, setName] = useState("");
   const [template, setTemplate] = useState("");
   const submit = () => { if (name.trim()) onCreate(name, template); };
@@ -4124,13 +4258,15 @@ function NewProjectModal({ t, projects, onClose, onCreate }) {
     <AntModal open onCancel={onClose} width={400} title={t.newProject}
       footer={<><AntBtn onClick={onClose}>{t.cancel}</AntBtn><AntBtn type="primary" disabled={!name.trim()} onClick={submit}>{t.create}</AntBtn></>}>
       <AntInput autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder={t.projectName} onPressEnter={() => name.trim() && submit()} />
-      {projects && projects.length > 0 && (
-        <div className="mt-3">
-          <label className="text-xs font-medium text-slate-500 block mb-1">{t.useTemplate}</label>
-          <AntSelect value={template} onChange={(v) => setTemplate(v)} style={{ width: "100%" }} options={[{ value: "", label: t.templateNone }, ...projects.map((pp) => ({ value: pp.id, label: pp.name }))]} />
-          {template && <p className="text-xs text-slate-400 mt-1.5">{t.templateHint}</p>}
-        </div>
-      )}
+      <div className="mt-3">
+        <label className="text-xs font-medium text-slate-500 block mb-1">{t.useTemplate}</label>
+        <AntSelect value={template} onChange={(v) => setTemplate(v)} style={{ width: "100%" }} options={[
+          { value: "", label: t.templateNone },
+          { label: t.builtinTemplates, options: BUILTIN_TEMPLATES.map((tp) => ({ value: tp.id, label: lang === "vi" ? tp.vi : tp.en })) },
+          ...(projects && projects.length > 0 ? [{ label: t.copyFromProject, options: projects.map((pp) => ({ value: pp.id, label: pp.name })) }] : []),
+        ]} />
+        {template && !String(template).startsWith("tpl:") && <p className="text-xs text-slate-400 mt-1.5">{t.templateHint}</p>}
+      </div>
     </AntModal>
   );
 }

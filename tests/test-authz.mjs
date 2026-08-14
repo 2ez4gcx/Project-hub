@@ -83,6 +83,10 @@ ok("xóa 11 task một lần (dù qua thùng rác) -> 403 (chống phá hoại h
 r = await pushExpectFail(AN, { ...cur2, sections: [] });
 ok("thành viên xóa cột -> 403", r.status === 403);
 
+// ---- kế hoạch gốc (baseline): chỉ Lãnh đạo / Chủ sở hữu ----
+r = await pushExpectFail(AN, { ...cur2, projects: [{ ...cur2.projects[0], baseline: { savedAt: 1, by: "An", tasks: {} } }] });
+ok("teamlead (không phải lãnh đạo) đặt kế hoạch gốc -> 403", r.status === 403);
+
 // ---- luật 5: duyệt việc ----
 const approve = (state, tid) => ({ ...state, tasks: state.tasks.map((t) => t.id === tid ? { ...t, status: "done", completed: true, workdone: 100, approvedBy: "x" } : t) });
 r = await push(AN, approve(cur2, "tr1"));

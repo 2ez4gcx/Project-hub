@@ -1,5 +1,26 @@
 # Lịch sử phiên bản — Trạm Dự Án
 
+## v3.11.0 — 14/08/2026
+
+### Đường cong S — % giá trị (tab BOQ & Khối lượng)
+- Biểu đồ so KẾ HOẠCH (từ hạn chót các công việc liên kết với từng hạng mục)
+  với THỰC HIỆN (giá trị lũy kế các kỳ nghiệm thu) theo thời gian, tính theo
+  % tổng giá trị BOQ. Nhìn một phát biết dự án nhanh hay chậm về GIÁ TRỊ,
+  không chỉ về số việc.
+
+### Bộ mẫu dự án xây dựng đóng gói sẵn
+- Hộp "Dự án mới" có nhóm "Mẫu có sẵn (xây dựng)": Thi công nhà phố (30 việc,
+  6 giai đoạn), Fit-out văn phòng / nội thất (21 việc), Thiết kế nhà — hồ sơ
+  (16 việc). Chọn mẫu là có ngay khung cột + danh sách công việc chuẩn ngành,
+  sửa thoải mái như dự án thường.
+
+### Kế hoạch gốc (baseline) trên Gantt
+- Chủ sở hữu / Lãnh đạo bấm "Lưu kế hoạch gốc" trên view Dòng thời gian để
+  chốt lịch hiện tại. Từ đó mỗi việc hiện thêm thanh xám mảnh (lịch gốc) và
+  nhãn đỏ "+X ngày" khi trễ so với kế hoạch — bằng chứng trượt tiến độ cho
+  họp giao ban và hồ sơ với chủ đầu tư.
+- Máy chủ chặn thành viên thường tự sửa kế hoạch gốc (kể cả qua API).
+
 ## v3.10.0 — 14/08/2026
 
 ### Khép vòng nghiệp vụ giao – làm – duyệt

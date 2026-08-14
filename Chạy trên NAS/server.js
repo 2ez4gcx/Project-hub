@@ -244,6 +244,13 @@ function validateSharedWrite(me, inc, curStr) {
   for (const pr of arr(cur.projects)) {
     if (pr && pr.id && !incProjIds.has(pr.id)) return "Chỉ Chủ sở hữu mới được xóa dự án.";
   }
+  // 1b. Kế hoạch gốc (baseline) của dự án: chỉ Lãnh đạo (Chủ sở hữu đã bypass ở trên).
+  const curProjById = new Map(arr(cur.projects).map((p) => [p && p.id, p]));
+  for (const pr of arr(inc.projects)) {
+    if (!pr || !pr.id) continue;
+    const old = curProjById.get(pr.id);
+    if (!sameJson(pr.baseline, old ? old.baseline : undefined) && !me.isLeader) return "Chỉ Lãnh đạo / Chủ sở hữu mới được lưu kế hoạch gốc.";
+  }
 
   // 2. Thùng rác: không được sửa nội dung; chỉ được bỏ mục khi KHÔI PHỤC (dự án trở lại
   //    danh sách dự án, công việc trở lại danh sách việc) hoặc mục đã quá 90 ngày

@@ -2,7 +2,15 @@
   TRẠM DỰ ÁN v3.10 — CÓ GÌ MỚI (so với v3.5)
 ═══════════════════════════════════════════════════════════════
 
-0) GIAO – LÀM – DUYỆT KHÉP KÍN (mới nhất, v3.10)
+00) MỚI NHẤT (v3.11)
+   • ĐƯỜNG CONG S trong tab BOQ & Khối lượng: so kế hoạch với thực
+     hiện theo % giá trị — biết ngay dự án nhanh hay chậm về TIỀN.
+   • Tạo dự án mới có MẪU SẴN: Thi công nhà phố / Fit-out văn phòng /
+     Thiết kế nhà — chọn mẫu là có ngay khung việc chuẩn ngành.
+   • KẾ HOẠCH GỐC trên Dòng thời gian: sếp bấm "Lưu kế hoạch gốc",
+     từ đó việc nào trễ so với kế hoạch là hiện "+X ngày" đỏ.
+
+0) GIAO – LÀM – DUYỆT KHÉP KÍN (v3.10)
    • Xóa nhầm việc? Giờ việc bị xóa nằm trong THÙNG RÁC 90 ngày,
      khôi phục được cả bình luận lẫn tệp đính kèm.
    • Người duyệt có nút "TRẢ VỀ" kèm lý do bắt buộc — việc quay về
