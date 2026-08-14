@@ -1,5 +1,22 @@
 # Lịch sử phiên bản — Trạm Dự Án
 
+## v3.10.0 — 14/08/2026
+
+### Khép vòng nghiệp vụ giao – làm – duyệt
+- **Thùng rác cho công việc**: xóa một việc giờ vào thùng rác (giữ 90 ngày,
+  khôi phục được, kèm bình luận/tệp) thay vì mất vĩnh viễn như trước.
+  Máy chủ BẮT BUỘC điều này — không lách được qua API. Xóa vĩnh viễn
+  vẫn là quyền của Chủ sở hữu.
+- **Trả về kèm lý do**: người duyệt (Teamlead/Lãnh đạo) có nút "Trả về"
+  bên cạnh nút Duyệt — bắt buộc ghi lý do, việc quay về "Đang làm",
+  lý do thành bình luận ⛔ và được ghi vào lịch sử thay đổi.
+- **Email sự kiện** (cần cấu hình SMTP như email nhắc việc):
+  • Được GIAO việc -> người được giao nhận email (việc, dự án, hạn, ai giao).
+  • Việc bị TRẢ VỀ -> người làm nhận email kèm lý do.
+  • Mỗi sáng (sau 7h, đổi bằng digestHour trong config): Chủ sở hữu +
+    Lãnh đạo nhận BẢN TIN VIỆC QUÁ HẠN toàn công ty, mỗi ngày một email.
+  Tắt tất cả bằng công tắc "Nhắc nhở & Email" trong Cài đặt như cũ.
+
 ## v3.9.1 — 14/08/2026 (hiệu chỉnh)
 
 - File Khởi động (Windows/Mac) tự mở đúng địa chỉ https:// khi đã bật HTTPS

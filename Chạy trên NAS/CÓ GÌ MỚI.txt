@@ -1,6 +1,15 @@
 ═══════════════════════════════════════════════════════════════
-  TRẠM DỰ ÁN v3.9 — CÓ GÌ MỚI (so với v3.5)
+  TRẠM DỰ ÁN v3.10 — CÓ GÌ MỚI (so với v3.5)
 ═══════════════════════════════════════════════════════════════
+
+0) GIAO – LÀM – DUYỆT KHÉP KÍN (mới nhất, v3.10)
+   • Xóa nhầm việc? Giờ việc bị xóa nằm trong THÙNG RÁC 90 ngày,
+     khôi phục được cả bình luận lẫn tệp đính kèm.
+   • Người duyệt có nút "TRẢ VỀ" kèm lý do bắt buộc — việc quay về
+     Đang làm, lý do hiện trong bình luận và lịch sử.
+   • Có email tự động (khi đã cấu hình SMTP): được giao việc là có
+     mail; việc bị trả về là có mail kèm lý do; mỗi sáng sếp nhận
+     một mail tổng hợp việc quá hạn toàn công ty.
 
 ⚠ THAY ĐỔI CẦN BIẾT (từ v3.8):
    Tệp đính kèm, biên bản và ảnh nhật ký của một dự án giờ CHỈ những

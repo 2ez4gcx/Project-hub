@@ -103,6 +103,8 @@ const T = {
     tasksOpen: "việc đang mở", primaryTasks: "phụ trách chính", overdueTasks: "quá hạn",
     // timeline / gantt
     timeline: "Dòng thời gian", ganttHint: "Kéo thanh để dời lịch; kéo MÉP trái/phải để đổi ngày bắt đầu / hạn chót. Đường nối thể hiện phụ thuộc.",
+    taskKind: "Công việc", restoreNoProject: "Dự án của việc này không còn — hãy khôi phục dự án trước.",
+    rejectBtn: "Trả về", rejectReason: "Lý do trả về (bắt buộc)...", rejectSend: "Trả về làm lại",
     criticalPath: "Đường găng", criticalBadge: "Găng", normalTask: "Việc thường", depLine: "Phụ thuộc",
     criticalTip: "ĐƯỜNG GĂNG — việc này trễ ngày nào, cả dự án trễ ngày đó", slackDays: "Dự trữ", daysUnit: "ngày",
     depViolation: "Bắt đầu trước khi việc phụ thuộc hoàn thành — kiểm tra lại lịch!",
@@ -195,6 +197,7 @@ const T = {
       section_add: "đã thêm cột", project_create: "đã tạo dự án", project_delete: "đã xóa dự án",
       member_add: "đã thêm thành viên", member_remove: "đã gỡ thành viên",
       member_role: "đã đổi vai trò của", member_cap: "đã đổi quyền của", history_grant: "đã cấp quyền xem lịch sử cho", history_revoke: "đã thu hồi quyền xem lịch sử của",
+      task_reject: "đã trả về việc",
       task_assign: "đã giao việc", task_workdone: "đã cập nhật hoàn thành", task_reminder: "đã đặt nhắc việc cho",
     },
     emptyVal: "(trống)",
@@ -281,6 +284,8 @@ const T = {
     capacity: "Capacity", overloaded: "Overloaded", lightLoad: "Light", balanced: "Balanced",
     tasksOpen: "open tasks", primaryTasks: "primary", overdueTasks: "overdue",
     timeline: "Timeline", ganttHint: "Drag a bar to reschedule; drag its LEFT/RIGHT edge to change start / due date. Lines show dependencies.",
+    taskKind: "Task", restoreNoProject: "This task's project is gone — restore the project first.",
+    rejectBtn: "Return", rejectReason: "Reason for returning (required)...", rejectSend: "Return for rework",
     criticalPath: "Critical path", criticalBadge: "Critical", normalTask: "Normal task", depLine: "Dependency",
     criticalTip: "CRITICAL PATH — any delay here delays the whole project", slackDays: "Slack", daysUnit: "days",
     depViolation: "Starts before its dependency finishes — check the schedule!",
@@ -363,6 +368,7 @@ const T = {
       section_add: "added column", project_create: "created project", project_delete: "deleted project",
       member_add: "added member", member_remove: "removed member",
       member_role: "changed role of", member_cap: "changed capability of", history_grant: "granted history access to", history_revoke: "revoked history access from",
+      task_reject: "returned task",
       task_assign: "assigned", task_workdone: "updated progress on", task_reminder: "set a reminder for",
     },
     emptyVal: "(empty)",
@@ -1034,8 +1040,20 @@ function ProjectManagerInner() {
   const removeTask = (id) => {
     if (!canEdit) return;
     const tk = tasks.find((x) => x.id === id);
+    if (!tk) return;
+    // Xóa việc -> vào THÙNG RÁC (như dự án), không mất vĩnh viễn; máy chủ cũng bắt buộc điều này.
+    setTrash((tr) => [{ id: tk.id, kind: "task", name: tk.title || t.untitled, projectId: tk.projectId, deletedAt: Date.now(), deletedBy: me?.name || "", task: tk }, ...tr]);
     setTasks((p) => p.filter((x) => x.id !== id)); setDetailTask(null);
-    if (tk) log({ action: "task_delete", projectId: tk.projectId, projectName: projName(tk.projectId), taskTitle: tk.title });
+    log({ action: "task_delete", projectId: tk.projectId, projectName: projName(tk.projectId), taskTitle: tk.title });
+  };
+  const rejectTask = (id, reason) => {
+    const tk = tasks.find((x) => x.id === id);
+    const rs = String(reason || "").trim();
+    if (!tk || !canApproveTask(tk) || !rs) return;
+    setTasks((p) => p.map((x) => x.id === id ? { ...x, status: "doing", completed: false, completedAt: null, approvedBy: "",
+      comments: [...(x.comments || []), { id: uid(), author: me.name, role: myRole, text: "⛔ " + (lang === "vi" ? "Trả về: " : "Returned: ") + rs, ts: Date.now() }],
+      lastReturn: { by: me.name, reason: rs, ts: Date.now() } } : x)); // lastReturn: máy chủ nhìn thấy để gửi email báo người làm
+    log({ action: "task_reject", projectId: tk.projectId, projectName: projName(tk.projectId), taskId: id, taskTitle: tk.title, to: rs });
   };
   const addComment = (id, text) => {
     if (!me || !text.trim()) return;
@@ -1101,6 +1119,12 @@ function ProjectManagerInner() {
     setTimeout(() => setUndoInfo((u) => (u && u.id === pid ? null : u)), 8000); };
   const restoreProject = (pid) => {
     const entry = trash.find((e) => e.id === pid); if (!entry) return;
+    if (entry.kind === "task") { // khôi phục một CÔNG VIỆC từ thùng rác
+      if (!projects.some((p) => p.id === entry.projectId)) { alert(t.restoreNoProject); return; }
+      setTasks((x) => [...x, entry.task]);
+      setTrash((tr) => tr.filter((e) => e.id !== pid));
+      return;
+    }
     setProjects((p) => [...p, entry.project]);
     setSections((sx) => [...sx, ...(entry.sections || [])]);
     setTasks((x) => [...x, ...(entry.tasks || [])]);
@@ -1411,7 +1435,7 @@ function ProjectManagerInner() {
           onClose={() => setDetailTask(null)} onPatch={(patch) => patchTask(detailTask, patch)}
           onAssign={(a, p) => setAssign(detailTask, a, p)} onWorkdone={(v) => setWorkdone(detailTask, v)}
           onDepends={(deps) => setDepends(detailTask, deps)}
-          onReminder={(l) => setReminder(detailTask, l)} onDelete={() => removeTask(detailTask)} onComment={(text) => addComment(detailTask, text)} onStatus={(st) => setStatus(detailTask, st)} onApprove={() => approveTask(detailTask)} onApprover={(a) => setApprover(detailTask, a)} canApprove={canApproveTask(task)} assignableIds={assignableIds} canRemind={feat("notifications")} serverMode={serverMode} />;
+          onReminder={(l) => setReminder(detailTask, l)} onDelete={() => removeTask(detailTask)} onComment={(text) => addComment(detailTask, text)} onStatus={(st) => setStatus(detailTask, st)} onApprove={() => approveTask(detailTask)} onReject={(reason) => rejectTask(detailTask, reason)} onApprover={(a) => setApprover(detailTask, a)} canApprove={canApproveTask(task)} assignableIds={assignableIds} canRemind={feat("notifications")} serverMode={serverMode} />;
       })()}
 
       {modal === "newProject" && <NewProjectModal t={t} projects={projects} onClose={() => setModal(null)} onCreate={(n, tpl) => { addProject(n, tpl); setModal(null); }} />}
@@ -2832,10 +2856,10 @@ function TrashModal({ t, lang, trash, isOwner, onRestore, onPurge, onClose }) {
         <div className="space-y-2" style={{ maxHeight: "60vh", overflowY: "auto" }}>
           {trash.map((e) => (
             <div key={e.id} className="flex items-center gap-3 rounded-lg border border-slate-200 p-3">
-              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: (e.project && e.project.color) || "#94a3b8" }} />
+              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: e.kind === "task" ? "#f59e0b" : (e.project && e.project.color) || "#94a3b8" }} />
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-slate-700 truncate">{e.name}</div>
-                <div className="text-xs text-slate-400">{(e.tasks || []).length} {lang === "vi" ? "công việc" : "tasks"} · {new Date(e.deletedAt).toLocaleDateString(lang === "vi" ? "vi-VN" : "en-US")}{e.deletedBy ? " · " + e.deletedBy : ""}</div>
+                <div className="text-xs text-slate-400">{e.kind === "task" ? t.taskKind : ((e.tasks || []).length + " " + (lang === "vi" ? "công việc" : "tasks"))} · {new Date(e.deletedAt).toLocaleDateString(lang === "vi" ? "vi-VN" : "en-US")}{e.deletedBy ? " · " + e.deletedBy : ""}</div>
               </div>
               <AntBtn size="small" onClick={() => onRestore(e.id)}>{t.restore}</AntBtn>
               {isOwner && <AntBtn size="small" danger onClick={() => { if (window.confirm(t.deleteForever + " \"" + e.name + "\"?")) onPurge(e.id); }}>{t.deleteForever}</AntBtn>}
@@ -3410,6 +3434,7 @@ function HistoryView({ t, lang, history, projects, canDelete, onDelete }) {
       case "comment_add": return `${A.comment_add} ${q(e.taskTitle)}${where}`;
       case "task_assign": return `${A.task_assign} ${q(e.taskTitle)} → ${e.to}${e.primaryName ? ` (★ ${e.primaryName})` : ""}${where}`;
       case "task_workdone": return `${A.task_workdone} ${q(e.taskTitle)}: ${e.from} → ${e.to}${where}`;
+      case "task_reject": return `${A.task_reject} ${q(e.taskTitle)}: “${e.to}”${where}`;
       case "task_reminder": return `${A.task_reminder} ${q(e.taskTitle)}: ${e.to}${where}`;
       case "section_add": return `${A.section_add} “${e.to}”${where}`;
       case "project_create": return `${A.project_create} “${e.projectName}”`;
@@ -3483,10 +3508,12 @@ function TaskFiles({ t, lang, task, canEdit }) {
     </div>
   );
 }
-function TaskDetail({ t, lang, task, members, memberById, me, canEdit, canWorkdone, sections, projTasks, onClose, onPatch, onAssign, onWorkdone, onReminder, onDepends, onDelete, onComment, onStatus, onApprove, onApprover, canApprove, assignableIds, canRemind, serverMode }) {
+function TaskDetail({ t, lang, task, members, memberById, me, canEdit, canWorkdone, sections, projTasks, onClose, onPatch, onAssign, onWorkdone, onReminder, onDepends, onDelete, onComment, onStatus, onApprove, onReject, onApprover, canApprove, assignableIds, canRemind, serverMode }) {
   const [tagInput, setTagInput] = useState("");
   const [subInput, setSubInput] = useState("");
   const [comment, setComment] = useState("");
+  const [rejecting, setRejecting] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
   const ro = !canEdit;
   const addTag = () => { const v = tagInput.trim(); if (v && !task.tags.includes(v)) onPatch({ tags: [...task.tags, v] }); setTagInput(""); };
   const addSub = () => { const v = subInput.trim(); if (v) onPatch({ subtasks: [...task.subtasks, { id: uid(), title: v, done: false }] }); setSubInput(""); };
@@ -3560,6 +3587,18 @@ function TaskDetail({ t, lang, task, members, memberById, me, canEdit, canWorkdo
               ))}</div>
             </Field>}
             {task.status === "review" && canApprove && <button onClick={onApprove} style={{ background: "#16a34a" }} className="w-full py-2 text-sm font-semibold text-white rounded-lg transition flex items-center justify-center gap-1.5"><Check size={16} />{t.approveBtn}</button>}
+            {task.status === "review" && canApprove && !rejecting && (
+              <button onClick={() => setRejecting(true)} className="w-full py-2 text-sm font-semibold rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition flex items-center justify-center gap-1.5"><X size={15} />{t.rejectBtn}</button>
+            )}
+            {task.status === "review" && canApprove && rejecting && (
+              <div className="space-y-1.5">
+                <AntInput.TextArea rows={2} autoFocus value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder={t.rejectReason} />
+                <div className="flex gap-2">
+                  <AntBtn size="small" className="flex-1" onClick={() => { setRejecting(false); setRejectReason(""); }}>{t.cancel}</AntBtn>
+                  <AntBtn size="small" danger type="primary" className="flex-1" disabled={!rejectReason.trim()} onClick={() => { onReject(rejectReason); setRejecting(false); setRejectReason(""); }}>{t.rejectSend}</AntBtn>
+                </div>
+              </div>
+            )}
             <Field icon={<Flag size={15} />} label={t.priority}>
               <div className="flex gap-1.5">{PRIORITY_ORDER.map((p) => { const m = PRIORITY_META[p]; const active = task.priority === p; return (
                 <button key={p} disabled={ro} onClick={() => onPatch({ priority: p })} className="flex-1 text-xs font-medium py-1.5 rounded-lg border transition" style={active ? { background: m.bg, color: m.color, borderColor: m.ring } : { borderColor: "#e2e8f0", color: "#64748b" }}>{t.priorities[p]}</button>); })}</div>

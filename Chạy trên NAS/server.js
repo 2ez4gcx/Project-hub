@@ -193,7 +193,7 @@ function saveData(d) { writeJsonAtomic(DATA, JSON.stringify(d)); }
 // (Trước đây scheduler load data.json -> await gửi email -> save lại bản CŨ, có thể đè mất
 // thay đổi người dùng vừa lưu qua /api/kv trong lúc email đang gửi; đồng thời ghi data.json mỗi phút.)
 const SCHED_STATE = path.join(DATA_DIR, "sched-state.json");
-function loadSchedState() { try { const s = JSON.parse(fs.readFileSync(SCHED_STATE, "utf8")); return { remindersSent: s.remindersSent || {}, backupWeek: s.backupWeek || "" }; } catch { return { remindersSent: {}, backupWeek: "" }; } }
+function loadSchedState() { try { const s = JSON.parse(fs.readFileSync(SCHED_STATE, "utf8")); return { remindersSent: s.remindersSent || {}, backupWeek: s.backupWeek || "", digestDay: s.digestDay || "" }; } catch { return { remindersSent: {}, backupWeek: "", digestDay: "" }; } }
 function saveSchedState(s) { writeJsonAtomic(SCHED_STATE, JSON.stringify(s)); }
 (function migrateSchedState() {
   if (fs.existsSync(SCHED_STATE)) return;
@@ -245,16 +245,18 @@ function validateSharedWrite(me, inc, curStr) {
     if (pr && pr.id && !incProjIds.has(pr.id)) return "Chỉ Chủ sở hữu mới được xóa dự án.";
   }
 
-  // 2. Thùng rác: không được sửa nội dung; chỉ được bỏ mục khi KHÔI PHỤC dự án
-  //    hoặc mục đã quá 90 ngày (client tự dọn). Xóa vĩnh viễn là quyền của Chủ sở hữu.
+  // 2. Thùng rác: không được sửa nội dung; chỉ được bỏ mục khi KHÔI PHỤC (dự án trở lại
+  //    danh sách dự án, công việc trở lại danh sách việc) hoặc mục đã quá 90 ngày
+  //    (client tự dọn). Xóa vĩnh viễn là quyền của Chủ sở hữu.
   const incTrash = new Map(arr(inc.trash).map((e) => [e && e.id, e]));
+  const incTaskIds = idSet(inc.tasks);
   for (const e of arr(cur.trash)) {
     if (!e || !e.id) continue;
     const kept = incTrash.get(e.id);
     if (!kept) {
-      const restored = incProjIds.has(e.id);
+      const restored = incProjIds.has(e.id) || incTaskIds.has(e.id);
       const expired = (e.deletedAt || 0) < Date.now() - TRASH_TTL_MS;
-      if (!restored && !expired) return "Chỉ Chủ sở hữu mới được xóa vĩnh viễn dự án trong thùng rác.";
+      if (!restored && !expired) return "Chỉ Chủ sở hữu mới được xóa vĩnh viễn mục trong thùng rác.";
     } else if (!sameJson(kept, e)) {
       return "Không được sửa nội dung mục trong thùng rác.";
     }
@@ -267,11 +269,16 @@ function validateSharedWrite(me, inc, curStr) {
     if (s && s.id && !incSecIds.has(s.id)) return "Bạn không có quyền xóa cột.";
   }
 
-  // 4. Xóa công việc: cần quyền giao việc (canAssign); chặn xóa hàng loạt trong một lần ghi.
+  // 4. Xóa công việc: cần quyền giao việc (canAssign); mỗi việc bị xóa PHẢI có mặt
+  //    trong thùng rác (chống xóa vĩnh viễn lách qua giao diện); chặn xóa hàng loạt.
   const incTasks = new Map(arr(inc.tasks).map((x) => [x && x.id, x]));
   const curTasks = new Map(arr(cur.tasks).map((x) => [x && x.id, x]));
   let removedTasks = 0;
-  for (const id of curTasks.keys()) if (id && !incTasks.has(id)) removedTasks++;
+  for (const id of curTasks.keys()) {
+    if (!id || incTasks.has(id)) continue;
+    removedTasks++;
+    if (!incTrash.has(id)) return "Xóa công việc phải qua thùng rác — hãy tải lại trang (Ctrl+R) để cập nhật phiên bản mới.";
+  }
   if (removedTasks > 0 && !me.canAssign) return "Bạn không có quyền xóa công việc.";
   if (removedTasks > 10) return "Không thể xóa nhiều công việc như vậy trong một thao tác. Hãy xóa từng việc.";
 
@@ -934,8 +941,10 @@ const requestHandler = async (req, res) => {
       slog("TỪ CHỐI ghi dữ liệu chung bởi " + me.email + ": " + problem);
       return json(res, 403, { error: "forbidden_change", message: problem });
     }
+    const prevStr = d[key] || "";
     d[key] = value; saveData(d);
     SHARED_REV_CACHE = (incoming && typeof incoming.rev === "number") ? incoming.rev : null;
+    try { notifyChanges(me, incoming, prevStr); } catch {}
     return json(res, 200, { ok: true });
   }
 
@@ -1041,6 +1050,82 @@ async function runReminderCheck() {
   const cutoff = now - 90 * 86400000;
   for (const k of Object.keys(sent)) if (typeof sent[k] === "number" && sent[k] < cutoff) { delete sent[k]; dirty = true; }
   if (dirty) saveSchedState(st);
+}
+
+/* ===================== EMAIL SỰ KIỆN (giao việc / trả về) =====================
+   Sau mỗi lần lưu dữ liệu chung, so bản mới với bản cũ:
+   - Ai vừa ĐƯỢC GIAO việc (thêm vào assignees) -> email cho người đó.
+   - Việc vừa bị TRẢ VỀ (trường lastReturn đổi mốc thời gian) -> email người làm kèm lý do.
+   Không chặn phản hồi API (gửi nền); tắt bằng features.notifications = false. */
+function notifyChanges(actor, inc, curStr) {
+  if (CONFIG.features && CONFIG.features.notifications === false) return;
+  let cur; try { cur = JSON.parse(curStr || "{}") || {}; } catch { cur = {}; }
+  const arr = (x) => (Array.isArray(x) ? x : []);
+  const curTasks = new Map(arr(cur.tasks).map((x) => [x && x.id, x]));
+  const accounts = loadAccounts();
+  const emailById = Object.fromEntries(accounts.map((a) => [a.id, a.email]));
+  const projName = Object.fromEntries(arr(inc.projects).map((p) => [p.id, p.name]));
+  const transport = buildTransport(); const from = smtpFrom();
+  const link = CONFIG.appUrl ? "\n\nMở phần mềm: " + CONFIG.appUrl : "";
+  const send = (to, subject, text) => {
+    if (!to) return;
+    if (transport) transport.sendMail({ from, to, subject, text: text + link + "\n\n(Email tự động từ Trạm Dự Án)" }).then(() => console.log("[mail] đã gửi: " + subject + " -> " + to)).catch((e) => console.log("[mail] LỖI gửi \"" + subject + "\":", e.message));
+    else console.log("[mail][DRY-RUN — chưa cấu hình SMTP] " + subject + " -> " + to);
+  };
+  for (const tk of arr(inc.tasks)) {
+    if (!tk || !tk.id) continue;
+    const old = curTasks.get(tk.id);
+    const oldAss = new Set(old ? arr(old.assignees) : []);
+    for (const uid2 of arr(tk.assignees)) {
+      if (oldAss.has(uid2) || uid2 === actor.id) continue;
+      send(emailById[uid2], "[Giao việc] " + (tk.title || "Công việc"),
+        "Bạn vừa được giao việc:\n\n• Công việc: " + (tk.title || "(chưa đặt tên)") + "\n• Dự án: " + (projName[tk.projectId] || "") + (tk.dueDate ? "\n• Hạn chót: " + tk.dueDate : "") + "\n• Người giao: " + (actor.name || actor.email));
+    }
+    const newRet = tk.lastReturn && tk.lastReturn.ts;
+    if (newRet && newRet !== (old && old.lastReturn && old.lastReturn.ts)) {
+      for (const uid2 of arr(tk.assignees)) {
+        if (uid2 === actor.id) continue;
+        send(emailById[uid2], "[Trả về] " + (tk.title || "Công việc"),
+          "Việc của bạn bị TRẢ VỀ để làm lại:\n\n• Công việc: " + (tk.title || "(chưa đặt tên)") + "\n• Dự án: " + (projName[tk.projectId] || "") + "\n• Lý do: " + (tk.lastReturn.reason || "") + "\n• Người trả về: " + (tk.lastReturn.by || actor.name || ""));
+      }
+    }
+  }
+}
+
+/* ===================== BẢN TIN QUÁ HẠN MỖI SÁNG =====================
+   Gửi cho Chủ sở hữu + Lãnh đạo danh sách việc quá hạn, mỗi ngày một lần
+   (sau digestHour trong config, mặc định 7 giờ sáng). */
+async function runOverdueDigest() {
+  CONFIG = loadConfig();
+  if (CONFIG.features && CONFIG.features.notifications === false) return;
+  const now = new Date();
+  const hour = typeof CONFIG.digestHour === "number" ? CONFIG.digestHour : 7;
+  if (now.getHours() < hour) return;
+  const day = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
+  const st = loadSchedState();
+  if (st.digestDay === day) return;
+  const sh = sharedState();
+  const overdue = (sh.tasks || []).filter((x) => x && !x.completed && x.dueDate && x.dueDate < day);
+  st.digestDay = day; saveSchedState(st); // đánh dấu trước, tránh gửi lặp nếu lỗi giữa chừng
+  if (!overdue.length) return;
+  const accounts = loadAccounts();
+  const mgrs = accounts.filter((a) => a.role === "owner" || a.isLeader).map((a) => a.email).filter(Boolean);
+  if (!mgrs.length) return;
+  const nameById = Object.fromEntries(accounts.map((a) => [a.id, a.name]));
+  const projById = Object.fromEntries((sh.projects || []).map((p) => [p.id, p.name]));
+  const lines = overdue.sort((a, b) => (a.dueDate || "").localeCompare(b.dueDate || "")).slice(0, 50).map((x) => {
+    const days = Math.max(1, Math.round((Date.parse(day) - Date.parse(x.dueDate)) / 86400000));
+    const who = (x.assignees || []).map((id) => nameById[id]).filter(Boolean).join(", ");
+    return "• " + (x.title || "(chưa đặt tên)") + " — " + (projById[x.projectId] || "") + " — quá hạn " + days + " ngày (hạn " + x.dueDate + ")" + (who ? " — " + who : "");
+  });
+  const text = "Việc QUÁ HẠN tính đến sáng " + day + " (" + overdue.length + " việc):\n\n" + lines.join("\n")
+    + (overdue.length > 50 ? "\n… và " + (overdue.length - 50) + " việc nữa" : "")
+    + (CONFIG.appUrl ? "\n\nMở phần mềm: " + CONFIG.appUrl : "") + "\n\n(Email tự động từ Trạm Dự Án)";
+  const transport = buildTransport(); const from = smtpFrom();
+  if (transport) {
+    try { await transport.sendMail({ from, to: mgrs.join(","), subject: "[Quá hạn] " + overdue.length + " việc — " + day, text }); console.log("[digest] đã gửi bản tin quá hạn -> " + mgrs.join(", ")); }
+    catch (e) { console.log("[digest] LỖI gửi:", e.message); }
+  } else console.log("[digest][DRY-RUN — chưa cấu hình SMTP] " + overdue.length + " việc quá hạn -> " + mgrs.join(", "));
 }
 
 /* ===================== SNAPSHOT CỤC BỘ HẰNG NGÀY =====================
@@ -1155,5 +1240,7 @@ server.listen(PORT, "0.0.0.0", () => {
   try { runSnapshotCheck(); } catch {}
   setInterval(() => { try { runSnapshotCheck(); } catch {} }, 3600 * 1000);
   setInterval(() => { try { touchTrial(); } catch {} }, 3600 * 1000);
+  runOverdueDigest().catch(() => {});
+  setInterval(() => runOverdueDigest().catch(() => {}), 30 * 60 * 1000);
   setInterval(purgeTokens, 10 * 60 * 1000);
 });
