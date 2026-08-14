@@ -140,7 +140,13 @@ function saveSchedState(s) { writeJsonAtomic(SCHED_STATE, JSON.stringify(s)); }
 })();
 function saveAccounts(a) { writeJsonAtomic(ACCOUNTS, JSON.stringify(a, null, 2)); }
 const FINANCE = path.join(DATA_DIR, "finance.json");
-function loadFinance() { try { const f = JSON.parse(fs.readFileSync(FINANCE, "utf8")); return { investorContracts: f.investorContracts || [], subContracts: f.subContracts || [] }; } catch { return { investorContracts: [], subContracts: [] }; } }
+function loadFinance() {
+  try {
+    const f = JSON.parse(fs.readFileSync(FINANCE, "utf8"));
+    return { investorContracts: f.investorContracts || [], subContracts: f.subContracts || [],
+      boq: (f.boq && typeof f.boq === "object" && !Array.isArray(f.boq)) ? f.boq : {} };
+  } catch { return { investorContracts: [], subContracts: [], boq: {} }; }
+}
 function saveFinance(f) { writeJsonAtomic(FINANCE, JSON.stringify(f)); }
 // ---- Cache rev của khối dữ liệu chung (phục vụ /api/kv/rev, tránh parse cả file mỗi lần poll) ----
 let SHARED_REV_CACHE = null;
@@ -790,7 +796,7 @@ const server = http.createServer(async (req, res) => {
   if (p === "/api/finance" && req.method === "POST") {
     if (!canFinance(me)) return json(res, 403, { error: "forbidden" });
     const body = await readBody(req);
-    saveFinance({ investorContracts: Array.isArray(body.investorContracts) ? body.investorContracts : [], subContracts: Array.isArray(body.subContracts) ? body.subContracts : [], rev: (loadFinance().rev || 0) + 1, updatedAt: Date.now() });
+    saveFinance({ investorContracts: Array.isArray(body.investorContracts) ? body.investorContracts : [], subContracts: Array.isArray(body.subContracts) ? body.subContracts : [], boq: (body.boq && typeof body.boq === "object" && !Array.isArray(body.boq)) ? body.boq : {}, rev: (loadFinance().rev || 0) + 1, updatedAt: Date.now() });
     return json(res, 200, { ok: true });
   }
 

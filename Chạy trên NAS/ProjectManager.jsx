@@ -128,6 +128,16 @@ const T = {
     templateHint: "Sao chép các cột & công việc từ một dự án có sẵn (KHÔNG sao chép phần giao việc, tiến độ, bình luận).",
     // finance per project
     financeProject: "Dự án", financeAllProjects: "Tất cả dự án", financeNoProject: "Chưa gắn dự án",
+    // BOQ – khối lượng – chi phí
+    finTabBoq: "BOQ & Khối lượng", boqCode: "Mã", boqName: "Tên công tác", boqUnit: "ĐVT",
+    boqQty: "KL hợp đồng", boqPrice: "Đơn giá", boqAmount: "Thành tiền", boqDoneQty: "KL thực hiện",
+    boqDoneVal: "Giá trị thực hiện", boqPercent: "%KL", boqLinkTasks: "Công việc liên kết",
+    boqAddItem: "Thêm hạng mục", boqImport: "Nhập từ Excel (CSV)",
+    boqImportHint: "Dán các cột theo thứ tự: Mã, Tên công tác, Đơn vị, Khối lượng, Đơn giá — có thể kèm dòng tiêu đề. Chấp nhận số kiểu VN (1.234,56) và kiểu Anh (1,234.56).",
+    boqImportDo: "Nhập vào BOQ", boqSumValue: "Giá trị BOQ", boqSumDone: "Đã thực hiện", boqSumLeft: "Còn lại", boqSumPct: "% giá trị",
+    boqSuggest: "Lấy KL theo % tiến độ các công việc liên kết", boqEmpty: "Chưa có hạng mục BOQ cho dự án này.",
+    boqEmptyAll: "Chưa có BOQ. Chọn một dự án ở trên để bắt đầu nhập.", boqPickProject: "Chọn một dự án ở trên để nhập / sửa BOQ chi tiết.",
+    boqVsContract: "Giá trị hợp đồng CĐT", boqDelta: "Chênh lệch BOQ − hợp đồng", boqDeleteConfirm: "Xóa hạng mục này?", boqCount: "hạng mục",
     contract: "Hợp đồng", appendix: "Phụ lục", kindLabel: "Loại", contractItems: "hợp đồng/PL",
     contractValue: "Giá trị hợp đồng", contractCode: "Số / Tên hợp đồng",
     parentContract: "Thuộc hợp đồng", none: "—", notLinked: "Không liên kết",
@@ -289,6 +299,16 @@ const T = {
     useTemplate: "Project template (optional)", templateNone: "Empty — no template",
     templateHint: "Copy columns & tasks from an existing project (does NOT copy assignments, progress, comments).",
     financeProject: "Project", financeAllProjects: "All projects", financeNoProject: "No project",
+    // BOQ – quantities – cost
+    finTabBoq: "BOQ & Quantities", boqCode: "Code", boqName: "Work item", boqUnit: "Unit",
+    boqQty: "Contract qty", boqPrice: "Unit price", boqAmount: "Amount", boqDoneQty: "Done qty",
+    boqDoneVal: "Executed value", boqPercent: "%Qty", boqLinkTasks: "Linked tasks",
+    boqAddItem: "Add item", boqImport: "Import from Excel (CSV)",
+    boqImportHint: "Paste columns in order: Code, Work item, Unit, Quantity, Unit price — a header row is OK. Accepts VN (1.234,56) and EN (1,234.56) number formats.",
+    boqImportDo: "Import to BOQ", boqSumValue: "BOQ value", boqSumDone: "Executed", boqSumLeft: "Remaining", boqSumPct: "% of value",
+    boqSuggest: "Fill qty from linked tasks' progress", boqEmpty: "No BOQ items for this project yet.",
+    boqEmptyAll: "No BOQ yet. Pick a project above to start.", boqPickProject: "Pick a project above to enter / edit the detailed BOQ.",
+    boqVsContract: "Investor contract value", boqDelta: "BOQ − contract delta", boqDeleteConfirm: "Delete this item?", boqCount: "items",
     contract: "Contract", appendix: "Appendix", kindLabel: "Type", contractItems: "items",
     contractValue: "Contract value", contractCode: "Contract no. / name",
     parentContract: "Belongs to", none: "—", notLinked: "Not linked",
@@ -462,7 +482,8 @@ function fmtMoney(n, lang) {
 function normalizeFinance(f) {
   f = f || {};
   return { investorContracts: Array.isArray(f.investorContracts) ? f.investorContracts : [],
-    subContracts: Array.isArray(f.subContracts) ? f.subContracts : [] };
+    subContracts: Array.isArray(f.subContracts) ? f.subContracts : [],
+    boq: (f.boq && typeof f.boq === "object" && !Array.isArray(f.boq)) ? f.boq : {} }; // { projectId: [hạng mục] }
 }
 const sumItems = (arr) => (arr || []).reduce((s, x) => s + (Number(x.amount) || 0), 0);
 // money input grouping (vi uses '.', en uses ',')
@@ -1361,7 +1382,7 @@ function ProjectManagerInner() {
           {activeProject === "search" && <SearchView t={t} tasks={tasks} projects={projects} memberById={memberById} onOpenTask={(id) => setDetailTask(id)} />}
           {activeProject === "dailyreport" && <DailyReportView t={t} lang={lang} me={me} myRole={myRole} currentUserId={currentUserId} members={members} memberById={memberById} tasks={tasks} projects={projects} dailyReports={dailyReports} onSave={saveDailyReport} onComment={addReportComment} reportDeadline={reportDeadline} onOpenTask={(id) => setDetailTask(id)} />}
           {activeProject === "finance" && (canFinance
-            ? <FinanceView t={t} lang={lang} finance={finance} projects={projects} onChange={setFinanceData} />
+            ? <FinanceView t={t} lang={lang} finance={finance} projects={projects} tasks={tasks} onChange={setFinanceData} />
             : <div className="h-full flex flex-col items-center justify-center text-slate-400"><Lock size={44} className="mb-3 opacity-40" /><p className="text-lg font-medium text-slate-500">{t.financeLocked}</p></div>)}
           {activeProject === "workload" && (canViewWorkload
             ? <WorkloadView t={t} lang={lang} members={workMembers} tasks={tasks} projects={projects} />
@@ -2372,7 +2393,7 @@ function ContractCard({ side, c, investorContracts, projects, projName, t, lang,
   );
 }
 
-function FinanceView({ t, lang, finance, projects, onChange }) {
+function FinanceView({ t, lang, finance, projects, tasks, onChange }) {
   const [tab, setTab] = useState("investor");
   const [adding, setAdding] = useState(false);
   const [proj, setProj] = useState("");
@@ -2404,7 +2425,25 @@ function FinanceView({ t, lang, finance, projects, onChange }) {
     { label: t.sumSubPaid, val: subPaid, c: "#ef4444", icon: <TrendingDown size={18} /> },
     { label: t.sumToPay, val: subValue - subPaid, c: "#8b5cf6", icon: <Banknote size={18} /> },
   ];
-  const cards = tab === "investor" ? invCards : subCards;
+  // thẻ tổng cho tab BOQ: giá trị hợp đồng (BOQ) / lũy kế nghiệm thu / % giá trị
+  const boqScope = proj ? [[proj, (finance.boq || {})[proj]]] : Object.entries(finance.boq || {});
+  let boqVal = 0, boqLuyKe = 0;
+  for (const [, bRaw] of boqScope) {
+    const bb = boqOf(bRaw);
+    for (const it of bb.items) {
+      if (it.laNhom) continue;
+      const dg = Number(it.donGia) || 0;
+      boqVal += (Number(it.khoiLuong) || 0) * dg;
+      boqLuyKe += bb.kys.reduce((s, k) => s + (Number((k.kl || {})[it.id]) || 0), 0) * dg;
+    }
+  }
+  const boqCards = [
+    { label: t.boqSumValue, val: boqVal, c: "#f97316", icon: <Receipt size={18} /> },
+    { label: t.boqSumDone, val: boqLuyKe, c: "#10b981", icon: <TrendingUp size={18} /> },
+    { label: t.boqSumLeft, val: boqVal - boqLuyKe, c: "#f59e0b", icon: <Banknote size={18} /> },
+    { label: t.boqSumPct, text: (boqVal > 0 ? Math.round(boqLuyKe / boqVal * 100) : 0) + "%", c: "#0ea5e9", icon: <Percent size={18} /> },
+  ];
+  const cards = tab === "investor" ? invCards : tab === "boq" ? boqCards : subCards;
   const projName = (id) => projects.find((p) => p.id === id)?.name;
   const orderWithAppendix = (list) => {
     const cs = list.filter((c) => c.kind !== "appendix");
@@ -2444,11 +2483,11 @@ function FinanceView({ t, lang, finance, projects, onChange }) {
       </div>
 
       {tab !== "cashflow" && (
-        <div className={`grid grid-cols-2 gap-3 ${tab === "investor" ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
+        <div className={`grid grid-cols-2 gap-3 ${tab === "sub" ? "lg:grid-cols-3" : "lg:grid-cols-4"}`}>
           {cards.map((c) => (
             <div key={c.label} className="bg-white rounded-xl border border-slate-200 p-4">
               <span className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: c.c + "1a", color: c.c }}>{c.icon}</span>
-              <div className="text-lg font-bold mt-2 tabular-nums" style={{ color: c.c }}>{fmtMoney(c.val, lang)}</div>
+              <div className="text-lg font-bold mt-2 tabular-nums" style={{ color: c.c }}>{c.text != null ? c.text : fmtMoney(c.val, lang)}</div>
               <div className="text-xs text-slate-500 mt-0.5">{c.label}</div>
             </div>
           ))}
@@ -2456,12 +2495,13 @@ function FinanceView({ t, lang, finance, projects, onChange }) {
       )}
 
       <AntTabs activeKey={tab} onChange={(k) => { setTab(k); setAdding(false); }} tabBarStyle={{ marginBottom: 0 }}
-        items={[{ key: "investor", label: t.finTabInvestor }, { key: "sub", label: t.finTabSub }, { key: "cashflow", label: t.finTabCashflow }]}
-        tabBarExtraContent={tab !== "cashflow" ? <AntBtn type="primary" icon={<Plus size={15} />} onClick={() => setAdding((v) => !v)}>{tab === "investor" ? t.addContract : t.addSubContract}</AntBtn> : undefined} />
+        items={[{ key: "investor", label: t.finTabInvestor }, { key: "sub", label: t.finTabSub }, { key: "boq", label: t.finTabBoq }, { key: "cashflow", label: t.finTabCashflow }]}
+        tabBarExtraContent={(tab === "investor" || tab === "sub") ? <AntBtn type="primary" icon={<Plus size={15} />} onClick={() => setAdding((v) => !v)}>{tab === "investor" ? t.addContract : t.addSubContract}</AntBtn> : undefined} />
 
       {tab === "cashflow" && <CashflowTab inv={fInv} sub={fSub} t={t} lang={lang} />}
+      {tab === "boq" && <BOQTab t={t} lang={lang} finance={finance} onChange={onChange} projects={projects} proj={proj} tasks={tasks || []} inv={inv} />}
 
-      {tab !== "cashflow" && adding && (
+      {(tab === "investor" || tab === "sub") && adding && (
         <ContractForm side={tab} investorContracts={inv} projects={projects} initial={proj ? { projectId: proj } : null} t={t}
           onSave={(d) => {
             const item = { id: uid(), createdAt: Date.now(), billed: [], paid: [], ...d };
@@ -2504,6 +2544,240 @@ function FinanceView({ t, lang, finance, projects, onChange }) {
     </div>
   );
 }
+/* ============== BOQ – KHỐI LƯỢNG – CHI PHÍ ==============
+   Tham khảo mô hình CostManager (D:\CostManager): KHÔNG lưu số lũy kế —
+   khối lượng nhập theo từng KỲ nghiệm thu, lũy kế luôn tính lại từ các kỳ,
+   nên sửa kỳ cũ thì các kỳ sau tự đúng. Cột hiển thị đối chiếu 1-1 với form
+   thanh toán: Lũy kế trước / Kỳ này / Tổng lũy kế. Dòng nhóm (laNhom) không có tiền. */
+function boqOf(raw) {
+  if (!raw) return { items: [], kys: [] };
+  if (Array.isArray(raw)) return { items: raw, kys: [] }; // tương thích dữ liệu cũ (nếu có)
+  return { items: Array.isArray(raw.items) ? raw.items : [], kys: Array.isArray(raw.kys) ? raw.kys : [] };
+}
+// Ô nhập đặt ở cấp module để React giữ nguyên identity — định nghĩa trong render sẽ mất focus mỗi lần gõ.
+const boqCellStyle = { border: "1px solid #e2e8f0", borderRadius: 6, padding: "3px 6px", minWidth: 0, background: "#fff" };
+function BoqTxt({ v, onCh, w, bold, ph }) {
+  return <input value={v ?? ""} placeholder={ph || ""} onChange={(e) => onCh(e.target.value)} className="text-sm" style={{ ...boqCellStyle, width: w, fontWeight: bold ? 600 : 400 }} />;
+}
+function BoqNum({ v, onCh, w }) {
+  return <input type="number" step="any" value={v ?? ""} onChange={(e) => onCh(e.target.value)} className="text-sm tabular-nums" style={{ ...boqCellStyle, width: w, textAlign: "right" }} />;
+}
+function BOQTab({ t, lang, finance, onChange, projects, proj, tasks, inv }) {
+  const { message: antMessage } = AntApp.useApp();
+  const [kySel, setKySel] = useState("");
+  const [importOpen, setImportOpen] = useState(false);
+  const [csvText, setCsvText] = useState("");
+  const boqAll = finance.boq || {};
+  const fmtQty = (n) => { const v = Number(n) || 0; try { return new Intl.NumberFormat(lang === "vi" ? "vi-VN" : "en-US", { maximumFractionDigits: 3 }).format(v); } catch { return String(v); } };
+  // Đọc số cả kiểu VN (1.234,56) lẫn kiểu Anh (1,234.56)
+  const num = (v) => {
+    let w = String(v == null ? "" : v).replace(/[^\d.,-]/g, ""); if (!w) return 0;
+    const d = w.lastIndexOf("."), c = w.lastIndexOf(",");
+    if (d !== -1 && c !== -1) { if (d > c) w = w.replace(/,/g, ""); else w = w.replace(/\./g, "").replace(",", "."); }
+    else if (c !== -1) { const after = w.length - c - 1; w = after === 3 ? w.replace(/,/g, "") : w.replace(",", "."); }
+    const n = parseFloat(w); return isNaN(n) ? 0 : n;
+  };
+  const projName = (id) => projects.find((p) => p.id === id)?.name || "";
+
+  // ---- chưa chọn dự án: bảng tổng hợp mọi dự án ----
+  if (!proj) {
+    const rowsAll = projects.map((p) => {
+      const bb = boqOf(boqAll[p.id]);
+      if (!bb.items.length) return null;
+      let val = 0, lk = 0;
+      for (const it of bb.items) { if (it.laNhom) continue; const dg = Number(it.donGia) || 0;
+        val += (Number(it.khoiLuong) || 0) * dg;
+        lk += bb.kys.reduce((s, k) => s + (Number((k.kl || {})[it.id]) || 0), 0) * dg; }
+      return { p, n: bb.items.length, kyN: bb.kys.length, val, lk };
+    }).filter(Boolean);
+    if (!rowsAll.length) return <Empty2 icon={<Receipt size={44} />} text={t.boqEmptyAll} />;
+    return (
+      <div className="bg-white rounded-xl border border-slate-200 p-4">
+        <p className="text-xs text-slate-400 mb-3">{t.boqPickProject}</p>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead><tr className="text-xs text-slate-400 text-left">
+            <th style={{ padding: "6px 8px" }}>{t.financeProject}</th><th style={{ padding: "6px 8px", textAlign: "right" }}>{t.boqCount}</th>
+            <th style={{ padding: "6px 8px", textAlign: "right" }}>{t.boqSumValue}</th><th style={{ padding: "6px 8px", textAlign: "right" }}>{t.boqSumDone}</th>
+            <th style={{ padding: "6px 8px", textAlign: "right" }}>{t.boqSumPct}</th>
+          </tr></thead>
+          <tbody>{rowsAll.map((r) => (
+            <tr key={r.p.id} className="border-t border-slate-100 text-sm">
+              <td style={{ padding: "8px" }} className="font-medium text-slate-700">{r.p.name}</td>
+              <td style={{ padding: "8px", textAlign: "right" }} className="tabular-nums">{r.n}</td>
+              <td style={{ padding: "8px", textAlign: "right" }} className="tabular-nums">{fmtMoney(r.val, lang)}</td>
+              <td style={{ padding: "8px", textAlign: "right" }} className="tabular-nums text-emerald-600">{fmtMoney(r.lk, lang)}</td>
+              <td style={{ padding: "8px", textAlign: "right" }} className="tabular-nums font-semibold">{r.val > 0 ? Math.round(r.lk / r.val * 100) : 0}%</td>
+            </tr>
+          ))}</tbody>
+        </table>
+      </div>
+    );
+  }
+
+  // ---- một dự án cụ thể ----
+  const b = boqOf(boqAll[proj]);
+  const items = b.items;
+  const kys = [...b.kys].sort((x, y) => (x.soKy || 0) - (y.soKy || 0));
+  const write = (nb) => onChange({ ...finance, boq: { ...boqAll, [proj]: nb } });
+  const ky = kys.find((k) => k.id === kySel) || kys[kys.length - 1] || null;
+  const kyIdx = ky ? kys.findIndex((k) => k.id === ky.id) : -1;
+  const luyKeTruoc = (itemId) => kys.slice(0, kyIdx < 0 ? kys.length : kyIdx).reduce((s, k) => s + (Number((k.kl || {})[itemId]) || 0), 0);
+  const klKyNay = (itemId) => (ky ? Number((ky.kl || {})[itemId]) || 0 : 0);
+  const setKlKyNay = (itemId, v) => { if (!ky) return; write({ items, kys: kys.map((k) => k.id === ky.id ? { ...k, kl: { ...(k.kl || {}), [itemId]: v } } : k) }); };
+
+  const addItem = () => write({ items: [...items, { id: uid(), stt: "", ten: "", donVi: "", laNhom: false, khoiLuong: "", donGia: "", taskIds: [] }], kys });
+  const updItem = (id, patch) => write({ items: items.map((it) => it.id === id ? { ...it, ...patch } : it), kys });
+  const delItem = (id) => { if (!window.confirm(t.boqDeleteConfirm)) return;
+    write({ items: items.filter((it) => it.id !== id), kys: kys.map((k) => { const kl = { ...(k.kl || {}) }; delete kl[id]; return { ...k, kl }; }) }); };
+  const addKy = () => { const soKy = kys.length ? Math.max(...kys.map((k) => Number(k.soKy) || 0)) + 1 : 1;
+    const nk = { id: uid(), soKy, denNgay: new Date().toISOString().slice(0, 10), kl: {} };
+    write({ items, kys: [...kys, nk] }); setKySel(nk.id); };
+  const delKy = () => { if (!ky) return; if (!window.confirm((lang === "vi" ? "Xóa kỳ nghiệm thu " : "Delete period ") + "#" + ky.soKy + "?")) return;
+    write({ items, kys: kys.filter((k) => k.id !== ky.id) }); setKySel(""); };
+
+  const projTasks = tasks.filter((x) => x.projectId === proj);
+  const taskOpts = projTasks.map((x) => ({ value: x.id, label: x.title || t.untitled }));
+  // Gợi ý KL kỳ này từ % tiến độ các công việc liên kết: KL_HĐ × TB(workdone) − lũy kế trước
+  const suggestKyNay = (it) => {
+    const linked = projTasks.filter((x) => (it.taskIds || []).includes(x.id));
+    if (!linked.length || !ky) return null;
+    const avg = linked.reduce((s, x) => s + (Number(x.workdone) || 0), 0) / linked.length;
+    const v = Math.max(0, (Number(it.khoiLuong) || 0) * avg / 100 - luyKeTruoc(it.id));
+    return Math.round(v * 1000) / 1000;
+  };
+
+  const rows = items.filter((it) => !it.laNhom);
+  const totVal = rows.reduce((s, it) => s + (Number(it.khoiLuong) || 0) * (Number(it.donGia) || 0), 0);
+  const totTruoc = rows.reduce((s, it) => s + luyKeTruoc(it.id) * (Number(it.donGia) || 0), 0);
+  const totKyNay = rows.reduce((s, it) => s + klKyNay(it.id) * (Number(it.donGia) || 0), 0);
+  const totLuyKe = totTruoc + totKyNay;
+  const invVal = inv.filter((c) => c.projectId === proj).reduce((s, c) => s + (Number(c.value) || 0), 0);
+
+  const doImport = () => {
+    const rowsCsv = parseCSV(csvText); if (!rowsCsv.length) return;
+    const head = rowsCsv[0].map((c) => String(c).trim().toLowerCase());
+    const isHead = head.some((c) => ["stt", "mã", "ma", "code", "tên", "ten", "tên công tác", "ten cong tac", "work item", "name", "đơn vị", "don vi", "dvt", "unit", "khối lượng", "khoi luong", "kl", "qty", "quantity", "đơn giá", "don gia", "price", "unit price"].includes(c));
+    const data = isHead ? rowsCsv.slice(1) : rowsCsv;
+    const add = data.map((r) => {
+      const stt = String(r[0] || "").trim(), ten = String(r[1] || "").trim(), donVi = String(r[2] || "").trim();
+      const kl = num(r[3]), dg = num(r[4]);
+      if (!ten && !stt) return null;
+      const laNhom = !donVi && !kl && !dg; // dòng chỉ có mã/tên -> coi là dòng nhóm (phần I, II...)
+      return { id: uid(), stt, ten: ten || stt, donVi, laNhom, khoiLuong: kl || "", donGia: dg || "", taskIds: [] };
+    }).filter(Boolean);
+    if (!add.length) return;
+    write({ items: [...items, ...add], kys });
+    setCsvText(""); setImportOpen(false);
+    antMessage.success((lang === "vi" ? "Đã nhập " : "Imported ") + add.length + " " + t.boqCount);
+  };
+
+  const th = (label, right) => <th style={{ padding: "6px 6px", textAlign: right ? "right" : "left", whiteSpace: "nowrap" }}>{label}</th>;
+  const tdR = (node, cls) => <td style={{ padding: "4px 6px", textAlign: "right", whiteSpace: "nowrap" }} className={"tabular-nums text-sm " + (cls || "")}>{node}</td>;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-sm text-slate-500">{lang === "vi" ? "Kỳ nghiệm thu:" : "Period:"}</span>
+        {kys.length > 0 && <AntSelect size="small" value={ky ? ky.id : undefined} onChange={(v) => setKySel(v)} style={{ minWidth: 150 }}
+          options={kys.map((k) => ({ value: k.id, label: (lang === "vi" ? "Kỳ " : "IPC ") + k.soKy + (k.denNgay ? " · " + k.denNgay.split("-").reverse().join("/") : "") }))} />}
+        {ky && <input type="date" value={ky.denNgay || ""} onChange={(e) => write({ items, kys: kys.map((k) => k.id === ky.id ? { ...k, denNgay: e.target.value } : k) })} className="text-sm" style={boqCellStyle} />}
+        <AntBtn size="small" icon={<Plus size={13} />} onClick={addKy}>{lang === "vi" ? "Kỳ mới" : "New period"}</AntBtn>
+        {ky && <AntBtn size="small" danger onClick={delKy}>{t.delete}</AntBtn>}
+        <span className="ml-auto flex items-center gap-2">
+          <AntBtn size="small" icon={<Download size={13} />} onClick={() => setImportOpen((v) => !v)}>{t.boqImport}</AntBtn>
+          <AntBtn size="small" type="primary" icon={<Plus size={13} />} onClick={addItem}>{t.boqAddItem}</AntBtn>
+        </span>
+      </div>
+
+      {invVal > 0 && (
+        <div className="text-xs text-slate-500 flex flex-wrap gap-x-4 gap-y-1">
+          <span>{t.boqVsContract}: <b className="tabular-nums text-slate-700">{fmtMoney(invVal, lang)}</b></span>
+          <span>{t.boqDelta}: <b className="tabular-nums" style={{ color: totVal - invVal > 0 ? "#dc2626" : "#10b981" }}>{fmtMoney(totVal - invVal, lang)}</b></span>
+        </div>
+      )}
+
+      {importOpen && (
+        <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-2">
+          <p className="text-xs text-slate-500">{t.boqImportHint}</p>
+          <textarea rows={6} value={csvText} onChange={(e) => setCsvText(e.target.value)} placeholder={"I,PHẦN MÓNG,,,\n1,Bê tông lót đá 4x6 M100,m3,\"12,5\",\"1.250.000\""}
+            style={{ width: "100%", border: "1px solid #e2e8f0", borderRadius: 8, padding: 8, fontFamily: "monospace", fontSize: 12 }} />
+          <div className="flex justify-end gap-2"><AntBtn size="small" onClick={() => setImportOpen(false)}>{t.cancel}</AntBtn>
+            <AntBtn size="small" type="primary" disabled={!csvText.trim()} onClick={doImport}>{t.boqImportDo}</AntBtn></div>
+        </div>
+      )}
+
+      {items.length === 0 ? <Empty2 icon={<Receipt size={44} />} text={t.boqEmpty} /> : (
+        <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: ky ? 1120 : 760 }}>
+            <thead><tr className="text-xs text-slate-400 border-b border-slate-200">
+              {th(t.boqCode)}{th(t.boqName)}{th(t.boqUnit)}{th(t.boqQty, 1)}{th(t.boqPrice, 1)}{th(t.boqAmount, 1)}
+              {ky && <>{th(lang === "vi" ? "LK trước" : "Prev cum.", 1)}{th((lang === "vi" ? "Kỳ " : "IPC ") + ky.soKy, 1)}{th(lang === "vi" ? "Lũy kế" : "Cumul.", 1)}{th(t.boqPercent, 1)}{th(t.boqDoneVal, 1)}</>}
+              {th(t.boqLinkTasks)}{th("")}
+            </tr></thead>
+            <tbody>
+              {items.map((it) => {
+                const dg = Number(it.donGia) || 0, klHd = Number(it.khoiLuong) || 0;
+                const lkTr = luyKeTruoc(it.id), kn = klKyNay(it.id), lk = lkTr + kn;
+                const sg = suggestKyNay(it);
+                const acts = (
+                  <td style={{ padding: "4px 6px", whiteSpace: "nowrap" }}>
+                    {!it.laNhom && ky && (it.taskIds || []).length > 0 && (
+                      <button title={t.boqSuggest + (sg != null ? " → " + fmtQty(sg) : "")} onClick={() => sg != null && setKlKyNay(it.id, sg)} className="text-sky-500 hover:text-sky-700" style={{ padding: 3 }}><Gauge size={14} /></button>
+                    )}
+                    <button title={lang === "vi" ? "Dòng nhóm (không có tiền)" : "Group row (no money)"} onClick={() => updItem(it.id, { laNhom: !it.laNhom })} style={{ padding: 3, color: it.laNhom ? "#f97316" : "#cbd5e1" }}><Folder size={14} /></button>
+                    <button title={t.delete} onClick={() => delItem(it.id)} className="text-slate-300 hover:text-red-500" style={{ padding: 3 }}><Trash2 size={14} /></button>
+                  </td>
+                );
+                if (it.laNhom) return (
+                  <tr key={it.id} style={{ background: "#f8fafc" }} className="border-b border-slate-100">
+                    <td style={{ padding: "4px 6px" }}><BoqTxt v={it.stt} onCh={(v) => updItem(it.id, { stt: v })} w={64} bold /></td>
+                    <td style={{ padding: "4px 6px" }} colSpan={(ky ? 10 : 5) + 1}><BoqTxt v={it.ten} onCh={(v) => updItem(it.id, { ten: v })} w="100%" bold /></td>
+                    {acts}
+                  </tr>
+                );
+                return (
+                  <tr key={it.id} className="border-b border-slate-50">
+                    <td style={{ padding: "4px 6px" }}><BoqTxt v={it.stt} onCh={(v) => updItem(it.id, { stt: v })} w={64} /></td>
+                    <td style={{ padding: "4px 6px", minWidth: 200 }}><BoqTxt v={it.ten} onCh={(v) => updItem(it.id, { ten: v })} w="100%" /></td>
+                    <td style={{ padding: "4px 6px" }}><BoqTxt v={it.donVi} onCh={(v) => updItem(it.id, { donVi: v })} w={54} /></td>
+                    <td style={{ padding: "4px 6px" }}><BoqNum v={it.khoiLuong} onCh={(v) => updItem(it.id, { khoiLuong: v })} w={86} /></td>
+                    <td style={{ padding: "4px 6px" }}><BoqNum v={it.donGia} onCh={(v) => updItem(it.id, { donGia: v })} w={108} /></td>
+                    {tdR(fmtMoney(klHd * dg, lang), "text-slate-700")}
+                    {ky && <>
+                      {tdR(fmtQty(lkTr), "text-slate-400")}
+                      <td style={{ padding: "4px 6px", textAlign: "right" }}><BoqNum v={(ky.kl || {})[it.id]} onCh={(v) => setKlKyNay(it.id, v)} w={80} /></td>
+                      {tdR(fmtQty(lk), "font-medium text-slate-700")}
+                      {tdR((klHd > 0 ? Math.round(lk / klHd * 100) : 0) + "%", (klHd > 0 && lk > klHd) ? "text-red-500 font-semibold" : "text-slate-500")}
+                      {tdR(fmtMoney(lk * dg, lang), "text-emerald-600")}
+                    </>}
+                    <td style={{ padding: "4px 6px", minWidth: 150 }}>
+                      <AntSelect mode="multiple" size="small" maxTagCount={1} value={it.taskIds || []} onChange={(v) => updItem(it.id, { taskIds: v })}
+                        style={{ width: "100%", minWidth: 140 }} placeholder="—" options={taskOpts} optionFilterProp="label" />
+                    </td>
+                    {acts}
+                  </tr>
+                );
+              })}
+            </tbody>
+            <tfoot><tr className="border-t-2 border-slate-200 text-sm font-semibold text-slate-700">
+              <td style={{ padding: "6px" }} colSpan={5}>{lang === "vi" ? "Tổng cộng" : "Total"}</td>
+              {tdR(fmtMoney(totVal, lang))}
+              {ky && <>
+                {tdR(fmtMoney(totTruoc, lang), "text-slate-400")}
+                {tdR(fmtMoney(totKyNay, lang), "text-sky-600")}
+                {tdR("")}
+                {tdR((totVal > 0 ? Math.round(totLuyKe / totVal * 100) : 0) + "%")}
+                {tdR(fmtMoney(totLuyKe, lang), "text-emerald-600")}
+              </>}
+              <td colSpan={2} />
+            </tr></tfoot>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function NotifPanel({ t, lang, items, onOpen }) {
   const icon = (ty) => ty === "approve" ? <CheckCircle2 size={15} className="text-orange-500" /> : ty === "overdue" ? <AlertTriangle size={15} className="text-red-500" /> : <MessageSquare size={15} className="text-sky-500" />;
   return (
