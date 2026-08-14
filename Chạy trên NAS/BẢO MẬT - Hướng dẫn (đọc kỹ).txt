@@ -1,0 +1,133 @@
+====================================================================
+   TRẠM DỰ ÁN — NÂNG CẤP BẢO MẬT (phiên bản 3.1)
+   Hướng dẫn cho người dùng, KHÔNG cần biết kỹ thuật
+====================================================================
+
+Ngày cập nhật: 02/07/2026
+File cũ đã được sao lưu tự động: server.js.bak-20260702 và
+public/app.js.bak-20260702 (nếu cần quay lại, xem mục 7 cuối trang).
+
+
+--------------------------------------------------------------------
+1. TÓM TẮT: ĐÃ THÊM NHỮNG GÌ?
+--------------------------------------------------------------------
+Phần mềm giờ an toàn hơn ở 6 điểm:
+
+  (1) Chống dò mật khẩu: sai 5 lần thì khóa đăng nhập 15 phút.
+  (2) So sánh mật khẩu theo cách an toàn hơn (chống dò kỹ thuật).
+  (3) Phiên đăng nhập tự hết hạn sau 12 giờ không dùng -> phải
+      đăng nhập lại. Máy lạ nhặt được cũng không dùng mãi được.
+  (4) Bắt buộc mật khẩu mạnh: tối thiểu 8 ký tự, có cả CHỮ và SỐ.
+  (5) Lần tạo tài khoản Chủ đầu tiên phải nhập "MÃ CÀI ĐẶT" —
+      ngăn người lạ trong mạng chiếm quyền quản trị.
+  (6) Mật khẩu email có thể để trong file .env (không lưu lộ trong
+      cài đặt), kèm ghi nhật ký bảo mật (ai đăng nhập, khi nào).
+
+KHÔNG có gì thay đổi về cách chạy phần mềm. Vẫn bấm file khởi động
+như cũ (Windows / Mac / NAS).
+
+
+--------------------------------------------------------------------
+2. LẦN ĐẦU CHẠY: TẠO TÀI KHOẢN CHỦ (có MÃ CÀI ĐẶT)
+--------------------------------------------------------------------
+Chỉ áp dụng khi CHƯA có tài khoản nào (cài mới hoặc xóa hết dữ liệu).
+
+  Bước 1. Khởi động phần mềm như thường lệ. Một cửa sổ đen
+          (Terminal / Command / cửa sổ log của Docker) sẽ hiện ra.
+
+  Bước 2. Trong cửa sổ đó, tìm dòng có khung sao (*****):
+
+          ****************************************************
+          *  MÃ CÀI ĐẶT (nhập khi tạo tài khoản chủ): A1B2C3
+          ****************************************************
+
+          Ghi lại mã đó (ví dụ: A1B2C3). Mỗi lần khởi động khi
+          chưa có tài khoản, mã có thể khác nhau.
+
+  Bước 3. Mở trình duyệt vào địa chỉ phần mềm, điền Tên/Email/
+          Mật khẩu để tạo Chủ sở hữu. Trình duyệt sẽ hỏi:
+          "Nhập MÃ CÀI ĐẶT..." -> gõ đúng mã ở Bước 2 -> OK.
+
+  Xong. Sau khi có tài khoản Chủ, MÃ CÀI ĐẶT hết tác dụng.
+
+  MẸO: Muốn dùng một mã cố định (dễ nhớ) thay vì mã ngẫu nhiên,
+       xem mục 4 (đặt SETUP_CODE trong file .env).
+
+
+--------------------------------------------------------------------
+3. ĐĂNG NHẬP HẰNG NGÀY — NHỮNG THÔNG BÁO MỚI
+--------------------------------------------------------------------
+- Gõ sai mật khẩu, khi gần hết lượt sẽ thấy: "Còn 2 lần thử".
+- Sai 5 lần: bị khóa, báo "thử lại sau 15 phút". Cứ chờ 15 phút
+  (hoặc khởi động lại phần mềm) là mở khóa.
+- Nếu 12 giờ không thao tác, hệ thống tự đăng xuất -> đăng nhập lại.
+- Đổi mật khẩu (của mình hoặc cho nhân viên) phải đạt: >= 8 ký tự,
+  có cả chữ và số. Ví dụ hợp lệ: "Congty2026". Không hợp lệ: "123456".
+
+
+--------------------------------------------------------------------
+4. EMAIL NHẮC VIỆC / SAO LƯU — GIẤU MẬT KHẨU EMAIL AN TOÀN
+--------------------------------------------------------------------
+Trước đây mật khẩu email lưu thẳng trong cài đặt (ai đọc file cũng
+thấy). Giờ nên để trong file bí mật ".env". Cách làm:
+
+  Bước 1. Trong thư mục phần mềm có sẵn file mẫu: ".env.example".
+          Sao chép nó, đổi tên thành ".env" và đặt vào thư mục "data".
+
+  Bước 2. Mở file .env bằng Notepad, điền dòng:
+              SMTP_PASS=matkhau_email_cua_ban
+          Lưu lại.
+
+  Bước 3. Vào Cài đặt trong phần mềm, điền các ô còn lại (máy chủ
+          SMTP, cổng, email gửi...) NHƯNG để trống ô mật khẩu.
+          Phần mềm sẽ tự lấy mật khẩu từ file .env.
+
+  LƯU Ý:
+   - Tuyệt đối KHÔNG gửi/chia sẻ file .env cho người khác.
+   - Với Gmail phải dùng "App Password" (mật khẩu ứng dụng), không
+     dùng mật khẩu đăng nhập Google thường.
+   - Ô mật khẩu trong Cài đặt giờ luôn hiển thị trống — đó là cố ý
+     để không lộ mật khẩu. Để trống khi lưu sẽ GIỮ nguyên mật khẩu cũ.
+
+
+--------------------------------------------------------------------
+5. NHẬT KÝ BẢO MẬT (security.log)
+--------------------------------------------------------------------
+Mọi lần đăng nhập (đúng/sai/bị khóa), tạo–sửa–xóa tài khoản đều được
+ghi vào file: data/security.log
+Mở bằng Notepad để xem ai truy cập, lúc nào, từ máy nào (địa chỉ IP).
+Nếu thấy nhiều dòng "Đăng nhập SAI" lạ -> có người đang dò mật khẩu.
+
+
+--------------------------------------------------------------------
+6. QUAN TRỌNG NHẤT CÒN LẠI: BẬT HTTPS (mã hóa đường truyền)
+--------------------------------------------------------------------
+Hiện phần mềm chạy HTTP (chưa mã hóa). Trong mạng nội bộ, người rành
+kỹ thuật vẫn có thể "nghe lén" mật khẩu khi truyền đi. Đây là việc
+NÊN làm tiếp, nhưng cần thao tác trên NAS/máy chủ nên tôi để bạn quyết:
+
+  - Nếu dùng NAS Synology: vào Control Panel -> Login Portal ->
+    Advanced -> Reverse Proxy, tạo một mục trỏ tên miền HTTPS
+    (vd https://duan.nhacua.vn) về cổng 3000, và bật chứng chỉ
+    Let's Encrypt miễn phí. Khi đó truy cập qua https:// là được mã hóa.
+
+  - Nếu không có tên miền: có thể dùng chứng chỉ tự ký, nhưng trình
+    duyệt sẽ báo "không an toàn" (vẫn mã hóa, chỉ là cảnh báo).
+
+  Bạn muốn tôi hướng dẫn chi tiết từng bước HTTPS cho đúng thiết bị
+  của bạn thì báo tôi (cho biết đang dùng NAS gì / máy chủ gì).
+
+
+--------------------------------------------------------------------
+7. NẾU MUỐN QUAY LẠI BẢN CŨ
+--------------------------------------------------------------------
+Trong thư mục phần mềm có 2 file sao lưu:
+    server.js.bak-20260702
+    public/app.js.bak-20260702
+Chỉ cần đổi tên chúng lại thành server.js và public/app.js (ghi đè),
+rồi khởi động lại. Mọi thứ trở về như trước khi nâng cấp.
+
+Dữ liệu (công việc, tài khoản, tài chính) KHÔNG bị ảnh hưởng bởi
+nâng cấp này — vẫn nằm nguyên trong thư mục "data".
+
+====================================================================

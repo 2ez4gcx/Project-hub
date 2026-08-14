@@ -1,0 +1,14 @@
+services:
+  tram-du-an:
+    build: .
+    container_name: tram-du-an
+    ports:
+      - "3000:3000"
+    environment:
+      - DATA_DIR=/app/data
+      - TZ=Asia/Ho_Chi_Minh
+      # Bật dòng dưới nếu chạy sau reverse proxy (Synology) để tính đúng IP thật:
+      # - TRUST_PROXY=true
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped

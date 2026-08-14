@@ -1,0 +1,102 @@
+====================================================================
+   TRẠM DỰ ÁN — KHÓA MÃ NGUỒN BẰNG THƯ MỤC MÃ HÓA (Synology)
+   Để người khác KHÔNG mở / KHÔNG lấy được file server.js
+   Hướng dẫn cho người KHÔNG chuyên kỹ thuật
+====================================================================
+
+Ngày: 02/07/2026
+
+Ý TƯỞNG:
+  Đặt toàn bộ phần mềm vào một "Thư mục mã hóa" (Encrypted Shared Folder)
+  của Synology. Thư mục này được mã hóa AES-256: ai KHÔNG có khóa/mật khẩu
+  thì không mở, không đọc, không copy được bất kỳ file nào bên trong —
+  kể cả khi họ tháo ổ cứng đem sang máy khác.
+
+SỰ THẬT CẦN BIẾT (đọc kỹ):
+  - Khi thư mục ĐÃ được mở khóa (mounted) để app chạy, thì người đang
+    đăng nhập NAS với quyền admin VẪN đọc được. Mã hóa bảo vệ mạnh nhất
+    khi thư mục ở trạng thái KHÓA (chưa mở), hoặc chống người lấy trộm ổ cứng.
+  - Vì vậy có 2 chế độ dùng, bạn chọn 1 (xem Bước 3).
+
+
+--------------------------------------------------------------------
+BƯỚC 1. TẠO THƯ MỤC MÃ HÓA
+--------------------------------------------------------------------
+  1. NAS → Control Panel (Bảng điều khiển) → Shared Folder (Thư mục chung).
+  2. Bấm Create (Tạo) → đặt tên, ví dụ:  duan_khoa
+  3. Tích chọn "Encrypt this shared folder" (Mã hóa thư mục này).
+  4. Đặt "Encryption key" (khóa mã hóa = một mật khẩu mạnh). 
+     LƯU Ý: khóa KHÔNG được chứa dấu phẩy (,) hoặc dấu bằng (=).
+  5. Bấm tiếp → hệ thống hiện "Recovery Key" (khóa khôi phục). 
+     TẢI VỀ VÀ CẤT GIỮ AN TOÀN. Nếu quên mật khẩu, đây là cách DUY NHẤT
+     để mở lại dữ liệu. Đừng để nó trên NAS.
+  6. Hoàn tất tạo thư mục.
+
+
+--------------------------------------------------------------------
+BƯỚC 2. GIỚI HẠN QUYỀN CHỈ ADMIN CỦA BẠN
+--------------------------------------------------------------------
+  Trong lúc tạo (hoặc Edit thư mục sau đó) → tab Permissions (Quyền):
+  - Chỉ cấp quyền cho tài khoản admin của BẠN (Read/Write).
+  - Bỏ quyền của mọi người dùng khác (No access).
+  Như vậy các tài khoản khác trên NAS không nhìn thấy nội dung.
+
+
+--------------------------------------------------------------------
+BƯỚC 3. CHỌN CHẾ ĐỘ MỞ KHÓA (điểm đánh đổi quan trọng)
+--------------------------------------------------------------------
+  ▶ CHẾ ĐỘ AN TOÀN TỐI ĐA (khuyên nếu ưu tiên bảo vệ mã nguồn):
+     - KHÔNG thêm khóa vào "Key Manager" (không auto-mount).
+     - Hệ quả: mỗi lần NAS khởi động lại / mất điện, thư mục ở trạng thái
+       KHÓA. Muốn app chạy, bạn phải tự MỞ KHÓA (nhập mật khẩu) rồi mới
+       bật lại phần mềm. Khi khóa, không ai đọc được server.js.
+     - Đổi lại: sau mỗi lần reboot, app TẠM DỪNG cho tới khi bạn mở khóa.
+
+  ▶ CHẾ ĐỘ TIỆN LỢI (app tự chạy lại sau reboot):
+     - Control Panel → Shared Folder → Encryption → Key Manager → Configure
+       → thêm khóa (Machine key) để tự mở khóa khi khởi động.
+     - Hệ quả: app tự chạy lại, nhưng khóa được lưu trên NAS → chủ yếu
+       chống người lấy trộm ổ cứng, KHÔNG chống người đã đăng nhập được NAS.
+
+  Gợi ý: nếu mục tiêu chính là "người khác không mở được file", chọn CHẾ ĐỘ
+  AN TOÀN TỐI ĐA và chấp nhận thao tác mở khóa thủ công sau mỗi lần reboot.
+
+
+--------------------------------------------------------------------
+BƯỚC 4. CHUYỂN PHẦN MỀM VÀO THƯ MỤC MÃ HÓA
+--------------------------------------------------------------------
+  1. Dừng phần mềm (dừng container "tram-du-an" trong Docker/Container Manager).
+  2. Chép toàn bộ thư mục app (server.js, public/, docker-compose.yml, data/, …)
+     vào thư mục mã hóa vừa tạo (vd /duan_khoa/tram-du-an).
+  3. Sửa đường dẫn trong docker-compose.yml (mục volumes) trỏ vào vị trí mới,
+     rồi tạo/chạy lại container từ đường dẫn mới.
+  4. QUAN TRỌNG với Docker + thư mục mã hóa: trong Docker/Container Manager,
+     chọn container → Edit → tích "Execute container using high privilege"
+     (chạy với đặc quyền cao) — Synology yêu cầu điều này để container đọc
+     được thư mục mã hóa.
+  5. Xóa bản copy cũ (bản chưa mã hóa) ở thư mục cũ để không còn mã nguồn
+     đọc được nằm ngoài vùng mã hóa.
+
+
+--------------------------------------------------------------------
+BƯỚC 5. CÁCH MỞ / KHÓA THỦ CÔNG (khi cần)
+--------------------------------------------------------------------
+  Control Panel → Shared Folder → chọn thư mục → nút Encryption:
+     - Mount (Mở khóa): nhập mật khẩu → đọc/chạy được.
+     - Unmount (Khóa): thư mục đóng lại, nội dung ẩn, không ai đọc được.
+  (Sau khi Mount ở chế độ an toàn, nhớ bật lại container để app hoạt động.)
+
+
+--------------------------------------------------------------------
+GHI NHỚ AN TOÀN
+--------------------------------------------------------------------
+  - Cất "Recovery Key" + mật khẩu mã hóa ở nơi an toàn NGOÀI NAS
+    (USB / trình quản lý mật khẩu). Mất là không mở lại được dữ liệu.
+  - File giao diện public/app.js thì trình duyệt luôn tải về được nên
+    không thể giấu — chỉ server.js và dữ liệu là được thư mục này bảo vệ.
+  - Mã hóa bảo vệ tốt trước "người khác" và mất trộm ổ cứng; không chống
+    được người đã có toàn quyền NAS khi thư mục đang mở.
+
+Nếu bạn cho biết đang chạy phần mềm bằng Docker/Container Manager hay cách
+khác, và model NAS, tôi sẽ rút gọn thành đúng các bước bấm cho máy của bạn.
+====================================================================

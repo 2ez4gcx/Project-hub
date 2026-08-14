@@ -1,0 +1,23 @@
+BẢN QUYỀN & GIẤY PHÉP SỬ DỤNG — "TRẠM DỰ ÁN"
+© 2026 Khuong Doan. Bảo lưu mọi quyền.
+
+1. Tác giả: Phần mềm "Trạm Dự Án" do Khuong Doan phát triển. Khuong Doan giữ
+   toàn bộ quyền tác giả đối với mã nguồn và sản phẩm.
+
+2. Ghi danh: Dòng ghi danh tác giả ("Phần mềm do Khuong Doan phát triển — © 2026")
+   phải được giữ nguyên, không được gỡ bỏ hay che giấu trong bất kỳ bản sử dụng nào.
+
+3. Giấy phép có thời hạn: Phần mềm được cấp phép sử dụng theo chu kỳ 6 (sáu) tháng.
+   Khi hết hạn, phần mềm tự chuyển sang chế độ CHỈ ĐỌC (xem và xuất dữ liệu vẫn
+   được; không tạo/sửa/đồng bộ). Dữ liệu của người dùng KHÔNG bị xóa. Việc gia hạn
+   được thực hiện bằng mã gia hạn do tác giả cấp.
+
+4. Không can thiệp cơ chế giấy phép: Người sử dụng không được vô hiệu hóa, chỉnh
+   sửa hay né tránh cơ chế ghi danh và cơ chế giấy phép nêu trên.
+
+5. Miễn trừ trách nhiệm: Phần mềm được cung cấp "nguyên trạng", không kèm bảo hành.
+   Tác giả không chịu trách nhiệm cho thiệt hại phát sinh từ việc sử dụng.
+
+6. Liên hệ gia hạn / hỗ trợ: Khuong Doan — huukhuongxd@gmail.com
+
+Việc tiếp tục sử dụng phần mềm đồng nghĩa với việc chấp nhận các điều khoản trên.

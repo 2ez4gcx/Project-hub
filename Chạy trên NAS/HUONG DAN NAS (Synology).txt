@@ -1,0 +1,114 @@
+==================================================================
+  TRẠM DỰ ÁN — CÀI TRÊN NAS SYNOLOGY (đơn giản, không cần rành mạng)
+==================================================================
+
+Bạn chỉ cần làm theo 4 bước. Toàn bộ "tạo chủ sở hữu / tạo tài
+khoản / mật khẩu" làm NGAY TRÊN TRANG WEB, không phải sửa file.
+
+------------------------------------------------------------------
+BƯỚC 1 — Chép phần mềm vào NAS
+------------------------------------------------------------------
+  • Mở "File Station" trên NAS.
+  • Tạo thư mục:  docker  →  bên trong tạo  tram-du-an
+    (đường dẫn sẽ là: /volume1/docker/tram-du-an)
+  • Kéo toàn bộ các file trong gói này vào thư mục đó
+    (server.js, package.json, Dockerfile, docker-compose.yml,
+     config.json, thư mục public...).
+
+------------------------------------------------------------------
+BƯỚC 2 — Cài "Container Manager"
+------------------------------------------------------------------
+  • Mở "Trung tâm gói" (Package Center).
+  • Tìm "Container Manager" → Cài đặt. (DSM 7.2 trở lên.
+    Bản DSM cũ hơn thì gói tên là "Docker".)
+
+------------------------------------------------------------------
+BƯỚC 3 — Tạo và chạy
+------------------------------------------------------------------
+  • Mở "Container Manager" → mục "Dự án" (Project) → nhấn "Tạo".
+  • Tên dự án: tram-du-an
+  • "Đường dẫn" (Path): bấm chọn thư mục /volume1/docker/tram-du-an
+  • Phần "Nguồn" chọn: dùng docker-compose.yml có sẵn
+    (Container Manager sẽ tự nhận file này).
+  • Nhấn "Tiếp theo" → "Xong". Lần đầu sẽ chạy vài phút để build.
+  • Khi trạng thái là "Running / Đang chạy" là xong.
+
+  → Nếu được hỏi về cổng (port), để mặc định 3000.
+
+------------------------------------------------------------------
+BƯỚC 4 — Mở phần mềm & tạo tài khoản Chủ sở hữu
+------------------------------------------------------------------
+  • Tìm địa chỉ IP của NAS: DSM → Bảng điều khiển → Mạng
+    (thường dạng 192.168.1.x). Tạm gọi là <IP-NAS>.
+  • Trên máy tính/điện thoại cùng mạng công ty, mở trình duyệt:
+
+        http://<IP-NAS>:3000
+
+  • Lần đầu, phần mềm hiện màn hình "Tạo tài khoản Chủ sở hữu".
+    Nhập HỌ TÊN, EMAIL của bạn, và tự đặt MẬT KHẨU.
+    → Đây chính là bạn — Chủ sở hữu, toàn quyền hệ thống.
+
+  • Sau đó vào mục "Thành viên" (thanh bên trái) để tạo tài khoản
+    cho từng nhân viên: nhập tên, email họ đưa bạn, và mật khẩu
+    bạn đặt cho họ. Gửi email + mật khẩu đó cho họ để đăng nhập.
+
+  XONG! Mọi người vào http://<IP-NAS>:3000 và đăng nhập bằng
+  email + mật khẩu.
+
+
+==================================================================
+  GHI CHÚ QUAN TRỌNG
+==================================================================
+
+• ĐĂNG NHẬP: chỉ cần email + mật khẩu. Người dùng KHÔNG tự đăng
+  ký được — chỉ Chủ sở hữu tạo tài khoản (để tránh người lạ /
+  spam). Bạn có thể đặt lại mật khẩu cho ai đó trong mục Thành
+  viên (biểu tượng ổ khóa).
+
+• PHÂN QUYỀN:
+    - Chủ sở hữu: toàn quyền.
+    - Quản lý: sửa & giao việc, đặt nhắc việc.
+    - Nhân viên: chỉ cập nhật % hoàn thành việc mình phụ trách chính.
+
+• MỤC CHI PHÍ — theo hợp đồng, gồm 2 phía:
+    - Chủ đầu tư: giá trị hợp đồng & phụ lục, các đợt đề nghị
+      thanh toán đã gửi, các đợt chủ đầu tư đã thanh toán.
+    - Thầu phụ / nhà cung cấp: giá trị hợp đồng & phụ lục (có thể
+      gắn theo hợp đồng nào của chủ đầu tư), các đợt đã thanh toán.
+  CHỈ Chủ sở hữu và Quản lý ĐƯỢC CẤP QUYỀN mới thấy. Trong mục
+  Thành viên, bật ô biểu tượng ví cho Quản lý bạn muốn cho xem.
+  Nhân viên không bao giờ thấy, và máy chủ chặn thật (không tải
+  được dữ liệu chi phí), không chỉ ẩn trên màn hình.
+
+• DỮ LIỆU: nằm trong thư mục con "data" (tự tạo) gồm:
+    data.json       – công việc, dự án
+    accounts.json   – tài khoản (mật khẩu đã được mã hoá/băm)
+    finance.json    – chi phí
+  Hãy sao lưu thư mục "data" định kỳ để không mất dữ liệu.
+
+• EMAIL NHẮC VIỆC (làm sau cũng được): mở file
+  /volume1/docker/tram-du-an/data/config.json bằng Text Editor,
+  điền phần "smtp" (thông tin email gửi đi), rồi khởi động lại
+  dự án trong Container Manager. Trước khi điền, hệ thống chỉ ghi
+  log "DRY-RUN" chứ chưa gửi thật.
+  Ví dụ Gmail: host "smtp.gmail.com", port 587, secure false,
+  user = địa chỉ Gmail, pass = "App Password" 16 ký tự.
+
+• KHÔNG VÀO ĐƯỢC TỪ MÁY KHÁC? Mở cổng 3000 trong tường lửa NAS:
+  DSM → Bảng điều khiển → Bảo mật → Tường lửa → thêm luật cho
+  cổng 3000. (Đa số trường hợp không cần bước này.)
+
+• MỨC BẢO MẬT: đây là đăng nhập cơ bản, phù hợp mạng nội bộ công
+  ty (chặn người lạ, tránh spam). Không phải hệ thống cấp doanh
+  nghiệp (không 2 lớp, không SSO). Đừng mở cổng 3000 ra Internet
+  công cộng nếu chưa có người rành kỹ thuật hỗ trợ.
+
+
+------------------------------------------------------------------
+  CÁCH KHÁC (cho người rành kỹ thuật) — chạy Node trực tiếp
+------------------------------------------------------------------
+  Qua SSH:  cd /volume1/docker/tram-du-an
+            npm install        (để bật gửi email; bỏ qua vẫn chạy)
+            npm install -g pm2
+            pm2 start server.js --name tram-du-an
+            pm2 save && pm2 startup

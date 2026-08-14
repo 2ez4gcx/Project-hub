@@ -1,0 +1,25 @@
+====================================================================
+  TRẠM DỰ ÁN — CHỌN THƯ MỤC ĐỂ DÙNG
+====================================================================
+Phần mềm được tách thành 2 thư mục ĐỘC LẬP, GIỐNG HỆT nhau về tính năng
+và giao diện, nhưng DỮ LIỆU RIÊNG:
+
+1) "Chạy nội bộ"  — chạy thử / dùng trên một máy tính (Windows/Mac).
+   • Cài Node.js (https://nodejs.org, bản LTS).
+   • Nhấp đúp "Khởi động (Windows).bat" (Windows)
+     hoặc "Khoi-dong (Mac-Linux).command" (Mac).
+   • Mở trình duyệt: http://localhost:3000
+   • Dữ liệu tự tạo trong thư mục con "data" NGAY TRONG thư mục này.
+   • Xem thêm: "ĐỌC TRƯỚC - Cách chạy.txt".
+
+2) "Chạy trên NAS"  — triển khai chính thức trên NAS Synology (Docker).
+   • Xem "HUONG DAN NAS (Synology).txt".
+   • Dữ liệu tự tạo trong thư mục con "data" của thư mục này (trên NAS).
+
+LƯU Ý:
+ • Hai thư mục hoàn toàn tách rời — dữ liệu, tài khoản, giấy phép của
+   bên nào nằm trong thư mục "data" của bên đó, KHÔNG ảnh hưởng nhau.
+ • Khi cập nhật phần mềm sau này, cập nhật cho ĐÚNG thư mục đang dùng.
+ • Tài liệu chi tiết (cài đặt, bảo mật, giấy phép, quên mật khẩu) có
+   sẵn trong CẢ HAI thư mục.
+====================================================================

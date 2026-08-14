@@ -1,0 +1,162 @@
+====================================================================
+   TRẠM DỰ ÁN — BẬT HTTPS MIỄN PHÍ TRÊN NAS SYNOLOGY
+   (Truy cập được cả trong công ty lẫn từ xa qua Internet)
+   Hướng dẫn cho người KHÔNG chuyên kỹ thuật
+====================================================================
+
+Ngày: 02/07/2026
+
+Ý TƯỞNG CHUNG (đọc 30 giây cho dễ hình dung):
+  - App của bạn chạy trong Docker trên NAS, ở cổng 3000 (HTTP, chưa mã hóa).
+  - Ta KHÔNG mở thẳng cổng 3000 ra Internet.
+  - Thay vào đó dùng "Reverse Proxy" của Synology làm người gác cổng:
+    người dùng vào bằng địa chỉ HTTPS (có ổ khóa) -> Synology giải mã ->
+    chuyển vào app ở cổng 3000 bên trong. Toàn bộ đường truyền được mã hóa.
+  - Chứng chỉ HTTPS lấy MIỄN PHÍ từ Let's Encrypt, NAS tự động gia hạn.
+
+Bạn sẽ làm 4 phần: (A) Tên miền miễn phí -> (B) Mở cổng router ->
+(C) Chứng chỉ Let's Encrypt -> (D) Reverse Proxy. Cuối cùng là (E) siết
+bảo mật và (F) cập nhật app.
+
+Cần chuẩn bị: tài khoản admin trên NAS; quyền vào trang quản trị router
+(modem Internet) của bạn.
+
+
+--------------------------------------------------------------------
+PHẦN A. TẠO TÊN MIỀN MIỄN PHÍ (Synology DDNS)
+--------------------------------------------------------------------
+Vì IP Internet nhà mạng hay đổi, ta dùng tên miền động (DDNS) miễn phí
+của Synology, dạng: TÊNBẠN.synology.me
+
+  1. Trên NAS mở: Control Panel (Bảng điều khiển).
+  2. Vào: External Access (Truy cập bên ngoài) -> tab DDNS -> Add (Thêm).
+  3. Service Provider (Nhà cung cấp): chọn "Synology".
+  4. Hostname: gõ tên bạn muốn, ví dụ:  tramduan-abc.synology.me
+     (chọn tên riêng, dễ nhớ; nếu trùng sẽ báo, đổi tên khác).
+  5. TÍCH chọn: "Get a certificate from Let's Encrypt and set it as default"
+     (Lấy chứng chỉ Let's Encrypt và đặt làm mặc định).
+  6. TÍCH chọn: "Enable Heartbeat".
+  7. Bấm OK. (Nếu bước lấy chứng chỉ báo lỗi lúc này, cứ tiếp tục —
+     ta sẽ mở cổng ở Phần B rồi lấy lại chứng chỉ ở Phần C.)
+
+Ghi nhớ tên miền vừa tạo, ví dụ:  https://tramduan-abc.synology.me
+
+
+--------------------------------------------------------------------
+PHẦN B. MỞ CỔNG 80 VÀ 443 TRÊN ROUTER (bắt buộc)
+--------------------------------------------------------------------
+Let's Encrypt cần cổng 80 để cấp và tự gia hạn chứng chỉ; cổng 443 để
+người dùng vào bằng HTTPS. Phải trỏ (port forward) 2 cổng này về NAS.
+
+  1. Tìm địa chỉ IP nội bộ của NAS (ví dụ 192.168.18.90 — chính là địa
+     chỉ bạn đang dùng để mở app).
+  2. Đăng nhập trang quản trị router (thường là 192.168.1.1 hoặc
+     192.168.0.1 — hỏi nhà mạng nếu không chắc).
+  3. Tìm mục "Port Forwarding" / "NAT" / "Virtual Server".
+  4. Tạo 2 luật, đều trỏ về IP của NAS:
+        - Cổng ngoài 80  (TCP) -> IP NAS, cổng 80
+        - Cổng ngoài 443 (TCP) -> IP NAS, cổng 443
+  5. Lưu lại.
+
+  MẸO: Nên đặt IP tĩnh cho NAS (DHCP reservation trong router) để IP
+       không đổi làm hỏng port forwarding.
+
+  LƯU Ý AN TOÀN: CHỈ mở 80 và 443. TUYỆT ĐỐI KHÔNG mở cổng 3000 (app)
+  và không mở cổng quản trị DSM (5000/5001) ra Internet.
+
+
+--------------------------------------------------------------------
+PHẦN C. LẤY / KIỂM TRA CHỨNG CHỈ LET'S ENCRYPT
+--------------------------------------------------------------------
+Nếu Phần A đã lấy chứng chỉ thành công thì bỏ qua phần này. Nếu chưa:
+
+  1. NAS: Control Panel -> Security (Bảo mật) -> tab Certificate (Chứng chỉ).
+  2. Add -> "Add a new certificate" -> Next.
+  3. Chọn "Get a certificate from Let's Encrypt" -> Next.
+  4. Domain name: gõ tên miền ở Phần A (vd tramduan-abc.synology.me).
+     Email: email của bạn.
+     (Tùy chọn nâng cao: ô "Subject Alternative Name" có thể gõ
+      *.tramduan-abc.synology.me để dùng cho nhiều tên phụ.)
+  5. Apply. NAS sẽ tự xác thực qua cổng 80 và tạo chứng chỉ.
+
+  Chứng chỉ có hạn 90 ngày nhưng NAS TỰ ĐỘNG GIA HẠN, miễn là cổng 80
+  vẫn mở (Phần B). Bạn không phải làm gì thêm.
+
+
+--------------------------------------------------------------------
+PHẦN D. TẠO REVERSE PROXY (nối HTTPS -> app cổng 3000)
+--------------------------------------------------------------------
+  1. NAS: Control Panel -> Login Portal (Cổng đăng nhập) -> tab Advanced
+     (Nâng cao) -> nút "Reverse Proxy".
+  2. Bấm Create (Tạo).
+  3. Phần "Reverse Proxy Name": đặt tên gợi nhớ, vd "Tram Du An".
+  4. Phần SOURCE (Nguồn — địa chỉ người dùng gõ để vào):
+        - Protocol: HTTPS
+        - Hostname:  tramduan-abc.synology.me   (tên miền Phần A)
+        - Port:      443
+  5. Phần DESTINATION (Đích — app bên trong NAS):
+        - Protocol: HTTP
+        - Hostname:  localhost
+        - Port:      3000
+  6. Bấm Save (Lưu).
+
+  Gán chứng chỉ cho tên miền này (nếu chưa tự gán):
+     Control Panel -> Security -> Certificate -> Settings ->
+     tìm dòng "tramduan-abc.synology.me" -> chọn chứng chỉ Let's Encrypt
+     vừa tạo -> OK.
+
+  XONG! Giờ mở trình duyệt gõ:  https://tramduan-abc.synology.me
+  -> phải thấy ổ khóa (mã hóa) và vào được app, cả khi dùng 4G ngoài đường.
+
+
+--------------------------------------------------------------------
+PHẦN E. SIẾT BẢO MẬT KHI ĐÃ MỞ RA INTERNET (nên làm)
+--------------------------------------------------------------------
+Khi app ra Internet, ai cũng có thể thử vào trang đăng nhập. Phần mềm
+đã có sẵn khóa chống dò mật khẩu (5 lần sai -> khóa 15 phút), nhưng nên:
+
+  1. Đặt mật khẩu Chủ sở hữu THẬT MẠNH (dài, khó đoán).
+  2. NAS: Control Panel -> Security -> Firewall: bật tường lửa. Nếu
+     chỉ vài người dùng cố định ở xa, có thể chỉ cho phép dải IP của họ.
+  3. NAS: Control Panel -> Security -> Protection: bật "Auto Block"
+     (tự chặn IP dò mật khẩu) và "Account Protection".
+  4. Không bao giờ mở trang quản trị DSM (5000/5001) ra Internet.
+  5. Bật 2 lớp (2FA) cho tài khoản admin của chính NAS.
+  6. Thỉnh thoảng mở file data/security.log để xem có ai lạ đang thử vào.
+
+
+--------------------------------------------------------------------
+PHẦN F. CẬP NHẬT ĐỊA CHỈ TRONG APP (cho email nhắc việc)
+--------------------------------------------------------------------
+Để nút "Mở phần mềm" trong email nhắc việc trỏ đúng địa chỉ HTTPS:
+
+  - Đăng nhập app bằng tài khoản Chủ -> Cài đặt -> ô "Địa chỉ app (appUrl)"
+    -> điền:  https://tramduan-abc.synology.me  -> Lưu.
+
+
+--------------------------------------------------------------------
+LƯU Ý: DÙNG TRONG MẠNG NỘI BỘ (LAN)
+--------------------------------------------------------------------
+- Khi ở trong công ty, gõ https://tramduan-abc.synology.me đôi khi bị
+  chậm/không vào do router không hỗ trợ "quay đầu" (NAT loopback). Cách xử lý:
+    (a) Bật "Loopback/Hairpin NAT" trong router (nếu có), HOẶC
+    (b) Trong NAS bật DNS Server và trỏ tên miền về IP nội bộ, HOẶC
+    (c) Trong LAN cứ dùng http://192.168.18.90:3000 như cũ (không mã hóa,
+        nhưng chấp nhận được vì là mạng nội bộ).
+- Ở NGOÀI Internet thì luôn dùng https://tramduan-abc.synology.me
+
+
+--------------------------------------------------------------------
+KHI GẶP TRỤC TRẶC
+--------------------------------------------------------------------
+- "Không lấy được chứng chỉ": kiểm tra lại cổng 80 đã trỏ đúng về NAS chưa;
+  một số nhà mạng chặn cổng 80 -> gọi nhà mạng mở, hoặc dùng phương án
+  DNS Challenge (báo tôi, tôi hướng dẫn riêng).
+- "Vào https báo không an toàn": chứng chỉ chưa gán đúng tên miền
+  (làm lại phần gán chứng chỉ ở cuối Phần D).
+- "Vào được https nhưng lỗi 502/không tới app": app (Docker) chưa chạy,
+  hoặc Destination điền sai (phải là localhost cổng 3000).
+
+Nếu muốn, cho tôi biết model NAS và nhà mạng của bạn, tôi soạn bản
+hướng dẫn bấm-theo-từng-màn-hình sát với thiết bị của bạn hơn.
+====================================================================

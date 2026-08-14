@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <!-- viewport-fit=cover: cần thiết để dùng vùng an toàn (safe-area) trên iPhone có tai thỏ -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Trạm Dự Án — Quản lý dự án</title>
+  <meta name="theme-color" content="#f97316" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Trạm Dự Án" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="app.css" />
+  <style>
+    html,body{height:100%;margin:0}
+    body{overflow:hidden}
+    /* Chiều cao động (dvh) để trừ đúng thanh công cụ trình duyệt trên di động;
+       padding theo safe-area để phần đầu không bị che dưới thanh trạng thái / tai thỏ. */
+    #root{
+      height:100vh;            /* dự phòng cho trình duyệt cũ */
+      height:100dvh;
+      box-sizing:border-box;
+      padding-top:env(safe-area-inset-top);
+      padding-bottom:env(safe-area-inset-bottom);
+      padding-left:env(safe-area-inset-left);
+      padding-right:env(safe-area-inset-right);
+    }
+    /* App bên trong dùng h-screen (100vh); ép nó vừa khít trong #root đã chừa safe-area
+       để không có phần nào bị đẩy ra ngoài màn hình / xuống dưới thanh trạng thái. */
+    #root>div{height:100%!important;min-height:0!important}
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="shim.js?v=3.5.0"></script>
+  <script src="app.js?v=3.5.0"></script>
+</body>
+</html>

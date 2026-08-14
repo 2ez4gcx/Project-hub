@@ -1,0 +1,4 @@
+.env
+data/.env
+security.log
+data/security.log

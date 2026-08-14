@@ -1,0 +1,9 @@
+# Dữ liệu & tệp nhạy cảm — KHÔNG đưa vào Git
+*/data/
+data/
+node_modules/
+*.tmp
+*.bak
+*.bak-*
+*.log
+license-private.key

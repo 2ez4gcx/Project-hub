@@ -1,0 +1,27 @@
+========================================================
+  TRẠM DỰ ÁN — ĐỌC TRƯỚC
+========================================================
+
+• CÔNG TY DÙNG NAS SYNOLOGY:
+  → Mở file "HUONG DAN NAS (Synology).txt" và làm theo 4 bước.
+    Đây là cách dùng chính thức cho nhiều người.
+
+• MUỐN CHẠY THỬ NHANH TRÊN 1 MÁY TÍNH (Windows/Mac):
+  1. Cài Node.js (https://nodejs.org — bản LTS).
+  2. Windows: nhấp đúp  "Khởi động (Windows).bat"
+     Mac:     nhấp đúp  "Khoi-dong (Mac-Linux).command"
+  3. Mở trình duyệt:  http://localhost:3000
+  4. Lần đầu: tạo tài khoản Chủ sở hữu (tên, email, mật khẩu) ngay
+     trên màn hình. Sau đó vào "Thành viên" để tạo tài khoản cho
+     nhân viên (bạn đặt mật khẩu cho họ).
+
+ĐĂNG NHẬP: chỉ cần email + mật khẩu. Chỉ Chủ sở hữu tạo được tài
+khoản (tránh người lạ/spam).
+
+CHI PHÍ (đã chi / đã thu từ chủ đầu tư): chỉ Chủ sở hữu và Quản lý
+được cấp quyền mới thấy (bật ô biểu tượng ví trong mục Thành viên).
+
+EMAIL NHẮC VIỆC: điền thông tin "smtp" trong data/config.json khi
+bạn đã có email gửi đi (làm sau cũng được).
+
+SAO LƯU: giữ lại thư mục "data" (chứa công việc, tài khoản, chi phí).

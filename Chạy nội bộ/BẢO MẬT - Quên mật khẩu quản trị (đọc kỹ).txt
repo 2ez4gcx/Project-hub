@@ -1,0 +1,79 @@
+====================================================================
+   TRẠM DỰ ÁN — QUÊN MẬT KHẨU QUẢN TRỊ THÌ LÀM SAO?
+   Hướng dẫn khôi phục cho người KHÔNG chuyên kỹ thuật
+====================================================================
+
+Ngày: 02/07/2026
+
+App KHÔNG có nút "Quên mật khẩu" (vì chạy nội bộ). Nhưng bạn là người
+có toàn quyền trên NAS nên vẫn đặt lại được bằng công cụ đi kèm:
+        reset-password.js
+Công cụ này đặt lại mật khẩu cho MỘT tài khoản, GIỮ NGUYÊN mọi tài
+khoản, công việc và dữ liệu khác. Trước khi ghi, nó tự sao lưu file
+tài khoản (accounts.json.bak-<ngày>).
+
+
+####################################################################
+CÁCH 1 — DÙNG CÔNG CỤ ĐẶT LẠI (khuyên dùng, an toàn nhất)
+####################################################################
+
+--- A. NẾU CHẠY BẰNG DOCKER TRÊN SYNOLOGY NAS ---------------------
+(Container tên "tram-du-an" theo docker-compose.)
+
+  Bước 1. Mở SSH tới NAS (hoặc dùng ứng dụng "Terminal"):
+          - Bật SSH: Control Panel -> Terminal & SNMP -> tích "Enable SSH".
+          - Trên máy tính, mở Terminal/PowerShell gõ:
+                ssh tênadmin@192.168.18.90
+            (thay bằng IP NAS của bạn) rồi nhập mật khẩu admin của NAS.
+
+  Bước 2. Xem danh sách email tài khoản (để biết email quản trị):
+                sudo docker exec -it tram-du-an node reset-password.js
+
+  Bước 3. Đặt lại mật khẩu cho email đó (ví dụ sep@congty.com):
+                sudo docker exec -it tram-du-an node reset-password.js sep@congty.com "CongTy2026"
+          (Mật khẩu mới phải >= 8 ký tự, có cả chữ và số. Đặt trong
+           dấu ngoặc kép "..." nếu có khoảng trắng.)
+
+  Bước 4. Thấy dòng "✔ ĐÃ ĐẶT LẠI mật khẩu..." là xong. Vào app đăng
+          nhập bằng email trên + mật khẩu mới. Sau đó nên vào phần
+          Đổi mật khẩu trong app để đặt lại mật khẩu bạn tự nhớ.
+
+  (Tùy chọn) Nên tắt SSH lại sau khi xong cho an toàn:
+          Control Panel -> Terminal & SNMP -> bỏ tích "Enable SSH".
+
+--- B. NẾU CHẠY TRỰC TIẾP TRÊN MÁY TÍNH (Windows/Mac) --------------
+  Mở Terminal/Command ngay trong thư mục phần mềm rồi gõ:
+        node reset-password.js                         (xem danh sách email)
+        node reset-password.js sep@congty.com "CongTy2026"   (đặt lại)
+
+
+####################################################################
+CÁCH 2 — LÀM LẠI TỪ ĐẦU (chỉ khi Cách 1 không được)
+####################################################################
+Cách này XÓA HẾT tài khoản (cả nhân viên) để app hiện lại màn hình
+"tạo tài khoản Chủ đầu tiên". CÔNG VIỆC/DỰ ÁN KHÔNG bị mất (nằm ở
+file data.json riêng), nhưng bạn sẽ phải tạo lại các tài khoản nhân viên.
+
+  Bước 1. Vào thư mục "data" của phần mềm (trên NAS thường là thư mục
+          "data" cạnh docker-compose, hoặc trong container là /app/data).
+  Bước 2. ĐỔI TÊN file accounts.json thành accounts_cu.json (để giữ lại
+          phòng khi cần). KHÔNG xóa hẳn.
+  Bước 3. Khởi động lại phần mềm. Mở cửa sổ máy chủ (Terminal/log
+          Docker) để lấy MÃ CÀI ĐẶT mới hiển thị trong khung sao ***.
+  Bước 4. Mở web -> tạo lại tài khoản Chủ (nhập MÃ CÀI ĐẶT) -> rồi
+          tạo lại các tài khoản nhân viên.
+
+
+####################################################################
+PHÒNG NGỪA (để lần sau không lo)
+####################################################################
+- Bật SAO LƯU HẰNG TUẦN qua email (trong Cài đặt) — bản sao lưu có kèm
+  accounts.json, phòng khi hỏng dữ liệu.
+- Lưu mật khẩu quản trị vào một trình quản lý mật khẩu.
+- Nên có 2 tài khoản vai trò CHỦ SỞ HỮU (2 người), để nếu 1 người quên
+  thì người kia vào đặt lại giúp qua giao diện (Quản lý thành viên ->
+  đặt lại mật khẩu), không cần đụng tới dòng lệnh.
+
+Nếu bạn cho biết đang chạy bằng Docker hay chạy trực tiếp, tôi sẽ rút
+gọn thành đúng vài dòng lệnh cho trường hợp của bạn.
+====================================================================
