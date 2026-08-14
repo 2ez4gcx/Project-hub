@@ -124,7 +124,7 @@ const T = {
     templateHint: "Sao chép các cột & công việc từ một dự án có sẵn (KHÔNG sao chép phần giao việc, tiến độ, bình luận).",
     // finance per project
     financeProject: "Dự án", financeAllProjects: "Tất cả dự án", financeNoProject: "Chưa gắn dự án",
-    contract: "Hợp đồng", appendix: "Phụ lục", kindLabel: "Loại", financeNoProject: "Chưa gắn dự án", contractItems: "hợp đồng/PL",
+    contract: "Hợp đồng", appendix: "Phụ lục", kindLabel: "Loại", contractItems: "hợp đồng/PL",
     contractValue: "Giá trị hợp đồng", contractCode: "Số / Tên hợp đồng",
     parentContract: "Thuộc hợp đồng", none: "—", notLinked: "Không liên kết",
     linkedInvestorContract: "Theo HĐ chủ đầu tư",
@@ -281,7 +281,7 @@ const T = {
     useTemplate: "Project template (optional)", templateNone: "Empty — no template",
     templateHint: "Copy columns & tasks from an existing project (does NOT copy assignments, progress, comments).",
     financeProject: "Project", financeAllProjects: "All projects", financeNoProject: "No project",
-    contract: "Contract", appendix: "Appendix", kindLabel: "Type", financeNoProject: "No project", contractItems: "items",
+    contract: "Contract", appendix: "Appendix", kindLabel: "Type", contractItems: "items",
     contractValue: "Contract value", contractCode: "Contract no. / name",
     parentContract: "Belongs to", none: "—", notLinked: "Not linked",
     linkedInvestorContract: "Under investor contract",
@@ -629,13 +629,24 @@ function ProjectManagerInner() {
 
   const localRev = useRef(0);
   const suppressSave = useRef(false);
+  // Chuỗi JSON của lần lưu/đồng bộ gần nhất — dùng để bỏ qua các lần "lưu" không có thay đổi thực
+  // (tránh bơm rev mới vô cớ làm người khác bị báo "conflict" và mất thao tác oan).
+  const lastSavedRef = useRef("");
+  const buildCore = (o, includeLocal) => {
+    const core = { projects: o.projects, sections: o.sections, tasks: o.tasks, history: o.history, dailyReports: o.dailyReports, trash: o.trash };
+    if (includeLocal) { core.members = o.members; core.finance = o.finance; }
+    return JSON.stringify(core);
+  };
 
   const applyState = (s, keepMembers) => {
     const mem = keepMembers ? null : (s.members || []).map(normMember);
+    const normTasks = (s.tasks || []).map((x) => normalizeTask(x, mem || members));
+    const fin = keepMembers ? null : normalizeFinance(s.finance);
     setProjects(s.projects || []); setSections(s.sections || []);
-    setTasks((s.tasks || []).map((x) => normalizeTask(x, mem || members)));
+    setTasks(normTasks);
     if (!keepMembers) setMembers(mem);
-    if (!keepMembers) setFinance(normalizeFinance(s.finance));
+    if (!keepMembers) setFinance(fin);
+    lastSavedRef.current = buildCore({ projects: s.projects || [], sections: s.sections || [], tasks: normTasks, history: s.history || [], dailyReports: s.dailyReports || [], trash: s.trash || [], members: mem, finance: fin }, !keepMembers);
     setHistory(s.history || []); setDailyReports(s.dailyReports || []); setTrash(s.trash || []); localRev.current = s.rev || 0;
     const SPECIAL = ["dashboard", "mywork", "dailyreport", "history", "finance", "workload", "search"];
     setActiveProject((cur) => (SPECIAL.includes(cur) || (s.projects || []).some((x) => x.id === cur)) ? cur : ((s.projects && s.projects[0] && s.projects[0].id) || "dashboard"));
@@ -733,7 +744,10 @@ function ProjectManagerInner() {
     if (license && license.readOnly) return; // giấy phép hết hạn -> chỉ đọc, ngừng đồng bộ
     if (suppressSave.current) { suppressSave.current = false; return; }
     const id = setTimeout(() => {
+      const coreStr = buildCore({ projects, sections, tasks, history, dailyReports, trash, members, finance }, !serverMode);
+      if (coreStr === lastSavedRef.current) return; // không có thay đổi thực (vd chỉ refresh danh sách thành viên) -> không bơm rev mới
       const rev = localRev.current + 1; localRev.current = rev;
+      lastSavedRef.current = coreStr;
       const meNow = members.find((m) => m.id === currentUserId);
       const payload = { projects, sections, tasks, history, dailyReports, trash, rev, updatedBy: meNow?.name || "", updatedAt: Date.now() };
       if (!serverMode) { payload.members = members; payload.finance = finance; }
@@ -763,13 +777,18 @@ function ProjectManagerInner() {
         if (force || (remote.rev || 0) > localRev.current) {
           suppressSave.current = true; localRev.current = remote.rev;
           setProjects(remote.projects || []); setSections(remote.sections || []);
+          let normTasks, mem = members, fin = finance;
           if (serverMode) {
-            setTasks((remote.tasks || []).map((x) => normalizeTask(x, members)));
+            normTasks = (remote.tasks || []).map((x) => normalizeTask(x, members));
+            setTasks(normTasks);
           } else {
-            const mem = (remote.members || []).map(normMember);
-            setTasks((remote.tasks || []).map((x) => normalizeTask(x, mem)));
-            setMembers(mem); setFinance(normalizeFinance(remote.finance));
+            mem = (remote.members || []).map(normMember);
+            fin = normalizeFinance(remote.finance);
+            normTasks = (remote.tasks || []).map((x) => normalizeTask(x, mem));
+            setTasks(normTasks);
+            setMembers(mem); setFinance(fin);
           }
+          lastSavedRef.current = buildCore({ projects: remote.projects || [], sections: remote.sections || [], tasks: normTasks, history: remote.history || [], dailyReports: remote.dailyReports || [], trash: remote.trash || [], members: mem, finance: fin }, !serverMode);
           setDailyReports(remote.dailyReports || []); setHistory(remote.history || []); setTrash(remote.trash || []); setLastSync(Date.now());
         }
       }
@@ -1135,7 +1154,8 @@ function ProjectManagerInner() {
     const proj = scopeId ? projects.find((p) => p.id === scopeId) : null;
     const rows = tasks.filter((x) => !scopeId || x.projectId === scopeId);
     const header = ["Dự án", "Trạng thái", "Công việc", "Ưu tiên", "Người phụ trách", "Bắt đầu", "Deadline", "% hoàn thành", "Mô tả"];
-    const esc = (v) => { const w = String(v == null ? "" : v).replace(/"/g, '""'); return /[",\n;]/.test(w) ? '"' + w + '"' : w; };
+    // Chống "CSV formula injection": ô bắt đầu bằng = + - @ sẽ bị Excel hiểu là công thức khi mở file
+    const esc = (v) => { let w = String(v == null ? "" : v); if (/^[=+\-@]/.test(w)) w = "'" + w; w = w.replace(/"/g, '""'); return /[",\n;]/.test(w) ? '"' + w + '"' : w; };
     const lines = [header.map(esc).join(",")];
     rows.forEach((x) => { const who = (x.assignees || []).map(memName).filter(Boolean).join(", ");
       lines.push([projName(x.projectId), t.statuses[x.status] || x.status, x.title || "", t.priorities[x.priority] || x.priority, who, x.startDate || "", x.dueDate || "", (x.workdone || 0) + "%", (x.description || "").replace(/\n/g, " ")].map(esc).join(",")); });

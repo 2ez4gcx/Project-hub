@@ -1,0 +1,19 @@
+{
+  "name": "tram-du-an-build",
+  "private": true,
+  "description": "Build client bundle (public/app.js) tu ProjectManager.jsx cho ca 2 ban (noi bo + NAS)",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@ant-design/v5-patch-for-react-19": "^1.0.3",
+    "antd": "^5.21.0",
+    "lucide-react": "^0.460.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}

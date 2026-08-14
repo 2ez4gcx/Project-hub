@@ -122,6 +122,22 @@ function verifyLicenseCode(code) {
 
 function loadData() { try { return JSON.parse(fs.readFileSync(DATA, "utf8")); } catch { return {}; } }
 function saveData(d) { writeJsonAtomic(DATA, JSON.stringify(d)); }
+// ---- Trạng thái nhắc việc/sao lưu: TÁCH KHỎI data.json.
+// (Trước đây scheduler load data.json -> await gửi email -> save lại bản CŨ, có thể đè mất
+// thay đổi người dùng vừa lưu qua /api/kv trong lúc email đang gửi; đồng thời ghi data.json mỗi phút.)
+const SCHED_STATE = path.join(DATA_DIR, "sched-state.json");
+function loadSchedState() { try { const s = JSON.parse(fs.readFileSync(SCHED_STATE, "utf8")); return { remindersSent: s.remindersSent || {}, backupWeek: s.backupWeek || "" }; } catch { return { remindersSent: {}, backupWeek: "" }; } }
+function saveSchedState(s) { writeJsonAtomic(SCHED_STATE, JSON.stringify(s)); }
+(function migrateSchedState() {
+  if (fs.existsSync(SCHED_STATE)) return;
+  try {
+    const d = loadData();
+    if (d.__reminders_sent || d.__backup_week) {
+      saveSchedState({ remindersSent: d.__reminders_sent || {}, backupWeek: d.__backup_week || "" });
+      delete d.__reminders_sent; delete d.__backup_week; saveData(d);
+    }
+  } catch {}
+})();
 function saveAccounts(a) { writeJsonAtomic(ACCOUNTS, JSON.stringify(a, null, 2)); }
 const FINANCE = path.join(DATA_DIR, "finance.json");
 function loadFinance() { try { const f = JSON.parse(fs.readFileSync(FINANCE, "utf8")); return { investorContracts: f.investorContracts || [], subContracts: f.subContracts || [] }; } catch { return { investorContracts: [], subContracts: [] }; } }
@@ -148,6 +164,17 @@ function loadTaskFiles() { try { return JSON.parse(fs.readFileSync(TASKFILES, "u
 function saveTaskFiles(o) { writeJsonAtomic(TASKFILES, JSON.stringify(o, null, 2)); }
 function canRecords(a) { return !!a; } // fine per-project gating (site loggers) done on client
 const INLINE_SAFE_EXT = new Set([".pdf", ".jpg", ".jpeg", ".png", ".webp", ".gif", ".heic", ".heif", ".bmp"]);
+// Content-Type khi TRẢ file luôn suy từ ĐUÔI TÊN file (không tin Content-Type do client khai lúc upload,
+// tránh việc kẻ xấu upload "x.pdf" với Content-Type text/html để phục vụ trang HTML giả mạo cùng origin).
+const DL_MIME = { ".pdf": "application/pdf", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp", ".gif": "image/gif", ".heic": "image/heic", ".heif": "image/heif", ".bmp": "image/bmp" };
+function downloadHeaders(name) {
+  const ext = fileExt(name);
+  const inline = INLINE_SAFE_EXT.has(ext);
+  return {
+    "Content-Type": inline ? (DL_MIME[ext] || "application/octet-stream") : "application/octet-stream",
+    "Content-Disposition": (inline ? "inline" : "attachment") + "; filename*=UTF-8''" + encodeURIComponent(name),
+  };
+}
 const UPLOAD_BLOCK_EXT = new Set([".html", ".htm", ".xhtml", ".shtml", ".js", ".mjs", ".svg", ".xml", ".php", ".phtml", ".php3", ".php4", ".php5", ".exe", ".bat", ".cmd", ".sh", ".com", ".scr", ".jar", ".vbs", ".hta"]);
 function fileExt(name) { const m = String(name || "").toLowerCase().match(/\.[a-z0-9]+$/); return m ? m[0] : ""; }
 function projectOf(projectId) { try { const d = loadData(); const shared = JSON.parse(d[SHARED_KEY] || "{}"); return (shared.projects || []).find((x) => x.id === projectId) || null; } catch { return null; } }
@@ -163,7 +190,11 @@ function canRecordProject(me, projectId) {
 function canDeleteRecord(me, rec) {
   if (!me) return false;
   if (me.role === "owner" || me.isLeader) return true;
-  return !!rec && (rec.createdById === me.id || rec.createdBy === me.name || rec.createdBy === me.email);
+  if (!rec) return false;
+  // Ưu tiên so theo ID người tạo; chỉ rơi về so theo tên/email với bản ghi cũ chưa có createdById
+  // (so theo tên hiển thị có thể trùng giữa hai người khác nhau).
+  if (rec.createdById) return rec.createdById === me.id;
+  return rec.createdBy === me.name || rec.createdBy === me.email;
 }
 const REC_ILLEGAL = /[\/\\:*?"<>|\n\r\t]/g;
 function sanitizeName(x) { return String(x || "").replace(REC_ILLEGAL, "").replace(/\s+/g, " ").trim().slice(0, 120) || "khong-ten"; }
@@ -291,7 +322,7 @@ const server = http.createServer(async (req, res) => {
   res.setHeader("X-Frame-Options", "SAMEORIGIN");
   res.setHeader("Referrer-Policy", "no-referrer");
   res.setHeader("X-XSS-Protection", "0");
-  res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'");
+  res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'");
 
   const u = new URL(req.url, "http://localhost");
   const p = u.pathname;
@@ -422,7 +453,7 @@ const server = http.createServer(async (req, res) => {
     const f = rec.files[idx];
     fs.readFile(path.join(UPLOADS, f.stored), (err, buf) => {
       if (err) { res.writeHead(404); res.end("Not found"); return; }
-      res.writeHead(200, { "Content-Type": INLINE_SAFE_EXT.has(fileExt(f.name)) ? (f.mime || "application/octet-stream") : "application/octet-stream", "Content-Disposition": (INLINE_SAFE_EXT.has(fileExt(f.name)) ? "inline" : "attachment") + "; filename*=UTF-8''" + encodeURIComponent(f.name) });
+      res.writeHead(200, downloadHeaders(f.name));
       res.end(buf);
     });
     return;
@@ -458,7 +489,7 @@ const server = http.createServer(async (req, res) => {
     const base = sanitizeName(String(origName).replace(/\.[^.]+$/, "")) || "file";
     const fname = uniqueName(dir, base, extOf(origName, mime));
     try { fs.writeFileSync(path.join(dir, fname), buf); } catch { return json(res, 500, { error: "write_failed" }); }
-    const store = loadTaskFiles(); store[tid] = store[tid] || []; store[tid].push({ name: fname, stored: path.join(sanitizeName(tid), fname), size: buf.length, mime, by: me.name || me.email, ts: Date.now() }); saveTaskFiles(store);
+    const store = loadTaskFiles(); store[tid] = store[tid] || []; store[tid].push({ name: fname, stored: path.join(sanitizeName(tid), fname), size: buf.length, mime, by: me.name || me.email, byId: me.id, ts: Date.now() }); saveTaskFiles(store);
     slog("Đính kèm tệp công việc " + tid + " bởi " + me.email);
     return json(res, 200, { ok: true });
   }
@@ -468,7 +499,7 @@ const server = http.createServer(async (req, res) => {
     const f = (loadTaskFiles()[tid] || [])[idx];
     if (!f) return json(res, 404, { error: "not_found" });
     let buf; try { buf = fs.readFileSync(path.join(TASKUPLOADS, f.stored)); } catch { return json(res, 404, { error: "not_found" }); }
-    res.writeHead(200, { "Content-Type": INLINE_SAFE_EXT.has(fileExt(f.name)) ? (f.mime || "application/octet-stream") : "application/octet-stream", "Content-Disposition": (INLINE_SAFE_EXT.has(fileExt(f.name)) ? "inline" : "attachment") + "; filename*=UTF-8''" + encodeURIComponent(f.name) });
+    res.writeHead(200, downloadHeaders(f.name));
     return res.end(buf);
   }
   if (p === "/api/taskfiles/delete" && req.method === "POST") {
@@ -477,7 +508,8 @@ const server = http.createServer(async (req, res) => {
     const idx = parseInt(u.searchParams.get("idx") || "-1", 10);
     const store = loadTaskFiles(); const arr = store[tid] || []; const f = arr[idx];
     if (!f) return json(res, 404, { error: "not_found" });
-    if (!(me.role === "owner" || me.isLeader || f.by === me.name || f.by === me.email)) return json(res, 403, { error: "forbidden", message: "Chỉ người tải lên hoặc quản lý mới xóa được." });
+    const isUploader = f.byId ? f.byId === me.id : (f.by === me.name || f.by === me.email);
+    if (!(me.role === "owner" || me.isLeader || isUploader)) return json(res, 403, { error: "forbidden", message: "Chỉ người tải lên hoặc quản lý mới xóa được." });
     try { fs.unlinkSync(path.join(TASKUPLOADS, f.stored)); } catch {}
     arr.splice(idx, 1); store[tid] = arr; saveTaskFiles(store);
     return json(res, 200, { ok: true });
@@ -533,7 +565,7 @@ const server = http.createServer(async (req, res) => {
     const f = rec.photos[idx];
     fs.readFile(path.join(NHATKY, f.stored), (err, buf) => {
       if (err) { res.writeHead(404); res.end("Not found"); return; }
-      res.writeHead(200, { "Content-Type": INLINE_SAFE_EXT.has(fileExt(f.name)) ? (f.mime || "application/octet-stream") : "application/octet-stream", "Content-Disposition": (INLINE_SAFE_EXT.has(fileExt(f.name)) ? "inline" : "attachment") + "; filename*=UTF-8''" + encodeURIComponent(f.name) });
+      res.writeHead(200, downloadHeaders(f.name));
       res.end(buf);
     });
     return;
@@ -670,12 +702,21 @@ const server = http.createServer(async (req, res) => {
   }
 
   // ---- data KV (token required) ----
+  // Chỉ cho phép các key hợp lệ: chặn việc đọc/ghi key tùy ý trong data.json
+  // (vd __reminders_sent, hoặc nhồi key lạ làm phình file dữ liệu).
+  const KV_READ_KEYS = new Set([SHARED_KEY, "pm_shared_v2"]);
   if (p === "/api/kv" && req.method === "GET") {
-    const key = u.searchParams.get("key"); const d = loadData();
+    const key = u.searchParams.get("key");
+    if (!KV_READ_KEYS.has(key)) return json(res, 403, { error: "bad_key" });
+    const d = loadData();
     return json(res, 200, { value: key in d ? d[key] : null });
   }
   if (p === "/api/kv" && req.method === "POST") {
-    const { key, value } = await readBody(req); const d = loadData();
+    const { key, value } = await readBody(req);
+    if (key !== SHARED_KEY) return json(res, 403, { error: "bad_key" });
+    if (typeof value !== "string") return json(res, 400, { error: "bad_value" });
+    try { JSON.parse(value); } catch { return json(res, 400, { error: "bad_value", message: "Dữ liệu không phải JSON hợp lệ." }); }
+    const d = loadData();
     if (key === SHARED_KEY) {
       let inRev = null, curRev = null;
       try { inRev = JSON.parse(value).rev; } catch {}
@@ -733,7 +774,9 @@ async function runReminderCheck() {
   const emailById = Object.fromEntries(accounts.map((a) => [a.id, a.email]));
   const nameById = Object.fromEntries(accounts.map((a) => [a.id, a.name]));
   const projById = Object.fromEntries(projects.map((p) => [p.id, p.name]));
-  const sent = d.__reminders_sent || {};
+  const st = loadSchedState();
+  const sent = st.remindersSent;
+  let dirty = false;
   const now = Date.now();
   const transport = buildTransport();
   const from = smtpFrom();
@@ -746,11 +789,10 @@ async function runReminderCheck() {
     const remindAt = dl - tk.reminderLead * 60000;
     if (now >= remindAt && now <= dl) {
       const emails = (tk.assignees || []).map((id) => emailById[id]).filter(Boolean);
-      if (emails.length === 0) { sent[sig] = now; continue; }
+      if (emails.length === 0) { sent[sig] = now; dirty = true; continue; }
       due.push({ tk, emails, primary: nameById[tk.primaryAssigneeId] || "", proj: projById[tk.projectId] || "", sig });
     }
   }
-  if (due.length === 0) { d.__reminders_sent = sent; saveData(d); return; }
   for (const item of due) {
     const { tk, emails, primary, proj, sig } = item;
     const subject = "[Nhắc việc] " + (tk.title || "Công việc") + " — hạn " + tk.dueDate;
@@ -761,8 +803,12 @@ async function runReminderCheck() {
       catch (e) { console.log("[reminder] LỖI gửi \"" + tk.title + "\":", e.message); continue; }
     } else { console.log("[reminder][DRY-RUN — chưa cấu hình SMTP] sẽ gửi \"" + tk.title + "\" -> " + emails.join(", ") + " (hạn " + tk.dueDate + ")"); }
     sent[sig] = Date.now();
+    dirty = true;
   }
-  d.__reminders_sent = sent; saveData(d);
+  // dọn các mốc đã gửi quá 90 ngày để file trạng thái không phình vô hạn
+  const cutoff = now - 90 * 86400000;
+  for (const k of Object.keys(sent)) if (typeof sent[k] === "number" && sent[k] < cutoff) { delete sent[k]; dirty = true; }
+  if (dirty) saveSchedState(st);
 }
 
 /* ===================== WEEKLY BACKUP (Saturday) ===================== */
@@ -781,27 +827,33 @@ async function runBackupCheck() {
   const now = new Date();
   if (now.getDay() !== 6) return;                 // chỉ thứ Bảy (0=CN ... 6=T7)
   if (typeof b.hour === "number" && now.getHours() < b.hour) return;
-  const d = loadData();
+  const st = loadSchedState();
   const wk = isoWeek(now);
-  if (d.__backup_week === wk) return;             // đã gửi trong tuần này
+  if (st.backupWeek === wk) return;               // đã gửi trong tuần này
   const transport = buildTransport();
   const from = smtpFrom();
   const attachments = [];
-  for (const [fn, fp] of [["data.json", DATA], ["finance.json", FINANCE], ["records.json", RECORDS], ["sitelogs.json", SITELOGS], ["taskfiles.json", TASKFILES], ["config.json", CONFIG_PATH]]) {
+  for (const [fn, fp] of [["data.json", DATA], ["finance.json", FINANCE], ["records.json", RECORDS], ["sitelogs.json", SITELOGS], ["taskfiles.json", TASKFILES]]) {
     try { if (fs.existsSync(fp)) attachments.push({ filename: fn, content: fs.readFileSync(fp) }); } catch {}
   }
+  // config.json: gửi bản ĐÃ CHE mật khẩu SMTP (không bao giờ gửi mật khẩu thô qua email)
+  try {
+    const cfgCopy = loadConfig();
+    if (cfgCopy.smtp && cfgCopy.smtp.pass) cfgCopy.smtp.pass = "";
+    attachments.push({ filename: "config.json", content: Buffer.from(JSON.stringify(cfgCopy, null, 2)) });
+  } catch {}
   const dateStr = now.toISOString().slice(0, 10);
   if (transport) {
     try {
       await transport.sendMail({ from, to: b.email, subject: "[Sao lưu] Trạm Dự Án — " + dateStr,
-        text: "Bản sao lưu tự động hằng tuần của Trạm Dự Án (ngày " + dateStr + ").\n\nĐính kèm: data.json (công việc/dự án), finance.json (chi phí), records.json (biên bản), sitelogs.json (nhật ký thi công), config.json (cấu hình).\nLƯU Ý: accounts.json (mật khẩu đã băm) và các tệp/ảnh đính kèm (thư mục uploads, nhatky-thi-cong) KHÔNG gửi qua email vì lý do bảo mật/dung lượng — hãy sao lưu toàn bộ thư mục data bằng Hyper Backup của NAS.\nĐể phục hồi: đặt các file này vào thư mục data rồi khởi động lại.",
+        text: "Bản sao lưu tự động hằng tuần của Trạm Dự Án (ngày " + dateStr + ").\n\nĐính kèm: data.json (công việc/dự án), finance.json (chi phí), records.json (biên bản), sitelogs.json (nhật ký thi công), config.json (cấu hình — mật khẩu SMTP đã được xóa khỏi bản gửi kèm).\nLƯU Ý: accounts.json (mật khẩu đã băm) và các tệp/ảnh đính kèm (thư mục uploads, nhatky-thi-cong) KHÔNG gửi qua email vì lý do bảo mật/dung lượng — hãy sao lưu toàn bộ thư mục data bằng Hyper Backup của NAS.\nĐể phục hồi: đặt các file này vào thư mục data rồi khởi động lại (điền lại mật khẩu SMTP trong Cài đặt hoặc file .env).",
         attachments });
       console.log("[backup] đã gửi sao lưu -> " + b.email);
-      d.__backup_week = wk; saveData(d);
+      st.backupWeek = wk; saveSchedState(st);
     } catch (e) { console.log("[backup] LỖI gửi:", e.message); }
   } else {
     console.log("[backup][DRY-RUN — chưa cấu hình SMTP] sẽ gửi sao lưu -> " + b.email);
-    d.__backup_week = wk; saveData(d);
+    st.backupWeek = wk; saveSchedState(st);
   }
 }
 
