@@ -138,6 +138,7 @@ const T = {
     boqSuggest: "Lấy KL theo % tiến độ các công việc liên kết", boqEmpty: "Chưa có hạng mục BOQ cho dự án này.",
     boqEmptyAll: "Chưa có BOQ. Chọn một dự án ở trên để bắt đầu nhập.", boqPickProject: "Chọn một dự án ở trên để nhập / sửa BOQ chi tiết.",
     boqVsContract: "Giá trị hợp đồng CĐT", boqDelta: "Chênh lệch BOQ − hợp đồng", boqDeleteConfirm: "Xóa hạng mục này?", boqCount: "hạng mục",
+    boqExportKy: "Xuất CSV kỳ này", boqExportKyTip: "Bảng nghiệm thu khối lượng của kỳ đang chọn — nộp CĐT hoặc nhập sang CostManager",
     contract: "Hợp đồng", appendix: "Phụ lục", kindLabel: "Loại", contractItems: "hợp đồng/PL",
     contractValue: "Giá trị hợp đồng", contractCode: "Số / Tên hợp đồng",
     parentContract: "Thuộc hợp đồng", none: "—", notLinked: "Không liên kết",
@@ -309,6 +310,7 @@ const T = {
     boqSuggest: "Fill qty from linked tasks' progress", boqEmpty: "No BOQ items for this project yet.",
     boqEmptyAll: "No BOQ yet. Pick a project above to start.", boqPickProject: "Pick a project above to enter / edit the detailed BOQ.",
     boqVsContract: "Investor contract value", boqDelta: "BOQ − contract delta", boqDeleteConfirm: "Delete this item?", boqCount: "items",
+    boqExportKy: "Export period CSV", boqExportKyTip: "Quantity acceptance sheet for the selected period — submit to investor or key into CostManager",
     contract: "Contract", appendix: "Appendix", kindLabel: "Type", contractItems: "items",
     contractValue: "Contract value", contractCode: "Contract no. / name",
     parentContract: "Belongs to", none: "—", notLinked: "Not linked",
@@ -2671,6 +2673,32 @@ function BOQTab({ t, lang, finance, onChange, projects, proj, tasks, inv }) {
     antMessage.success((lang === "vi" ? "Đã nhập " : "Imported ") + add.length + " " + t.boqCount);
   };
 
+  // Xuất bảng nghiệm thu khối lượng của kỳ đang chọn (CSV mở được bằng Excel).
+  // Cột khớp thói quen của importer CostManager: chỉ dòng có STT là dòng công tác.
+  const exportKyCSV = () => {
+    if (!ky) return;
+    const esc = (v) => { let w = String(v == null ? "" : v); if (/^[=+\-@]/.test(w)) w = "'" + w; w = w.replace(/"/g, '""'); return /[",\n;]/.test(w) ? '"' + w + '"' : w; };
+    const kyLabel = (lang === "vi" ? "KL kỳ " : "Period qty ") + ky.soKy;
+    const header = lang === "vi"
+      ? ["STT", "Tên công tác", "ĐVT", "KL hợp đồng", "Lũy kế kỳ trước", kyLabel, "Lũy kế đến kỳ này", "% KL"]
+      : ["No.", "Work item", "Unit", "Contract qty", "Prev. cumulative", kyLabel, "Cumulative", "% Qty"];
+    const lines = [header.map(esc).join(",")];
+    items.forEach((it) => {
+      if (it.laNhom) { lines.push([it.stt, it.ten, "", "", "", "", "", ""].map(esc).join(",")); return; }
+      const lkTr = luyKeTruoc(it.id), kn = klKyNay(it.id), lk = lkTr + kn, klHd = Number(it.khoiLuong) || 0;
+      lines.push([it.stt, it.ten, it.donVi, klHd || "", lkTr || "", kn || "", lk || "", klHd > 0 ? Math.round(lk / klHd * 100) + "%" : ""].map(esc).join(","));
+    });
+    const csv = "﻿" + lines.join("\r\n"); // BOM để Excel mở đúng tiếng Việt
+    try {
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href = url;
+      a.download = ((projName(proj) || "BOQ") + " - nghiem thu ky " + ky.soKy + (ky.denNgay ? " - " + ky.denNgay : "") + ".csv").replace(/[\\/:*?"<>|]+/g, "_");
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+    } catch {}
+  };
+
   const th = (label, right) => <th style={{ padding: "6px 6px", textAlign: right ? "right" : "left", whiteSpace: "nowrap" }}>{label}</th>;
   const tdR = (node, cls) => <td style={{ padding: "4px 6px", textAlign: "right", whiteSpace: "nowrap" }} className={"tabular-nums text-sm " + (cls || "")}>{node}</td>;
 
@@ -2684,7 +2712,8 @@ function BOQTab({ t, lang, finance, onChange, projects, proj, tasks, inv }) {
         <AntBtn size="small" icon={<Plus size={13} />} onClick={addKy}>{lang === "vi" ? "Kỳ mới" : "New period"}</AntBtn>
         {ky && <AntBtn size="small" danger onClick={delKy}>{t.delete}</AntBtn>}
         <span className="ml-auto flex items-center gap-2">
-          <AntBtn size="small" icon={<Download size={13} />} onClick={() => setImportOpen((v) => !v)}>{t.boqImport}</AntBtn>
+          {ky && items.length > 0 && <AntTooltip title={t.boqExportKyTip}><AntBtn size="small" icon={<Download size={13} />} onClick={exportKyCSV}>{t.boqExportKy}</AntBtn></AntTooltip>}
+          <AntBtn size="small" icon={<Inbox size={13} />} onClick={() => setImportOpen((v) => !v)}>{t.boqImport}</AntBtn>
           <AntBtn size="small" type="primary" icon={<Plus size={13} />} onClick={addItem}>{t.boqAddItem}</AntBtn>
         </span>
       </div>
