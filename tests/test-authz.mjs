@@ -109,6 +109,41 @@ r = await push(OWNER, old);
 r = await push(BINH, { ...old, trash: [] });
 ok("client tự dọn mục thùng rác quá 90 ngày -> OK", r.status === 200);
 
+// ---- siết quyền xem file theo dự án (v3.8) ----
+const binhId = accs.find((a) => a.email === "binh@test.vn").id;
+// owner tạo biên bản + upload 1 file cho P1
+const recR = await api("/api/records", { method: "POST", body: JSON.stringify({ projectId: "P1", projectName: "Du an 1", date: "2026-08-14", type: "BB test" }) }, OWNER);
+const rid = recR.body.record.id;
+const up = await fetch(B + "/api/records/file?recordId=" + rid + "&filename=test.pdf", { method: "POST", headers: { Authorization: "Bearer " + OWNER, "Content-Type": "application/pdf" }, body: "PDF-DATA" });
+ok("owner upload file biên bản", up.status === 200);
+// trạng thái hiện tại trên server (sau các test trước)
+const curState = { ...old, trash: [] };
+// Bình: không có việc trong P1 -> danh sách bị lọc rỗng, tải file bị chặn
+let r2 = await api("/api/records?projectId=P1", {}, BINH);
+ok("người ngoài dự án: danh sách biên bản rỗng", r2.status === 200 && (r2.body.records || []).length === 0);
+let fr = await fetch(B + "/api/records/file?recordId=" + rid + "&idx=0", { headers: { Authorization: "Bearer " + BINH } });
+ok("người ngoài dự án: tải file biên bản -> 403", fr.status === 403);
+r2 = await api("/api/records?projectId=P1", {}, AN);
+ok("teamlead vẫn xem được biên bản", r2.status === 200 && (r2.body.records || []).length === 1);
+// owner giao việc t2 cho Bình -> thành người trong dự án
+r2 = await push(OWNER, { ...curState, tasks: curState.tasks.map((t2) => t2.id === "t2" ? { ...t2, assignees: [binhId] } : t2) });
+ok("owner giao việc t2 cho Bình", r2.status === 200);
+r2 = await api("/api/records?projectId=P1", {}, BINH);
+ok("được giao việc -> thấy biên bản", r2.status === 200 && (r2.body.records || []).length === 1);
+fr = await fetch(B + "/api/records/file?recordId=" + rid + "&idx=0", { headers: { Authorization: "Bearer " + BINH } });
+ok("được giao việc -> tải file OK", fr.status === 200);
+const upB = await fetch(B + "/api/taskfiles/upload?taskId=t2&filename=anh.jpg", { method: "POST", headers: { Authorization: "Bearer " + BINH, "Content-Type": "image/jpeg" }, body: "JPG" });
+ok("người trong dự án đính kèm tệp công việc -> OK", upB.status === 200);
+// tắt công tắc (features.fileByProject = false) -> mở như cũ
+const assignedState = { ...curState, tasks: curState.tasks.map((t2) => t2.id === "t2" ? { ...t2, assignees: [binhId] } : t2) };
+r2 = await push(OWNER, { ...assignedState, tasks: curState.tasks });
+ok("owner rút Bình khỏi việc t2", r2.status === 200);
+r2 = await api("/api/records?projectId=P1", {}, BINH);
+ok("rút khỏi việc -> lại bị lọc rỗng", r2.status === 200 && (r2.body.records || []).length === 0);
+await api("/api/settings", { method: "POST", body: JSON.stringify({ features: { fileByProject: false } }) }, OWNER);
+r2 = await api("/api/records?projectId=P1", {}, BINH);
+ok("tắt công tắc trong Cài đặt -> mở xem như cũ", r2.status === 200 && (r2.body.records || []).length === 1);
+
 // ---- rev cache sau các lần ghi ----
 const rv2 = await api("/api/kv/rev", {}, AN);
 ok("/api/kv/rev cập nhật sau khi ghi", rv2.body.rev === rev, "expect " + rev + " got " + rv2.body.rev);

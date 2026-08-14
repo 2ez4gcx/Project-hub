@@ -286,6 +286,31 @@ function canRecordProject(me, projectId) {
   if (!pr) return false;
   return (pr.siteLoggers || []).includes(me.id);
 }
+/* ---- SIẾT QUYỀN XEM FILE THEO DỰ ÁN (v3.8) ----
+   Được xem file (biên bản, ảnh nhật ký thi công, tệp công việc) của một dự án khi:
+   Chủ sở hữu / Lãnh đạo / Teamlead, người được chỉ định ghi nhật ký (siteLoggers),
+   hoặc CÓ VIỆC ĐƯỢC GIAO trong dự án đó. Chủ sở hữu tắt được trong Cài đặt
+   (features.fileByProject = false) để quay về chế độ mở như trước. */
+function fileGateOn() { const c = loadConfig(); return !(c.features && c.features.fileByProject === false); }
+function sharedState() { try { return JSON.parse(loadData()[SHARED_KEY] || "{}"); } catch { return {}; } }
+function canViewProjectFiles(me, projectId, shared) {
+  if (!me) return false;
+  if (me.role === "owner" || me.isLeader || me.isTeamlead) return true;
+  if (!fileGateOn()) return true;
+  const sh = shared || sharedState();
+  const pr = (sh.projects || []).find((x) => x.id === projectId);
+  if (pr && (pr.siteLoggers || []).includes(me.id)) return true;
+  return (sh.tasks || []).some((x) => x.projectId === projectId && (x.assignees || []).includes(me.id));
+}
+function taskProjectId(tid, shared) { const sh = shared || sharedState(); const tk = (sh.tasks || []).find((x) => x.id === tid); return tk ? tk.projectId : null; }
+// Tệp của công việc: theo dự án của công việc đó; công việc đã bị xóa -> chỉ quản lý xem được.
+function canViewTaskFiles(me, tid, shared) {
+  if (!me) return false;
+  if (me.role === "owner" || me.isLeader || me.isTeamlead) return true;
+  const prid = taskProjectId(tid, shared);
+  return prid ? canViewProjectFiles(me, prid, shared) : false;
+}
+
 function canDeleteRecord(me, rec) {
   if (!me) return false;
   if (me.role === "owner" || me.isLeader) return true;
@@ -511,7 +536,9 @@ const server = http.createServer(async (req, res) => {
   // ---- BIÊN BẢN ----
   if (p === "/api/records" && req.method === "GET") {
     const pid = u.searchParams.get("projectId") || "";
-    const list = loadRecords().filter((r) => !pid || r.projectId === pid)
+    const shView = sharedState(); const viewCache = {};
+    const viewOK = (prid) => (prid in viewCache) ? viewCache[prid] : (viewCache[prid] = canViewProjectFiles(me, prid, shView));
+    const list = loadRecords().filter((r) => (!pid || r.projectId === pid) && viewOK(r.projectId))
       .map((r) => ({ id: r.id, projectId: r.projectId, date: r.date, type: r.type, number: r.number || "", note: r.note || "", createdBy: r.createdBy || "", createdAt: r.createdAt, files: (r.files || []).map((f, i) => ({ idx: i, name: f.name, size: f.size, mime: f.mime })) }))
       .sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.createdAt || 0) - (a.createdAt || 0));
     return json(res, 200, { records: list });
@@ -549,6 +576,7 @@ const server = http.createServer(async (req, res) => {
     const rid = u.searchParams.get("recordId") || ""; const idx = parseInt(u.searchParams.get("idx") || "-1", 10);
     const rec = loadRecords().find((r) => r.id === rid);
     if (!rec || !rec.files || !rec.files[idx]) { res.writeHead(404); res.end("Not found"); return; }
+    if (!canViewProjectFiles(me, rec.projectId)) { res.writeHead(403); res.end("Forbidden"); return; }
     const f = rec.files[idx];
     fs.readFile(path.join(UPLOADS, f.stored), (err, buf) => {
       if (err) { res.writeHead(404); res.end("Not found"); return; }
@@ -571,6 +599,7 @@ const server = http.createServer(async (req, res) => {
   // ---- TỆP ĐÍNH KÈM CÔNG VIỆC ----
   if (p === "/api/taskfiles" && req.method === "GET") {
     const tid = u.searchParams.get("taskId") || "";
+    if (!canViewTaskFiles(me, tid)) return json(res, 200, { files: [] });
     const arr = (loadTaskFiles()[tid] || []).map((f, i) => ({ idx: i, name: f.name, size: f.size, mime: f.mime, by: f.by || "" }));
     return json(res, 200, { files: arr });
   }
@@ -581,6 +610,7 @@ const server = http.createServer(async (req, res) => {
     const mime = req.headers["content-type"] || "application/octet-stream";
     if (!tid) return json(res, 400, { error: "missing" });
     if (!taskExists(tid)) return json(res, 404, { error: "no_task", message: "Công việc không tồn tại." });
+    if (!canViewTaskFiles(me, tid)) return json(res, 403, { error: "forbidden", message: "Bạn không thuộc dự án này." });
     if (UPLOAD_BLOCK_EXT.has(fileExt(origName))) return json(res, 400, { error: "bad_type", message: "Loại tệp này không được phép tải lên (nguy cơ bảo mật)." });
     let buf; try { buf = await readRawBody(req, 40 * 1024 * 1024); } catch { return json(res, 413, { error: "too_large", message: "Tệp quá lớn (tối đa 40MB)." }); }
     const dir = path.join(TASKUPLOADS, sanitizeName(tid));
@@ -595,6 +625,7 @@ const server = http.createServer(async (req, res) => {
   if (p === "/api/taskfiles/file" && req.method === "GET") {
     const tid = u.searchParams.get("taskId") || "";
     const idx = parseInt(u.searchParams.get("idx") || "-1", 10);
+    if (!canViewTaskFiles(me, tid)) return json(res, 403, { error: "forbidden" });
     const f = (loadTaskFiles()[tid] || [])[idx];
     if (!f) return json(res, 404, { error: "not_found" });
     let buf; try { buf = fs.readFileSync(path.join(TASKUPLOADS, f.stored)); } catch { return json(res, 404, { error: "not_found" }); }
@@ -617,7 +648,9 @@ const server = http.createServer(async (req, res) => {
   // ---- NHẬT KÝ THI CÔNG ----
   if (p === "/api/sitelogs" && req.method === "GET") {
     const pid = u.searchParams.get("projectId") || "";
-    const list = loadSiteLogs().filter((r) => !pid || r.projectId === pid)
+    const shView = sharedState(); const viewCache = {};
+    const viewOK = (prid) => (prid in viewCache) ? viewCache[prid] : (viewCache[prid] = canViewProjectFiles(me, prid, shView));
+    const list = loadSiteLogs().filter((r) => (!pid || r.projectId === pid) && viewOK(r.projectId))
       .map((r) => ({ id: r.id, projectId: r.projectId, date: r.date, weatherAM: r.weatherAM || "", weatherPM: r.weatherPM || "", manpower: r.manpower || "", work: r.work || "", equipment: r.equipment || "", issues: r.issues || "", nextPlan: r.nextPlan || "", createdBy: r.createdBy || "", createdAt: r.createdAt, photos: (r.photos || []).map((f, i) => ({ idx: i, name: f.name, size: f.size, mime: f.mime })) }))
       .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
     return json(res, 200, { logs: list });
@@ -661,6 +694,7 @@ const server = http.createServer(async (req, res) => {
     const rid = u.searchParams.get("logId") || ""; const idx = parseInt(u.searchParams.get("idx") || "-1", 10);
     const rec = loadSiteLogs().find((r) => r.id === rid);
     if (!rec || !rec.photos || !rec.photos[idx]) { res.writeHead(404); res.end("Not found"); return; }
+    if (!canViewProjectFiles(me, rec.projectId)) { res.writeHead(403); res.end("Forbidden"); return; }
     const f = rec.photos[idx];
     fs.readFile(path.join(NHATKY, f.stored), (err, buf) => {
       if (err) { res.writeHead(404); res.end("Not found"); return; }

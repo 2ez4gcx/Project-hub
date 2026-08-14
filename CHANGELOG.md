@@ -1,5 +1,19 @@
 # Lịch sử phiên bản — Trạm Dự Án
 
+## v3.8.0 — 14/08/2026
+
+### Siết quyền xem tệp theo dự án (THAY ĐỔI HÀNH VI)
+- Tệp đính kèm, biên bản và ảnh nhật ký thi công của một dự án giờ chỉ
+  những người sau xem/tải được: Chủ sở hữu, Lãnh đạo, Teamlead, người được
+  chỉ định ghi nhật ký, và người CÓ VIỆC ĐƯỢC GIAO trong dự án đó.
+- Đính kèm tệp vào công việc cũng theo luật trên (trước đây ai đăng nhập
+  cũng đính kèm được vào mọi việc).
+- Ai không thuộc dự án sẽ thấy danh sách biên bản/nhật ký trống và bị chặn
+  khi tải file (chặn ở máy chủ, không phải chỉ ẩn trên giao diện).
+- Muốn quay lại chế độ mở như trước (mọi người xem hết): Cài đặt →
+  tắt "Chỉ người trong dự án xem được tệp / biên bản / nhật ký".
+- Dữ liệu công việc (tên việc, tiến độ, bình luận) vẫn chia sẻ chung như cũ.
+
 ## v3.7.3 — 14/08/2026
 
 ### BOQ trong báo cáo HTML xuất ra

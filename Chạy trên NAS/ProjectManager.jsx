@@ -398,6 +398,7 @@ const FEATURE_LIST = [
   { key: "viewBoard", vi: "Xem dạng Bảng (Kanban)", en: "Board (Kanban) view" },
   { key: "viewCalendar", vi: "Xem dạng Lịch", en: "Calendar view" },
   { key: "viewTimeline", vi: "Xem dạng Timeline", en: "Timeline view" },
+  { key: "fileByProject", vi: "Chỉ người trong dự án xem được tệp / biên bản / nhật ký", en: "Only project members can view files / records / logs" },
 ];
 const FEATURE_ALL_ON = FEATURE_LIST.reduce((o, f) => { o[f.key] = true; return o; }, {});
 const FEATURE_PRESETS = {
