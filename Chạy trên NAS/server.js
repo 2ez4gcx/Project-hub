@@ -507,7 +507,7 @@ function json(res, code, obj) { res.writeHead(code, { "Content-Type": "applicati
 const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8", ".json": "application/json", ".svg": "image/svg+xml", ".ico": "image/x-icon" };
 
-const server = http.createServer(async (req, res) => {
+const requestHandler = async (req, res) => {
   // ---- HTTP security headers (áp cho mọi phản hồi) ----
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "SAMEORIGIN");
@@ -952,7 +952,29 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(200, { "Content-Type": MIME[ex2] || "application/octet-stream", ...nc });
     res.end(buf);
   });
-});
+};
+
+/* ===================== HTTPS (tùy chọn, v3.9) =====================
+   Đặt chứng chỉ vào thư mục data/tls là máy chủ TỰ chạy HTTPS, không cần cấu hình:
+   - cert.pem + key.pem  (tạo bằng openssl trên Mac/Linux), hoặc
+   - server.pfx          (tạo bằng "Tạo chứng chỉ HTTPS (Windows).bat" — không cần cài gì).
+   Mật khẩu pfx mặc định "tramduan" (khớp file .bat), ghi đè bằng biến TLS_PFX_PASS.
+   Không có chứng chỉ -> chạy HTTP như trước, không đổi gì. */
+const TLS_DIR = path.join(DATA_DIR, "tls");
+function loadTLS() {
+  try {
+    const cert = path.join(TLS_DIR, "cert.pem"), key = path.join(TLS_DIR, "key.pem");
+    if (fs.existsSync(cert) && fs.existsSync(key)) return { label: "cert.pem + key.pem", options: { cert: fs.readFileSync(cert), key: fs.readFileSync(key) } };
+  } catch {}
+  try {
+    const pfx = path.join(TLS_DIR, "server.pfx");
+    if (fs.existsSync(pfx)) return { label: "server.pfx", options: { pfx: fs.readFileSync(pfx), passphrase: process.env.TLS_PFX_PASS || "tramduan" } };
+  } catch {}
+  return null;
+}
+const TLS = loadTLS();
+const PROTO = TLS ? "https" : "http";
+const server = TLS ? require("https").createServer(TLS.options, requestHandler) : http.createServer(requestHandler);
 
 /* ===================== EMAIL REMINDER SCHEDULER ===================== */
 let nodemailer = null;
@@ -1101,8 +1123,10 @@ server.listen(PORT, "0.0.0.0", () => {
   console.log("\n  ===========================================================");
   console.log("   TRẠM DỰ ÁN đang chạy / Project Hub is running");
   console.log("  ===========================================================\n");
-  console.log("   • Máy này (This computer):  http://localhost:" + PORT);
-  console.log("   • Mạng nội bộ (LAN/NAS):    http://" + lan + ":" + PORT + "\n");
+  console.log("   • Máy này (This computer):  " + PROTO + "://localhost:" + PORT);
+  console.log("   • Mạng nội bộ (LAN/NAS):    " + PROTO + "://" + lan + ":" + PORT + "\n");
+  if (TLS) console.log("   HTTPS: ĐANG BẬT (" + TLS.label + " trong data/tls). Trình duyệt cảnh báo chứng chỉ tự ký là bình thường — bấm Nâng cao > Tiếp tục.");
+  else console.log("   HTTPS: chưa bật — mật khẩu/dữ liệu đi trong mạng nội bộ KHÔNG mã hóa. Xem \"BẢO MẬT - Bật HTTPS (nội bộ).txt\".");
   const accts = loadAccounts();
   if (accts.length === 0) {
     ensureSetupCode();

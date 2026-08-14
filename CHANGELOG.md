@@ -1,5 +1,19 @@
 # Lịch sử phiên bản — Trạm Dự Án
 
+## v3.9.0 — 14/08/2026
+
+### HTTPS cho bản chạy nội bộ
+- Đặt chứng chỉ vào thư mục `data/tls` là máy chủ TỰ chạy HTTPS — mật khẩu
+  và dữ liệu đi trong mạng nội bộ được mã hóa. Hỗ trợ cả `cert.pem + key.pem`
+  (openssl) lẫn `server.pfx` (Windows).
+- Kèm file **"Tạo chứng chỉ HTTPS (Windows).bat"**: bấm đúp là xong, dùng
+  công cụ có sẵn của Windows, không cần cài gì; chứng chỉ tự bao gồm
+  localhost + địa chỉ IP mạng nội bộ + tên máy, hạn 5 năm.
+- Tài liệu mới "BẢO MẬT - Bật HTTPS (nội bộ).txt" (giải thích cảnh báo
+  trình duyệt với chứng chỉ tự ký, cách làm trên Mac/Linux).
+- Không có chứng chỉ thì chạy HTTP như trước; màn hình khởi động nhắc rõ
+  đang bật hay chưa. Bản NAS Synology vẫn khuyến nghị reverse proxy như cũ.
+
 ## v3.8.1 — 14/08/2026
 
 ### Gia cố bản dùng thử

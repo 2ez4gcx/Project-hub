@@ -1,0 +1,39 @@
+═══════════════════════════════════════════════════════════════
+  BẬT HTTPS CHO BẢN CHẠY NỘI BỘ (đọc kỹ)
+═══════════════════════════════════════════════════════════════
+
+VÌ SAO NÊN BẬT
+  Khi chưa bật HTTPS, mật khẩu đăng nhập và dữ liệu công việc đi trong
+  mạng nội bộ (wifi công ty) ở dạng KHÔNG mã hóa — ai bắt được gói tin
+  trong cùng mạng có thể đọc. Bật HTTPS để mã hóa toàn bộ.
+
+CÁCH BẬT (Windows — 2 phút, không cần cài gì)
+  1. Bấm đúp file "Tạo chứng chỉ HTTPS (Windows).bat" trong thư mục này.
+     (Nếu báo lỗi: chuột phải > Run as administrator.)
+  2. Tắt cửa sổ máy chủ đang chạy, chạy lại "Khởi động (Windows).bat".
+  3. Từ giờ mọi người vào bằng   https://ĐỊA-CHỈ-MÁY:3000
+     (chú ý httpS — máy chủ sẽ in đúng địa chỉ khi khởi động).
+
+CÁCH BẬT (Mac / Linux)
+  Mở Terminal trong thư mục phần mềm, chạy:
+    mkdir -p data/tls
+    openssl req -x509 -newkey rsa:2048 -nodes -days 1825 \
+      -keyout data/tls/key.pem -out data/tls/cert.pem -subj "/CN=tram-du-an"
+  Rồi khởi động lại phần mềm.
+
+VỀ CẢNH BÁO CỦA TRÌNH DUYỆT
+  Chứng chỉ tự tạo không do tổ chức phát hành nào xác nhận, nên lần đầu
+  vào, trình duyệt sẽ cảnh báo "Kết nối không riêng tư". Điều này BÌNH
+  THƯỜNG với phần mềm nội bộ: bấm "Nâng cao" (Advanced) rồi "Tiếp tục
+  truy cập" (Proceed). Dữ liệu vẫn được mã hóa đầy đủ.
+  Muốn hết hẳn cảnh báo: nhập chứng chỉ vào "Trusted Root" trên từng máy
+  (nâng cao — hỏi người phụ trách IT).
+
+GHI CHÚ
+  • Chứng chỉ nằm trong thư mục  data/tls  — file này KHÔNG được chia sẻ
+    ra ngoài. Đổi máy hoặc đổi địa chỉ IP thì chạy lại file tạo chứng chỉ.
+  • Mật khẩu file server.pfx mặc định là "tramduan" (khớp file .bat).
+    Nếu tự tạo pfx với mật khẩu khác: đặt biến TLS_PFX_PASS trong file .env.
+  • Không có chứng chỉ thì phần mềm vẫn chạy HTTP như cũ.
+  • Bản chạy trên NAS Synology: dùng hướng dẫn riêng
+    "BẢO MẬT - Bật HTTPS trên Synology (đọc kỹ).txt" (reverse proxy).

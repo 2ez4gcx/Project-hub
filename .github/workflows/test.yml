@@ -36,3 +36,12 @@ jobs:
 
       - name: Test gia cố bản dùng thử (8 ca)
         run: node tests/test-license.mjs /tmp/tda-data
+
+      - name: Test HTTPS (chứng chỉ PEM trong data/tls)
+        run: |
+          mkdir -p /tmp/tda-tls/tls
+          openssl req -x509 -newkey rsa:2048 -nodes -days 2 -keyout /tmp/tda-tls/tls/key.pem -out /tmp/tda-tls/tls/cert.pem -subj "/CN=test"
+          DATA_DIR=/tmp/tda-tls PORT=3213 node "Chạy nội bộ/server.js" &
+          for i in $(seq 1 20); do curl -skf https://localhost:3213/api/config >/dev/null && break; sleep 0.5; done
+          curl -skf https://localhost:3213/api/config | grep -q serverMode
+          echo "HTTPS OK"
