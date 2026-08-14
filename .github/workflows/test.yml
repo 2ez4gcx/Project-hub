@@ -1,0 +1,35 @@
+name: Kiểm tra
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Hai bản (nội bộ / NAS) phải giống nhau
+        run: |
+          diff "Chạy nội bộ/server.js" "Chạy trên NAS/server.js"
+          diff "Chạy nội bộ/ProjectManager.jsx" "Chạy trên NAS/ProjectManager.jsx"
+          diff "Chạy nội bộ/public/shim.js" "Chạy trên NAS/public/shim.js"
+          diff "Chạy nội bộ/public/app.js" "Chạy trên NAS/public/app.js"
+
+      - name: Kiểm tra cú pháp
+        run: |
+          node --check "Chạy nội bộ/server.js"
+          node --check "Chạy nội bộ/reset-password.js"
+
+      - name: Test phân quyền server-side (25 ca)
+        run: |
+          mkdir -p /tmp/tda-data
+          DATA_DIR=/tmp/tda-data PORT=3211 SETUP_CODE=TEST123 node "Chạy nội bộ/server.js" &
+          for i in $(seq 1 20); do curl -sf http://localhost:3211/api/config >/dev/null && break; sleep 0.5; done
+          node tests/test-authz.mjs

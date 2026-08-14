@@ -920,6 +920,33 @@ async function runReminderCheck() {
   if (dirty) saveSchedState(st);
 }
 
+/* ===================== SNAPSHOT CỤC BỘ HẰNG NGÀY =====================
+   Email sao lưu chỉ gửi thứ Bảy; snapshot này chép các file dữ liệu JSON vào
+   data/snapshots/YYYY-MM-DD/ mỗi ngày một lần (giữ 14 ngày gần nhất) — lỡ tay
+   xóa nhầm giữa tuần thì lấy lại được ngay, không cần chờ hồ sơ email.
+   (Tệp đính kèm/ảnh trong uploads, nhatky-thi-cong vẫn cần Hyper Backup của NAS.) */
+const SNAPSHOT_DIR = path.join(DATA_DIR, "snapshots");
+const SNAPSHOT_KEEP = 14;
+function runSnapshotCheck() {
+  const day = new Date();
+  const stamp = day.getFullYear() + "-" + String(day.getMonth() + 1).padStart(2, "0") + "-" + String(day.getDate()).padStart(2, "0");
+  const dir = path.join(SNAPSHOT_DIR, stamp);
+  if (fs.existsSync(dir)) return; // hôm nay đã chụp
+  try { fs.mkdirSync(dir, { recursive: true }); } catch { return; }
+  let n = 0;
+  for (const [fn, fp] of [["data.json", DATA], ["accounts.json", ACCOUNTS], ["finance.json", FINANCE], ["records.json", RECORDS], ["sitelogs.json", SITELOGS], ["taskfiles.json", TASKFILES], ["config.json", CONFIG_PATH]]) {
+    try { if (fs.existsSync(fp)) { fs.copyFileSync(fp, path.join(dir, fn)); n++; } } catch {}
+  }
+  console.log("[snapshot] đã chụp " + n + " file dữ liệu -> " + dir);
+  // dọn các snapshot cũ, giữ SNAPSHOT_KEEP bản gần nhất
+  try {
+    const dirs = fs.readdirSync(SNAPSHOT_DIR).filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort();
+    for (const old of dirs.slice(0, Math.max(0, dirs.length - SNAPSHOT_KEEP))) {
+      try { fs.rmSync(path.join(SNAPSHOT_DIR, old), { recursive: true, force: true }); console.log("[snapshot] đã dọn bản cũ " + old); } catch {}
+    }
+  } catch {}
+}
+
 /* ===================== WEEKLY BACKUP (Saturday) ===================== */
 function isoWeek(d) {
   const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -1000,5 +1027,7 @@ server.listen(PORT, "0.0.0.0", () => {
   setInterval(() => runReminderCheck().catch(() => {}), sec * 1000);
   runBackupCheck().catch(() => {});
   setInterval(() => runBackupCheck().catch(() => {}), 3600 * 1000);
+  try { runSnapshotCheck(); } catch {}
+  setInterval(() => { try { runSnapshotCheck(); } catch {} }, 3600 * 1000);
   setInterval(purgeTokens, 10 * 60 * 1000);
 });

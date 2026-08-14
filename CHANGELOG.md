@@ -1,5 +1,19 @@
 # Lịch sử phiên bản — Trạm Dự Án
 
+## v3.7.1 — 14/08/2026
+
+### Sao lưu cục bộ hằng ngày (tự động, không cần cấu hình)
+- Mỗi ngày máy chủ tự chép các file dữ liệu (công việc, tài khoản, chi phí,
+  biên bản, nhật ký, cấu hình) vào `data/snapshots/YYYY-MM-DD/`, giữ 14 ngày
+  gần nhất. Lỡ xóa nhầm giữa tuần: tắt máy chủ, chép file từ snapshot đè lại,
+  bật lại — không cần chờ email sao lưu thứ Bảy.
+- Tệp đính kèm/ảnh (uploads, nhatky-thi-cong) vẫn nên sao lưu bằng
+  Hyper Backup của NAS như hướng dẫn.
+
+### Quy trình
+- CI trên GitHub: mỗi lần đẩy mã tự chạy 25 test phân quyền, kiểm tra cú pháp,
+  và bắt buộc hai bản (nội bộ / NAS) giống nhau từng byte.
+
 ## v3.7.0 — 14/08/2026
 
 ### BOQ – Khối lượng – Chi phí (tab mới trong Chi phí)
