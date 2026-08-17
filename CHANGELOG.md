@@ -1,5 +1,22 @@
 # Lịch sử phiên bản — Trạm Dự Án
 
+## v3.12.1 — 17/08/2026
+
+### Vá bug vỡ tiếng Việt với dữ liệu lớn (tìm ra nhờ đo tải)
+- `readBody` decode từng chunk riêng lẻ — body lớn bị cắt giữa ký tự tiếng
+  Việt 3-byte làm hỏng chữ ("Công việc" -> "Công vi❍c"). Bug ẩn từ bản đầu,
+  chỉ lộ với dữ liệu lớn; nay ghép buffer rồi decode một lần. (Luật bảo vệ
+  lịch sử của máy chủ đã chặn các bản ghi hỏng trước khi vào đĩa.)
+
+### Đo tải chính thức (mục 30 ngày của audit đợt 5)
+- `tests/test-tai.mjs`: mô phỏng N người dùng đúng hành vi client thật.
+- Kết quả: 25 người / 5.000 việc / khối 1,74MB -> poll rev p95 44ms, pull
+  p95 70ms, ghi p95 113ms, 0 lỗi, RAM server đứng yên 65MB. Xung đột 409
+  tự pull-ghi-lại, không mất dữ liệu.
+- Ngưỡng vận hành khuyến nghị ghi tại docs/HIEU-NANG.md (≤25 người,
+  ≤5.000 việc mở thoải mái; cảnh báo 5MB; trần 8MB).
+- Luật lịch sử có thêm chẩn đoán chi tiết vào security.log khi từ chối.
+
 ## v3.12.0 — 17/08/2026 (đóng các phát hiện audit đợt 5)
 
 ### F1 — Phân quyền sửa nội dung theo trường (THAY ĐỔI HÀNH VI)

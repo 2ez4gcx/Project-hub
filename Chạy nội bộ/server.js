@@ -384,15 +384,16 @@ function validateSharedWrite(me, inc, curStr) {
   } else {
     const headId = curH[0] && curH[0].id;
     const j = incH.findIndex((e) => e && e.id === headId);
-    if (j === -1) return "Không được sửa hoặc xóa lịch sử thay đổi.";
+    const diag = (why, extra) => { try { slog("CHẨN ĐOÁN lịch sử (" + why + "): head=" + headId + " j=" + j + " cur=" + curH.length + " inc=" + incH.length + (extra ? " | " + extra : "")); } catch {} return "Không được sửa hoặc xóa lịch sử thay đổi."; };
+    if (j === -1) return diag("mất mục đầu", "incHead=" + (incH[0] && incH[0].id));
     for (let i = 0; i < j; i++) if (!isMine(incH[i])) return "Mục lịch sử mới phải ghi đúng tên người thao tác.";
     const restLen = incH.length - j;
-    if (restLen > curH.length) return "Không được sửa hoặc xóa lịch sử thay đổi.";
+    if (restLen > curH.length) return diag("dài hơn bản gốc");
     // Chỉ được cắt bớt mục cũ khi lịch sử đã chạm trần 500 mục (đúng hành vi client);
     // còn lại, thiếu mục cũ = có người cố xóa lén lịch sử.
-    if (restLen < curH.length && incH.length < 500) return "Không được sửa hoặc xóa lịch sử thay đổi.";
+    if (restLen < curH.length && incH.length < 500) return diag("thiếu mục cũ");
     for (let k = 1; k < restLen; k++) {
-      if (!sameJson(incH[j + k], curH[k])) return "Không được sửa hoặc xóa lịch sử thay đổi.";
+      if (!sameJson(incH[j + k], curH[k])) return diag("lệch tại k=" + k, "inc=" + JSON.stringify(incH[j + k]).slice(0, 120) + " cur=" + JSON.stringify(curH[k]).slice(0, 120));
     }
     if (!sameJson(incH[j], curH[0]) && !isMine(incH[j])) return "Không được sửa lịch sử của người khác.";
   }
@@ -589,10 +590,13 @@ function authOf(req) {
 }
 function readBody(req) {
   return new Promise((resolve) => {
-    let b = "", done = false;
+    // GHÉP BUFFER rồi mới decode UTF-8 MỘT LẦN. Trước đây "b += chunk" decode từng
+    // chunk riêng lẻ — chunk cắt giữa ký tự tiếng Việt (3 byte) làm VỠ dữ liệu với
+    // body lớn (bug ẩn từ bản đầu, lộ ra khi đo tải: "Công việc" thành "Công vi❍c").
+    const chunks = []; let len = 0, done = false;
     const settle = (v) => { if (!done) { done = true; resolve(v); } };
-    req.on("data", (c) => { b += c; if (b.length > 8e6) { req.destroy(); settle({}); } }); // settle ngay khi cắt, không để promise treo
-    req.on("end", () => { try { settle(JSON.parse(b || "{}")); } catch { settle({}); } });
+    req.on("data", (c) => { len += c.length; if (len > 8e6) { req.destroy(); settle({}); return; } chunks.push(c); });
+    req.on("end", () => { try { settle(JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}")); } catch { settle({}); } });
     req.on("error", () => settle({}));
     req.on("close", () => settle({}));
   });
