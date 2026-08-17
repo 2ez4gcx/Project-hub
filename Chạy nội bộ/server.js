@@ -16,19 +16,11 @@ const path = require("path");
 const os = require("os");
 const crypto = require("crypto");
 
-const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "data");
-const PUBLIC = path.join(__dirname, "public");
-const DATA = path.join(DATA_DIR, "data.json");
-const ACCOUNTS = path.join(DATA_DIR, "accounts.json");
-const CONFIG_PATH = path.join(DATA_DIR, "config.json");
-const PORT = process.env.PORT || 3000;
-const SHARED_KEY = "pm_shared_v3";
-
-try { fs.mkdirSync(DATA_DIR, { recursive: true }); } catch {}
-
-// ---- .env loader: nạp bí mật (vd SMTP_PASS) từ file .env, không cần thư viện ngoài ----
+// ---- .env loader: nạp bí mật (vd SMTP_PASS) và cấu hình (PORT...) từ file .env ----
+// Chạy TRƯỚC khi đọc các hằng bên dưới, để PORT/DATA_DIR trong .env có hiệu lực.
 (function loadEnv() {
-  for (const envp of [path.join(DATA_DIR, ".env"), path.join(__dirname, ".env")]) {
+  const dd = process.env.DATA_DIR || path.join(__dirname, "data");
+  for (const envp of [path.join(dd, ".env"), path.join(__dirname, ".env")]) {
     try {
       const txt = fs.readFileSync(envp, "utf8");
       for (const line of txt.split(/\r?\n/)) {
@@ -42,6 +34,16 @@ try { fs.mkdirSync(DATA_DIR, { recursive: true }); } catch {}
     } catch {}
   }
 })();
+
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "data");
+const PUBLIC = path.join(__dirname, "public");
+const DATA = path.join(DATA_DIR, "data.json");
+const ACCOUNTS = path.join(DATA_DIR, "accounts.json");
+const CONFIG_PATH = path.join(DATA_DIR, "config.json");
+const PORT = process.env.PORT || 3000;
+const SHARED_KEY = "pm_shared_v3";
+
+try { fs.mkdirSync(DATA_DIR, { recursive: true }); } catch {}
 
 // ---- Nhật ký bảo mật ----
 function slog(msg) {
@@ -1209,6 +1211,14 @@ async function runBackupCheck() {
   }
 }
 
+server.on("error", (e) => {
+  if (e && e.code === "EADDRINUSE") {
+    console.log("\n  ✖ Cổng " + PORT + " đang bị một phần mềm khác trên máy này sử dụng.");
+    console.log("    → Tắt phần mềm kia, HOẶC mở file data\\.env thêm dòng  PORT=3001  rồi chạy lại.\n");
+    process.exit(1);
+  }
+  throw e;
+});
 server.listen(PORT, "0.0.0.0", () => {
   let lan = "localhost";
   const ifaces = os.networkInterfaces();
