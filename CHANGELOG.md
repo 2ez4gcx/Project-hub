@@ -1,5 +1,20 @@
 # Lịch sử phiên bản — Trạm Dự Án
 
+## v3.11.1 — 17/08/2026 (theo báo cáo đánh giá 17/08)
+
+Thực thi các mục "trong 7 ngày" của báo cáo đánh giá đợt 4:
+- **Test nghiệp vụ mới** (tests/test-nghiep-vu.mjs, 12 ca): đồng bộ 2 client
+  và xung đột revision (client sau nhận 409, pull rồi lưu lại thành công),
+  round-trip tệp biên bản (đúng từng byte, đúng Content-Type), round-trip
+  finance/BOQ và gate quyền tài chính.
+- **Diễn tập khôi phục tự động** (tests/test-restore.mjs, 5 ca): chép bộ file
+  dữ liệu sang DATA_DIR mới, khởi động máy chủ, đăng nhập bằng tài khoản cũ,
+  dữ liệu nguyên vẹn — đã diễn tập cả từ bộ file đang chạy lẫn từ snapshot
+  hằng ngày thật. Cả hai bộ test đưa vào CI (tổng 66 ca + HTTPS).
+- Khóa phiên bản phụ thuộc runtime: package-lock.json cho cả 2 bản (đi kèm zip).
+- Cảnh báo vào security.log khi khối dữ liệu chung vượt 5MB (trần cứng 8MB).
+- Sửa README ghi sai số ca test (36 -> tham chiếu CI, không ghi cứng nữa).
+
 ## v3.11.0 — 14/08/2026
 
 ### Đường cong S — % giá trị (tab BOQ & Khối lượng)

@@ -34,8 +34,14 @@ jobs:
           for i in $(seq 1 20); do curl -sf http://localhost:3211/api/config >/dev/null && break; sleep 0.5; done
           node tests/test-authz.mjs
 
+      - name: Test nghiệp vụ (đồng bộ 2 client, round-trip tệp & BOQ)
+        run: node tests/test-nghiep-vu.mjs
+
       - name: Test gia cố bản dùng thử (8 ca)
         run: node tests/test-license.mjs /tmp/tda-data
+
+      - name: Diễn tập khôi phục dữ liệu
+        run: node tests/test-restore.mjs /tmp/tda-data 3299
 
       - name: Test HTTPS (chứng chỉ PEM trong data/tls)
         run: |

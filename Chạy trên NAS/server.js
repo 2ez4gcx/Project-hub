@@ -948,6 +948,7 @@ const requestHandler = async (req, res) => {
       slog("TỪ CHỐI ghi dữ liệu chung bởi " + me.email + ": " + problem);
       return json(res, 403, { error: "forbidden_change", message: problem });
     }
+    if (value.length > 5 * 1024 * 1024) slog("CẢNH BÁO: khối dữ liệu chung đã " + Math.round(value.length / 1048576) + "MB — cân nhắc dọn lịch sử/thùng rác (trần cứng 8MB).");
     const prevStr = d[key] || "";
     d[key] = value; saveData(d);
     SHARED_REV_CACHE = (incoming && typeof incoming.rev === "number") ? incoming.rev : null;

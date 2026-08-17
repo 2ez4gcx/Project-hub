@@ -15,7 +15,8 @@ Chạy trên NAS/      bản chạy Docker trên NAS Synology
   public/app.js     bundle đã build từ ProjectManager.jsx — KHÔNG sửa tay
 build/              npm run build  -> dựng lại app.js cho CẢ 2 bản + đóng dấu hash
                     npm run dong-goi -> đóng gói 2 zip phân phối vào ../files
-tests/              test tự động (phân quyền 36 ca, license 8 ca) — chạy trong CI
+tests/              test tự động (phân quyền, nghiệp vụ, license, restore) — chạy trong CI
+                    (số ca chính xác: xem output CI — đừng ghi cứng vào tài liệu)
 CHANGELOG.md        lịch sử phiên bản
 ```
 
