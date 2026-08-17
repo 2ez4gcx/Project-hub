@@ -8,12 +8,16 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [20, 24]
+    name: Node ${{ matrix.node }}
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ matrix.node }}
 
       - name: Hai bản (nội bộ / NAS) phải giống nhau
         run: |
@@ -21,26 +25,27 @@ jobs:
           diff "Chạy nội bộ/ProjectManager.jsx" "Chạy trên NAS/ProjectManager.jsx"
           diff "Chạy nội bộ/public/shim.js" "Chạy trên NAS/public/shim.js"
           diff "Chạy nội bộ/public/app.js" "Chạy trên NAS/public/app.js"
+          diff "Chạy nội bộ/package-lock.json" "Chạy trên NAS/package-lock.json"
 
       - name: Kiểm tra cú pháp
         run: |
           node --check "Chạy nội bộ/server.js"
           node --check "Chạy nội bộ/reset-password.js"
 
-      - name: Test phân quyền server-side (36 ca)
+      - name: Test phân quyền server-side
         run: |
           mkdir -p /tmp/tda-data
           DATA_DIR=/tmp/tda-data PORT=3211 SETUP_CODE=TEST123 node "Chạy nội bộ/server.js" &
           for i in $(seq 1 20); do curl -sf http://localhost:3211/api/config >/dev/null && break; sleep 0.5; done
           node tests/test-authz.mjs
 
-      - name: Test nghiệp vụ (đồng bộ 2 client, round-trip tệp & BOQ)
+      - name: Test nghiệp vụ (đồng bộ, tệp, BOQ, CAS tài chính)
         run: node tests/test-nghiep-vu.mjs
 
-      - name: Test gia cố bản dùng thử (8 ca)
+      - name: Test gia cố bản dùng thử
         run: node tests/test-license.mjs /tmp/tda-data
 
-      - name: Diễn tập khôi phục dữ liệu
+      - name: Diễn tập khôi phục dữ liệu (JSON + tệp đính kèm)
         run: node tests/test-restore.mjs /tmp/tda-data 3299
 
       - name: Test HTTPS (chứng chỉ PEM trong data/tls)
@@ -51,3 +56,16 @@ jobs:
           for i in $(seq 1 20); do curl -skf https://localhost:3213/api/config >/dev/null && break; sleep 0.5; done
           curl -skf https://localhost:3213/api/config | grep -q serverMode
           echo "HTTPS OK"
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image NAS (npm ci fail-closed) + smoke test
+        run: |
+          cd "Chạy trên NAS"
+          docker build -t tram-du-an-test .
+          docker run -d --name tda -p 3300:3000 tram-du-an-test
+          for i in $(seq 1 30); do curl -sf http://localhost:3300/api/config >/dev/null && break; sleep 1; done
+          curl -sf http://localhost:3300/api/config | grep -q serverMode
+          docker rm -f tda

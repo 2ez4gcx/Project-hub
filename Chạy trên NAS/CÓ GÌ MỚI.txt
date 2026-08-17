@@ -19,6 +19,12 @@
      mail; việc bị trả về là có mail kèm lý do; mỗi sáng sếp nhận
      một mail tổng hợp việc quá hạn toàn công ty.
 
+⚠ THAY ĐỔI CẦN BIẾT (từ v3.12):
+   Người KHÔNG có quyền "Giao việc" giờ chỉ sửa được tiến độ việc
+   CỦA MÌNH và bình luận — không sửa được tên/hạn/phân công việc của
+   người khác, kể cả bằng thủ thuật kỹ thuật. Ai cần quyền rộng hơn:
+   bật ô "Giao việc" cho họ trong mục Thành viên.
+
 ⚠ THAY ĐỔI CẦN BIẾT (từ v3.8):
    Tệp đính kèm, biên bản và ảnh nhật ký của một dự án giờ CHỈ những
    người sau xem được: Chủ sở hữu, Lãnh đạo, Teamlead, người được chỉ

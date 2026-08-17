@@ -53,5 +53,13 @@ ok("đọc lại BOQ: đủ hạng mục + kỳ, số không đổi", it.length 
 r = await api("/api/finance", {}, BINH);
 ok("thành viên không có quyền tài chính -> 403", r.status === 403);
 
+// ---- CAS tài chính (audit 17/08 F2): bản cũ không được ghi đè bản mới ----
+const rv1 = f.body.rev;
+ok("GET finance trả về rev", typeof rv1 === "number" && rv1 > 0, "rev=" + rv1);
+r = await api("/api/finance", { method: "POST", body: JSON.stringify({ ...f.body, expectedRev: rv1 }) }, OWNER);
+ok("lưu với expectedRev đúng -> OK, rev tăng", r.status === 200 && r.body.rev === rv1 + 1);
+r = await api("/api/finance", { method: "POST", body: JSON.stringify({ ...f.body, expectedRev: rv1 }) }, OWNER);
+ok("bản STALE (expectedRev cũ) -> 409, không mất dữ liệu người khác", r.status === 409 && r.body.rev === rv1 + 1);
+
 console.log("\n  KẾT QUẢ: " + pass + " pass, " + fail + " fail");
-process.exit(fail ? 1 : 0);
+process.exitCode = fail ? 1 : 0; // exit tự nhiên — process.exit đua với keep-alive socket gây abort libuv trên Node 24/Windows

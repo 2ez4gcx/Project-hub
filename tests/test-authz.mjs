@@ -52,8 +52,10 @@ ok("thành viên xóa dự án -> 403", r.status === 403, r.status + " " + JSON.
 // ---- luật 4: xóa công việc ----
 r = await pushExpectFail(BINH, { ...base, tasks: base.tasks.filter((t) => t.id !== "t1") });
 ok("người không có quyền giao việc xóa task -> 403", r.status === 403);
-r = await push(BINH, { ...base, tasks: [...base.tasks, T("tb1")] });
-ok("người không có quyền giao việc THÊM task (vd việc lặp tự sinh) -> OK", r.status === 200);
+r = await pushExpectFail(BINH, { ...base, tasks: [...base.tasks, T("tb1")] });
+ok("người không có quyền giao việc TẠO task thường -> 403 (audit F1)", r.status === 403);
+r = await push(AN, { ...base, tasks: [...base.tasks, T("tb1")] });
+ok("người có quyền giao việc tạo task -> OK", r.status === 200);
 const withB = { ...base, tasks: [...base.tasks, T("tb1")] };
 r = await push(BINH, { ...withB, tasks: withB.tasks.map((t) => t.id === "t1" ? { ...t, comments: [{ id: "c1", author: "Binh Vien", text: "hi", ts: 2 }] } : t) });
 ok("thành viên sửa nội dung task (bình luận) -> OK", r.status === 200);
@@ -163,9 +165,42 @@ await api("/api/settings", { method: "POST", body: JSON.stringify({ features: { 
 r2 = await api("/api/records?projectId=P1", {}, BINH);
 ok("tắt công tắc trong Cài đặt -> mở xem như cũ", r2.status === 200 && (r2.body.records || []).length === 1);
 
+// ---- F1 (audit 17/08): ma trận phân quyền sửa nội dung ----
+const S = { ...old, trash: [] }; // trạng thái hiện tại trên server
+r = await pushExpectFail(BINH, { ...S, projects: [{ ...S.projects[0], name: "Đổi tên trái phép" }] });
+ok("canAssign=false đổi tên dự án -> 403", r.status === 403);
+r = await pushExpectFail(BINH, { ...S, tasks: S.tasks.map((x) => x.id === "t3" ? { ...x, title: "Sửa trái phép" } : x) });
+ok("canAssign=false sửa tiêu đề task -> 403", r.status === 403);
+r = await pushExpectFail(BINH, { ...S, tasks: S.tasks.map((x) => x.id === "t3" ? { ...x, dueDate: "2030-01-01" } : x) });
+ok("canAssign=false đổi hạn chót -> 403", r.status === 403);
+r = await pushExpectFail(BINH, { ...S, tasks: S.tasks.map((x) => x.id === "t3" ? { ...x, assignees: [binhId] } : x) });
+ok("canAssign=false tự nhận việc (đổi assignees) -> 403", r.status === 403);
+r = await push(OWNER, { ...S, tasks: S.tasks.map((x) => x.id === "t3" ? { ...x, assignees: [binhId] } : x) });
+const S2 = { ...S, tasks: S.tasks.map((x) => x.id === "t3" ? { ...x, assignees: [binhId] } : x) };
+r = await push(BINH, { ...S2, tasks: S2.tasks.map((x) => x.id === "t3" ? { ...x, workdone: 40, status: "doing" } : x) });
+ok("người được giao cập nhật %/trạng thái việc CỦA MÌNH -> OK", r.status === 200);
+const S3 = { ...S2, tasks: S2.tasks.map((x) => x.id === "t3" ? { ...x, workdone: 40, status: "doing" } : x) };
+r = await push(BINH, { ...S3, tasks: S3.tasks.map((x) => x.id === "t4" ? { ...x, comments: [{ id: "cB1", author: "Binh Vien", text: "góp ý", ts: 5 }] } : x) });
+ok("bình luận vào việc người khác -> OK", r.status === 200);
+const S4 = { ...S3, tasks: S3.tasks.map((x) => x.id === "t4" ? { ...x, comments: [{ id: "cB1", author: "Binh Vien", text: "góp ý", ts: 5 }] } : x) };
+r = await pushExpectFail(BINH, { ...S4, tasks: S4.tasks.map((x) => x.id === "t5" ? { ...x, comments: [{ id: "cX", author: "Chu So Huu", text: "giả mạo", ts: 6 }] } : x) });
+ok("bình luận giả tên người khác -> 403", r.status === 403);
+r = await push(BINH, { ...S4, tasks: S4.tasks.map((x) => x.id === "t6" ? { ...x, status: "doing" } : x) });
+ok("tự promote todo->doing việc người khác (client tự động) -> OK", r.status === 200);
+const S5 = { ...S4, tasks: S4.tasks.map((x) => x.id === "t6" ? { ...x, status: "doing" } : x) };
+r = await pushExpectFail(BINH, { ...S5, tasks: S5.tasks.map((x) => x.id === "t3" ? { ...x, status: "done", completed: true, workdone: 100 } : x) });
+ok("người được giao tự set 'hoàn thành' không qua duyệt -> 403", r.status === 403);
+// việc lặp: client của người không quyền vẫn tự sinh kỳ mới được
+r = await push(OWNER, { ...S5, tasks: S5.tasks.map((x) => x.id === "t7" ? { ...x, recur: "weekly", status: "done", completed: true } : x) });
+const S6 = { ...S5, tasks: S5.tasks.map((x) => x.id === "t7" ? { ...x, recur: "weekly", status: "done", completed: true } : x) };
+const t7 = S6.tasks.find((x) => x.id === "t7");
+const spawn = { ...t7, id: "t7b", status: "todo", completed: false, workdone: 0, recurSpawned: false };
+r = await push(BINH, { ...S6, tasks: [...S6.tasks.map((x) => x.id === "t7" ? { ...x, recurSpawned: true } : x), spawn] });
+ok("client không quyền tự sinh việc lặp (spawn hợp lệ) -> OK", r.status === 200);
+
 // ---- rev cache sau các lần ghi ----
 const rv2 = await api("/api/kv/rev", {}, AN);
 ok("/api/kv/rev cập nhật sau khi ghi", rv2.body.rev === rev, "expect " + rev + " got " + rv2.body.rev);
 
 console.log("\n  KẾT QUẢ: " + pass + " pass, " + fail + " fail");
-process.exit(fail ? 1 : 0);
+process.exitCode = fail ? 1 : 0; // exit tự nhiên — process.exit đua với keep-alive socket gây abort libuv trên Node 24/Windows

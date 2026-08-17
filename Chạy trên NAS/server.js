@@ -213,8 +213,9 @@ function loadFinance() {
   try {
     const f = JSON.parse(fs.readFileSync(FINANCE, "utf8"));
     return { investorContracts: f.investorContracts || [], subContracts: f.subContracts || [],
-      boq: (f.boq && typeof f.boq === "object" && !Array.isArray(f.boq)) ? f.boq : {} };
-  } catch { return { investorContracts: [], subContracts: [], boq: {} }; }
+      boq: (f.boq && typeof f.boq === "object" && !Array.isArray(f.boq)) ? f.boq : {},
+      rev: Number(f.rev) || 0 };
+  } catch { return { investorContracts: [], subContracts: [], boq: {}, rev: 0 }; }
 }
 function saveFinance(f) { writeJsonAtomic(FINANCE, JSON.stringify(f)); }
 // ---- Cache rev của khối dữ liệu chung (phục vụ /api/kv/rev, tránh parse cả file mỗi lần poll) ----
@@ -297,6 +298,80 @@ function validateSharedWrite(me, inc, curStr) {
     if (old && old.status === "review" && tk && tk.status === "done") {
       const okApprove = old.approver === "leader" ? !!me.isLeader : !!me.isTeamlead;
       if (!okApprove) return "Chỉ người có quyền duyệt (Teamlead / Lãnh đạo) mới được duyệt hoàn thành công việc.";
+    }
+  }
+
+  // 5b. PHÂN QUYỀN SỬA NỘI DUNG (audit 17/08 F1): người KHÔNG có quyền giao việc
+  // (không canAssign/teamlead/leader) chỉ được: cập nhật tiến độ việc CỦA MÌNH,
+  // bình luận, và các thay đổi tự động của client (sinh việc lặp, promote todo->doing).
+  // Sửa cấu trúc (tên, mô tả, hạn, phân công, dự án, cột...) cần quyền giao việc.
+  const priv = !!me.canAssign || !!me.isTeamlead || !!me.isLeader;
+  if (!priv) {
+    // Dự án: cấm tạo mới / sửa mọi nội dung (baseline đã có luật 1b riêng)
+    for (const pr of arr(inc.projects)) {
+      if (!pr || !pr.id) continue;
+      const old = curProjById.get(pr.id);
+      if (!old) return "Bạn không có quyền tạo dự án.";
+      if (!sameJson(pr, old)) return "Bạn không có quyền sửa dự án.";
+    }
+    // Cột: cấm tạo mới / sửa (xóa đã cấm ở luật 3)
+    const curSecById = new Map(arr(cur.sections).map((s) => [s && s.id, s]));
+    for (const sc of arr(inc.sections)) {
+      if (!sc || !sc.id) continue;
+      const old = curSecById.get(sc.id);
+      if (!old) return "Bạn không có quyền thêm cột.";
+      if (!sameJson(sc, old)) return "Bạn không có quyền sửa cột.";
+    }
+    const isMine = (e) => e && (e.author === me.name || e.author === me.email);
+    // các trường người-được-giao được đổi trên việc của mình
+    const ASSIGNEE_FIELDS = new Set(["workdone", "status", "completed", "completedAt", "approvedBy", "comments", "subtasks", "reminderSentKey"]);
+    // các trường client tự động đổi trên MỌI việc
+    const AUTO_FIELDS = new Set(["comments", "recurSpawned", "status"]);
+    for (const [id, tk] of incTasks) {
+      if (!id || !tk) continue;
+      const old = curTasks.get(id);
+      if (!old) {
+        // tạo việc mới: chỉ chấp nhận việc do máy tự sinh từ việc lặp (recur) —
+        // phải có việc gốc cùng tiêu đề + chu kỳ vừa được đánh dấu recurSpawned trong lần ghi này
+        const spawned = tk.recur && tk.recur !== "none" && !tk.recurSpawned &&
+          arr(cur.tasks).some((src) => src && src.recur === tk.recur && src.title === tk.title && src.recurSpawned !== true &&
+            (incTasks.get(src.id) || {}).recurSpawned === true);
+        if (!spawned) return "Bạn không có quyền tạo công việc.";
+        continue;
+      }
+      if (sameJson(tk, old)) continue;
+      const assignee = arr(old.assignees).includes(me.id);
+      const keys = new Set([...Object.keys(old), ...Object.keys(tk)]);
+      for (const k of keys) {
+        if (sameJson(tk[k], old[k])) continue;
+        const allowed = assignee ? (ASSIGNEE_FIELDS.has(k) || AUTO_FIELDS.has(k)) : AUTO_FIELDS.has(k);
+        if (!allowed) return "Bạn không có quyền sửa nội dung công việc này (trường '" + k + "').";
+      }
+      // bình luận: chỉ THÊM vào cuối, và bình luận mới phải ghi đúng tên mình
+      if (!sameJson(tk.comments, old.comments)) {
+        const oc = arr(old.comments), nc = arr(tk.comments);
+        if (nc.length < oc.length) return "Không được xóa bình luận.";
+        for (let i = 0; i < oc.length; i++) if (!sameJson(nc[i], oc[i])) return "Không được sửa bình luận cũ.";
+        for (let i = oc.length; i < nc.length; i++) if (!isMine(nc[i])) return "Bình luận mới phải ghi đúng tên người viết.";
+      }
+      // recurSpawned: chỉ được bật từ chưa-đánh-dấu -> true
+      if (!sameJson(tk.recurSpawned, old.recurSpawned) && !(old.recurSpawned !== true && tk.recurSpawned === true)) return "Thay đổi không hợp lệ.";
+      // trạng thái: người ngoài chỉ được promote todo->doing (client tự làm khi tới ngày bắt đầu);
+      // người được giao không được tự nhảy thẳng sang 'hoàn thành' (đường done chỉ qua duyệt — luật 5)
+      if (tk.status !== old.status) {
+        if (!assignee && !(old.status === "todo" && tk.status === "doing")) return "Bạn không có quyền đổi trạng thái việc này.";
+        if (tk.status === "done" && old.status !== "review") return "Việc phải qua bước duyệt trước khi hoàn thành.";
+      }
+      // subtasks: người được giao chỉ tick xong/chưa xong, không thêm/xóa/đổi tên
+      if (assignee && !sameJson(tk.subtasks, old.subtasks)) {
+        const os = arr(old.subtasks), ns = arr(tk.subtasks);
+        if (ns.length !== os.length) return "Bạn không có quyền thêm/xóa việc con.";
+        for (let i = 0; i < os.length; i++) {
+          if (ns[i].id !== os[i].id || ns[i].title !== os[i].title) return "Bạn không có quyền sửa việc con.";
+        }
+      }
+      // approvedBy: người được giao chỉ được xóa (khi mở lại việc), không tự điền
+      if (assignee && !sameJson(tk.approvedBy, old.approvedBy) && tk.approvedBy) return "Không được tự điền người duyệt.";
     }
   }
 
@@ -514,8 +589,12 @@ function authOf(req) {
 }
 function readBody(req) {
   return new Promise((resolve) => {
-    let b = ""; req.on("data", (c) => { b += c; if (b.length > 8e6) req.destroy(); });
-    req.on("end", () => { try { resolve(JSON.parse(b || "{}")); } catch { resolve({}); } });
+    let b = "", done = false;
+    const settle = (v) => { if (!done) { done = true; resolve(v); } };
+    req.on("data", (c) => { b += c; if (b.length > 8e6) { req.destroy(); settle({}); } }); // settle ngay khi cắt, không để promise treo
+    req.on("end", () => { try { settle(JSON.parse(b || "{}")); } catch { settle({}); } });
+    req.on("error", () => settle({}));
+    req.on("close", () => settle({}));
   });
 }
 function json(res, code, obj) { res.writeHead(code, { "Content-Type": "application/json" }); res.end(JSON.stringify(obj)); }
@@ -591,6 +670,12 @@ const requestHandler = async (req, res) => {
   const needsAuth = p.startsWith("/api/");
   let me = null;
   if (needsAuth) { me = authOf(req); if (!me && p !== "/api/config") return json(res, 401, { error: "unauthorized" }); }
+
+  // Chặn sớm JSON body quá lớn bằng 413 có cấu trúc (endpoint upload tệp có giới hạn 40MB riêng)
+  const isFileUpload = p === "/api/records/file" || p === "/api/sitelogs/photo" || p === "/api/taskfiles/upload";
+  if (req.method === "POST" && needsAuth && !isFileUpload && Number(req.headers["content-length"] || 0) > 8e6) {
+    return json(res, 413, { error: "too_large", message: "Dữ liệu gửi lên quá lớn (tối đa 8MB)." });
+  }
 
   // ---- license: chặn ghi khi hết hạn (chế độ chỉ đọc). Đọc (GET) vẫn cho phép. ----
   const WRITE_PATHS = new Set(["/api/kv", "/api/finance", "/api/accounts", "/api/accounts/update", "/api/accounts/delete", "/api/settings", "/api/records", "/api/records/file", "/api/records/delete", "/api/sitelogs", "/api/sitelogs/photo", "/api/sitelogs/delete", "/api/taskfiles/upload", "/api/taskfiles/delete"]);
@@ -913,8 +998,16 @@ const requestHandler = async (req, res) => {
   if (p === "/api/finance" && req.method === "POST") {
     if (!canFinance(me)) return json(res, 403, { error: "forbidden" });
     const body = await readBody(req);
-    saveFinance({ investorContracts: Array.isArray(body.investorContracts) ? body.investorContracts : [], subContracts: Array.isArray(body.subContracts) ? body.subContracts : [], boq: (body.boq && typeof body.boq === "object" && !Array.isArray(body.boq)) ? body.boq : {}, rev: (loadFinance().rev || 0) + 1, updatedAt: Date.now() });
-    return json(res, 200, { ok: true });
+    // CAS chống ghi đè đồng thời (audit 17/08 F2): client gửi expectedRev = rev nó đã tải;
+    // lệch với rev hiện tại -> 409 kèm rev mới, KHÔNG ghi đè thầm lặng bản của người khác.
+    const curF = loadFinance();
+    if (body.expectedRev !== undefined && Number(body.expectedRev) !== curF.rev) {
+      return json(res, 409, { error: "conflict", rev: curF.rev });
+    }
+    const newRev = curF.rev + 1;
+    saveFinance({ investorContracts: Array.isArray(body.investorContracts) ? body.investorContracts : [], subContracts: Array.isArray(body.subContracts) ? body.subContracts : [], boq: (body.boq && typeof body.boq === "object" && !Array.isArray(body.boq)) ? body.boq : {}, rev: newRev, updatedAt: Date.now() });
+    slog("Lưu tài chính rev " + newRev + " bởi " + me.email);
+    return json(res, 200, { ok: true, rev: newRev });
   }
 
   // ---- data KV (token required) ----

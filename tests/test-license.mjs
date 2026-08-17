@@ -50,4 +50,4 @@ ok("xóa license khỏi config -> vẫn CHỈ ĐỌC (mirror còn dấu vết gi
 //    (không có khóa HMAC ở đây nên mượn server: xóa dấu vết giả rồi để ensureLicense cấp lại ở lần khởi động sau
 //     — trong test này chỉ kiểm tra trạng thái 'mọi dấu vết sai -> khóa' là đủ.)
 console.log("\n  KẾT QUẢ: " + pass + " pass, " + fail + " fail");
-process.exit(fail ? 1 : 0);
+process.exitCode = fail ? 1 : 0; // exit tự nhiên — process.exit đua với keep-alive socket gây abort libuv trên Node 24/Windows

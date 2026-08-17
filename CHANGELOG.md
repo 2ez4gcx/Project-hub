@@ -1,5 +1,44 @@
 # Lịch sử phiên bản — Trạm Dự Án
 
+## v3.12.0 — 17/08/2026 (đóng các phát hiện audit đợt 5)
+
+### F1 — Phân quyền sửa nội dung theo trường (THAY ĐỔI HÀNH VI)
+- Người KHÔNG có quyền giao việc giờ chỉ được: cập nhật %/trạng thái việc
+  CỦA MÌNH, tick việc con, bình luận (đúng tên mình, không sửa/xóa bình
+  luận cũ), và các thay đổi tự động của phần mềm (sinh việc lặp lại,
+  chuyển todo->đang làm khi tới ngày). Sửa tên/mô tả/hạn/phân công/dự án/
+  cột và TẠO việc mới cần quyền giao việc — chặn tại máy chủ, DevTools
+  không lách được. Người được giao không thể tự chuyển 'hoàn thành' —
+  phải qua bước duyệt.
+
+### F2 — Chống ghi đè đồng thời dữ liệu tài chính (CAS)
+- /api/finance dùng expectedRev: bản cũ bị từ chối 409, KHÔNG ghi đè
+  thầm lặng; app tự tải bản mới và báo người dùng thao tác lại.
+  (Đồng thời sửa lỗi rev tài chính không bao giờ tăng.)
+
+### F3 — Diễn tập khôi phục trọn hồ sơ
+- test-restore chép cả cây tệp đính kèm (uploads, nhật ký, tệp việc),
+  kiểm tra tài chính và đối chiếu SHA-256 từng byte tệp qua API.
+
+### F4 — Docker fail-closed
+- Dockerfile dùng npm ci với package-lock, bỏ nuốt lỗi, thêm HEALTHCHECK;
+  CI thêm job build image + smoke test.
+
+### F5 — Thống nhất quyền biên bản UI ↔ máy chủ
+- Nút thêm biên bản/nhật ký chỉ hiện cho đúng người máy chủ cho phép
+  (chủ sở hữu, lãnh đạo, teamlead bộ phận Site, người được chỉ định).
+
+### F6 — Hết cuộn ngang mobile
+- Dashboard đo thật tại 360/390/768px: document đúng bằng viewport,
+  không container nào tràn ngang.
+
+### F7 — Release gate đa runtime
+- CI chạy ma trận Node 20 + 24; sửa các script test abort trên
+  Node 24/Windows; khai báo engines; tài liệu test không ghi cứng số ca.
+
+### F8 — Từ chối body quá lớn một cách tử tế
+- JSON vượt 8MB nhận 413 có cấu trúc thay vì đứt kết nối khó hiểu.
+
 ## v3.11.1 — 17/08/2026 (theo báo cáo đánh giá 17/08)
 
 Thực thi các mục "trong 7 ngày" của báo cáo đánh giá đợt 4:

@@ -754,7 +754,7 @@ function ProjectManagerInner() {
     setMembers(accts);
     refreshLicense();
     if (user.role === "owner" || user.canViewFinance) {
-      const f = await api("/api/finance"); if (f.ok) setFinance(normalizeFinance(f.body));
+      const f = await api("/api/finance"); if (f.ok) { setFinance(normalizeFinance(f.body)); financeRev.current = f.body.rev || 0; }
     } else setFinance({ investorContracts: [], subContracts: [] });
     let state = null;
     try { const r = await window.storage.get(SHARED_KEY, true); if (r?.value) state = JSON.parse(r.value); } catch {}
@@ -845,12 +845,21 @@ function ProjectManagerInner() {
     return () => clearTimeout(id);
   }, [projects, sections, tasks, members, history, finance, dailyReports, trash]); // eslint-disable-line
 
-  /* finance: server mode persists separately (gated endpoint) */
+  /* finance: server mode persists separately (gated endpoint), có CAS chống ghi đè đồng thời */
   const financeReady = useRef(false);
+  const financeRev = useRef(0);
   useEffect(() => {
     if (!loaded || !serverMode || !canFinance) return;
     if (!financeReady.current) { financeReady.current = true; return; }
-    const id = setTimeout(() => { api("/api/finance", { method: "POST", body: JSON.stringify(finance) }); }, 600);
+    const id = setTimeout(async () => {
+      const r = await api("/api/finance", { method: "POST", body: JSON.stringify({ ...finance, expectedRev: financeRev.current }) });
+      if (r.ok) { financeRev.current = r.body.rev || financeRev.current + 1; return; }
+      if (r.status === 409) { // người khác vừa lưu -> tải bản mới, bỏ thay đổi cục bộ, báo người dùng làm lại
+        const f = await api("/api/finance");
+        if (f.ok) { financeRev.current = f.body.rev || 0; financeReady.current = false; setFinance(normalizeFinance(f.body)); }
+        antMessage.warning(lang === "vi" ? "Chi phí vừa được người khác cập nhật — đã tải bản mới, vui lòng thao tác lại." : "Finance was just updated by someone else — reloaded, please redo.");
+      }
+    }, 600);
     return () => clearTimeout(id);
   }, [finance]); // eslint-disable-line
 
@@ -1632,7 +1641,8 @@ function ConstructionSiteView({ t, lang, project, me, myRole, members, features,
   const [tab, setTab] = useState(cfeat("sitelog") ? "site" : "records");
   const loggers = project.siteLoggers || [];
   const canManage = myRole === "owner" || !!(me && me.isLeader);
-  const canRecord = canManage || canEdit || (me && loggers.includes(me.id));
+  // khớp đúng luật máy chủ (canRecordProject): owner/leader, teamlead bộ phận Site, hoặc người được chỉ định
+  const canRecord = canManage || !!(me && ((me.isTeamlead && (me.dept || "") === "Site") || loggers.includes(me.id)));
   return (
     <div>
       <div className="max-w-4xl mx-auto px-3 md:px-6 pt-4">
@@ -1649,7 +1659,7 @@ function SiteLogView({ t, lang, project, me, myRole, members, readOnly, onSetLog
   const [assignOpen, setAssignOpen] = useState(false);
   const loggers = project.siteLoggers || [];
   const canManage = myRole === "owner" || !!(me && me.isLeader);
-  const canLog = !readOnly && (canManage || (me && loggers.includes(me.id)));
+  const canLog = !readOnly && (canManage || !!(me && ((me.isTeamlead && (me.dept || "") === "Site") || loggers.includes(me.id))));
   const load = async () => { setLoading(true); const r = await api("/api/sitelogs?projectId=" + encodeURIComponent(project.id)); if (r.ok) setLogs(r.body.logs || []); setLoading(false); };
   useEffect(() => { load(); }, [project.id]); // eslint-disable-line
   const openPhoto = async (log, f) => { try { const tok = getToken(); const res = await fetch("/api/sitelogs/photo?logId=" + log.id + "&idx=" + f.idx, { headers: tok ? { Authorization: "Bearer " + tok } : {} }); const blob = await res.blob(); const url = URL.createObjectURL(blob); window.open(url, "_blank"); setTimeout(() => URL.revokeObjectURL(url), 60000); } catch {} };
@@ -2064,7 +2074,7 @@ function Dashboard({ t, lang, projects, tasks, onOpenProject, onOpenTask, member
   if (unassigned > 0) personRows.push({ label: t.unassigned, color: "#cbd5e1", value: unassigned });
 
   return (
-    <div className="p-4 md:p-6 max-w-6xl mx-auto space-y-6">
+    <div className="p-4 md:p-6 max-w-6xl mx-auto space-y-6 overflow-x-hidden">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <span className="text-xs text-slate-400 flex items-center gap-1.5"><RefreshCw size={12} />{t.realtimeNote}</span>
         <AntSelect value={dashProject} onChange={(v) => setDashProject(v)} style={{ minWidth: 190 }} options={[{ value: "", label: t.allProjectsLabel }, ...projects.map((p) => ({ value: p.id, label: p.name }))]} />
@@ -2072,7 +2082,7 @@ function Dashboard({ t, lang, projects, tasks, onOpenProject, onOpenTask, member
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map((c) => (
-          <div key={c.label} className="bg-white rounded-xl border border-slate-200 p-5">
+          <div key={c.label} className="bg-white rounded-xl border border-slate-200 p-5 min-w-0">
             <span className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: c.c + "1a", color: c.c }}>{c.icon}</span>
             <div className="text-3xl font-bold mt-3" style={{ color: c.c }}>{c.val}</div>
             <div className="text-sm text-slate-500 mt-0.5">{c.label}</div>
@@ -2081,7 +2091,7 @@ function Dashboard({ t, lang, projects, tasks, onOpenProject, onOpenTask, member
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-white rounded-xl border border-slate-200 p-5 min-w-0">
           <h3 className="font-semibold mb-4">{t.chartStatus}</h3>
           {total === 0 ? <p className="text-sm text-slate-400">{t.nothingUpcoming}</p> : (
             <div className="flex flex-col items-center">
@@ -2090,14 +2100,14 @@ function Dashboard({ t, lang, projects, tasks, onOpenProject, onOpenTask, member
             </div>
           )}
         </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-white rounded-xl border border-slate-200 p-5 min-w-0">
           <h3 className="font-semibold mb-4">{t.chartByAssignee}</h3>
           {personRows.length === 0 ? <p className="text-sm text-slate-400">{t.nothingUpcoming}</p> : <HBars rows={personRows} lang={lang} t={t} />}
         </div>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-white rounded-xl border border-slate-200 p-5 min-w-0">
           <h3 className="font-semibold mb-4">{t.byPriority}</h3>
           <div className="space-y-3">
             {byPriority.map(({ p, n }) => (
@@ -2109,21 +2119,21 @@ function Dashboard({ t, lang, projects, tasks, onOpenProject, onOpenTask, member
             ))}
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-white rounded-xl border border-slate-200 p-5 min-w-0">
           <h3 className="font-semibold mb-4">{t.upcoming}</h3>
           {upGroups.length === 0 ? <p className="text-sm text-slate-400">{t.nothingUpcoming}</p> : (
             <div className="space-y-4" style={{ maxHeight: 340, overflowY: "auto" }}>{upGroups.map((g) => (
               <div key={g.proj.id}>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: g.proj.color }} />
-                  <button onClick={() => onOpenProject(g.proj.id)} className="text-sm font-semibold text-slate-700 hover:text-orange-600 transition truncate">{g.proj.name}</button>
+                  <button onClick={() => onOpenProject(g.proj.id)} className="min-w-0 flex-1 text-left text-sm font-semibold text-slate-700 hover:text-orange-600 transition truncate">{g.proj.name}</button>
                   <span className="text-xs text-slate-400 shrink-0">{g.items.length}</span>
                 </div>
                 <div className="space-y-1 pl-3 ml-1 border-l-2" style={{ borderColor: g.proj.color + "55" }}>
                   {g.items.map((task) => { const sd = (task.subtasks || []).filter((s) => s.done).length; return (
                     <button key={task.id} onClick={() => onOpenTask(task.id)} className="w-full flex items-center gap-2.5 text-left p-2 -mx-2 rounded-lg hover:bg-slate-50 transition">
                       {task.completed ? <CheckCircle2 size={14} className="text-green-500 shrink-0" /> : <Circle size={14} className="text-slate-300 shrink-0" />}
-                      <span className="flex-1 text-sm text-slate-700 truncate">{task.title || t.untitled}</span>
+                      <span className="flex-1 min-w-0 text-sm text-slate-700 truncate">{task.title || t.untitled}</span>
                       {(task.subtasks || []).length > 0 && <span className="text-xs text-slate-400 flex items-center gap-0.5 shrink-0"><ListChecks size={12} />{sd}/{task.subtasks.length}</span>}
                       <DueBadge iso={task.dueDate} lang={lang} />
                     </button>
@@ -2171,7 +2181,7 @@ function MyWork({ t, lang, me, tasks, projects, memberById, onOpenTask }) {
         {items.map((task) => { const proj = projects.find((p) => p.id === task.projectId); const isPrimary = task.primaryAssigneeId === me?.id; return (
           <div key={task.id} className="group flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 cursor-pointer transition" onClick={() => onOpenTask(task.id)}>
             {isPrimary ? <Star size={16} className="text-amber-500 shrink-0" fill="#f59e0b" /> : <span className="w-4 shrink-0" />}
-            <span className="flex-1 text-sm text-slate-700 truncate">{task.title || t.untitled}</span>
+            <span className="flex-1 min-w-0 text-sm text-slate-700 truncate">{task.title || t.untitled}</span>
             <span className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400"><span className="w-2 h-2 rounded-full" style={{ background: proj?.color }} />{proj?.name}</span>
             <WorkBar v={task.workdone || 0} />
             <DueBadge iso={task.dueDate} lang={lang} /><PriorityFlag p={task.priority} t={t} />
