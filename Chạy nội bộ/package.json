@@ -4,5 +4,5 @@
   "description": "Tram Du An - LAN/NAS project manager",
   "main": "server.js",
   "scripts": { "start": "node server.js" },
-  "dependencies": { "nodemailer": "^6.9.14" }
+  "dependencies": { "nodemailer": "^9.0.5" }
 }

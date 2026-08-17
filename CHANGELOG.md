@@ -12,6 +12,9 @@ Thực thi các mục "trong 7 ngày" của báo cáo đánh giá đợt 4:
   dữ liệu nguyên vẹn — đã diễn tập cả từ bộ file đang chạy lẫn từ snapshot
   hằng ngày thật. Cả hai bộ test đưa vào CI (tổng 66 ca + HTTPS).
 - Khóa phiên bản phụ thuộc runtime: package-lock.json cho cả 2 bản (đi kèm zip).
+- **Nâng nodemailer 6.9 -> 9.0.5**: bản 6.x có 8 lỗ hổng đã công bố (SMTP
+  command injection, CRLF injection, SSRF... — mức high). API phần mềm dùng
+  không đổi; npm audit sau nâng cấp: 0 lỗ hổng.
 - Cảnh báo vào security.log khi khối dữ liệu chung vượt 5MB (trần cứng 8MB).
 - Sửa README ghi sai số ca test (36 -> tham chiếu CI, không ghi cứng nữa).
 
