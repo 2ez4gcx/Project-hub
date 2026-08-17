@@ -13,13 +13,16 @@ if errorlevel 1 (
   exit /b
 )
 echo Dang khoi dong Tram Du An...
+rem Doc cong tu data\.env neu co (dong PORT=...), mac dinh 3000
+set APPPORT=3000
+for /f "tokens=2 delims==" %%a in ('findstr /b "PORT=" "data\.env" 2^>nul') do set APPPORT=%%a
 rem Co chung chi trong data\tls thi may chu chay HTTPS -> mo dung dia chi https
 if exist "data\tls\server.pfx" (
-  start "" https://localhost:3000
+  start "" https://localhost:%APPPORT%
 ) else if exist "data\tls\cert.pem" (
-  start "" https://localhost:3000
+  start "" https://localhost:%APPPORT%
 ) else (
-  start "" http://localhost:3000
+  start "" http://localhost:%APPPORT%
 )
 node server.js
 pause

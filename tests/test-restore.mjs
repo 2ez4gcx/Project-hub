@@ -48,6 +48,7 @@ if (up) {
 }
 
 child.kill();
+await new Promise((res) => setTimeout(res, 500)); // Windows: chờ libuv đóng handle của tiến trình con trước khi thoát
 try { rmSync(DST, { recursive: true, force: true }); } catch {}
 console.log("\n  KẾT QUẢ: " + pass + " pass, " + fail + " fail");
-process.exit(fail ? 1 : 0);
+process.exitCode = fail ? 1 : 0;
