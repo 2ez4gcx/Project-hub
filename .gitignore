@@ -1,13 +1,38 @@
-# Dữ liệu & tệp nhạy cảm — KHÔNG đưa vào Git
-*/data/
+# ───────────────────────────────────────────────────────────────
+#  DỮ LIỆU THẬT — TUYỆT ĐỐI KHÔNG ĐƯA VÀO GIT
+#  Thư mục data chứa công việc, tài khoản, tiền bạc, ảnh hiện trường.
+# ───────────────────────────────────────────────────────────────
 data/
+*/data/
+.env
+*/.env
+
+# Bí mật
+license-private.key
+*.pem
+*.pfx
+
+# Phụ thuộc
 node_modules/
+
+# Sản phẩm trung gian của build (app.js đã build thì VẪN commit — người dùng
+# tải zip về là chạy được ngay, không cần cài Node để build)
+build/app.out.js
+build/node_modules/
+build/package-lock.json
+
+# Tệp tạm, bản sao lưu, nhật ký
+*.log
 *.tmp
 *.bak
 *.bak-*
-*.log
-license-private.key
-node_modules/
-build/node_modules/
-build/app.out.js
-build/package-lock.json
+*.orig
+*.rej
+*~
+
+# Hệ điều hành / trình soạn thảo
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

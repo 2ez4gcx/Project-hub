@@ -1,81 +1,152 @@
 # Trạm Dự Án
 
-Phần mềm quản lý dự án cho công ty xây dựng, chạy trong mạng nội bộ / NAS
-(kiểu Asana nhưng có nghiệp vụ xây dựng: nhật ký thi công, biên bản, duyệt
-việc 2 cấp, đường găng, BOQ – khối lượng – chi phí). Đăng nhập bằng
-email + mật khẩu, dữ liệu nằm hoàn toàn trên máy của công ty.
+**Phần mềm quản lý thi công cho công ty xây dựng — chạy trên máy công ty, dữ liệu không rời khỏi công ty.**
 
-## Cấu trúc
+Kiểu Asana nhưng làm cho ngành xây dựng: WBS theo giai đoạn, đường găng theo ngày làm việc
+thật, nhật ký thi công có bảng nhân lực/máy/khối lượng, punch list, bảng kiểm nghiệm thu,
+BOQ theo kỳ nghiệm thu, phát sinh (VO), ngân sách – chi phí thực tế, đề nghị thanh toán.
 
-```
-Chạy nội bộ/        bản chạy trên 1 máy Windows/Mac trong công ty
-Chạy trên NAS/      bản chạy Docker trên NAS Synology
-  server.js         máy chủ (Node thuần, không framework) — API + phân quyền + license
-  ProjectManager.jsx  toàn bộ giao diện React (nguồn chuẩn ở "Chạy nội bộ")
-  public/app.js     bundle đã build từ ProjectManager.jsx — KHÔNG sửa tay
-build/              npm run build  -> dựng lại app.js cho CẢ 2 bản + đóng dấu hash
-                    npm run dong-goi -> đóng gói 2 zip phân phối vào ../files
-tests/              test tự động (phân quyền, nghiệp vụ, license, restore) — chạy trong CI
-                    (số ca chính xác: xem output CI — đừng ghi cứng vào tài liệu)
-CHANGELOG.md        lịch sử phiên bản
-```
+Miễn phí, mã nguồn mở theo giấy phép MIT. Không hạn dùng thử, không mã kích hoạt.
 
-Hai bản "Chạy nội bộ" và "Chạy trên NAS" phải giống nhau từng byte về mã
-nguồn (server.js, ProjectManager.jsx, shim.js, app.js) — CI sẽ chặn nếu lệch.
-`build/build.mjs` tự đồng bộ khi build.
+- **Tác giả:** Khuong Doan — <https://khuongdoan.com/>
+- **Phiên bản hiện tại:** xem [CHANGELOG.md](CHANGELOG.md)
 
-## Làm việc với mã nguồn
+---
+
+## Dùng ngay
+
+Phần mềm được phát hành thành **hai thư mục độc lập**, giống hệt nhau về tính năng, khác
+nhau ở cách chạy. Chọn một:
+
+| Bạn muốn | Dùng thư mục | Hướng dẫn |
+|---|---|---|
+| Chạy thử, hoặc công ty nhỏ có 1 máy luôn bật | `Chạy nội bộ/` | [HƯỚNG DẪN 1 — Chạy trên máy cá nhân](Chạy%20nội%20bộ/HƯỚNG%20DẪN%201%20-%20Chạy%20trên%20máy%20cá%20nhân.txt) |
+| Công ty có NAS, chạy 24/7 (khuyên dùng) | `Chạy trên NAS/` | [HƯỚNG DẪN 2 — Chạy trên NAS công ty](Chạy%20trên%20NAS/HƯỚNG%20DẪN%202%20-%20Chạy%20trên%20NAS%20công%20ty.txt) |
+| Cần truy cập từ Internet qua tên miền riêng | `Chạy trên NAS/` | [HƯỚNG DẪN 3 — Đưa lên hosting và tên miền](Chạy%20trên%20NAS/HƯỚNG%20DẪN%203%20-%20Đưa%20lên%20hosting%20và%20tên%20miền.txt) |
+
+Chạy nhanh nhất (cần [Node.js](https://nodejs.org) bản LTS):
 
 ```bash
-# Sửa giao diện: sửa "Chạy nội bộ/ProjectManager.jsx" rồi build
+cd "Chạy nội bộ" && node server.js
+# mở http://localhost:3000, dùng MÃ CÀI ĐẶT in ra ở cửa sổ dòng lệnh để tạo tài khoản Chủ sở hữu
+```
+
+> **Trước khi mở ra Internet**, đọc mục 5 của HƯỚNG DẪN 3. Phần mềm được thiết kế cho mạng
+> nội bộ; đưa ra Internet cần thêm HTTPS, tường lửa và các bước siết bảo mật nêu trong đó.
+
+---
+
+## Tính năng
+
+**Tiến độ** — WBS theo giai đoạn với % trọng số thời lượng · phụ thuộc FS/SS/FF/SF có
+lag/lead · lịch làm việc riêng từng dự án (ngày nghỉ, ngày lễ) · đường găng CPM tính trên
+ngày công thật · kế hoạch gốc (baseline) · mốc (milestone) · Gantt zoom Ngày/Tuần/Tháng,
+kéo thả đổi lịch, ảo hóa dòng nên mượt ở dự án 1.000 việc.
+
+**Hiện trường** — nhật ký thi công có bảng nhân lực theo tổ đội, bảng máy theo giờ, bảng
+khối lượng gắn hạng mục BOQ, mục sự cố/mất an toàn riêng, luồng Nháp → Đã nộp → Chỉ huy
+trưởng duyệt (duyệt xong là khóa) · in theo mẫu NĐ 06/2021 · chụp ảnh thẳng từ camera, nén
+ảnh trên máy trước khi tải lên · nhập bằng giọng nói.
+
+**Chất lượng & an toàn** — punch list (vị trí, mức độ, nhà thầu, hạn khắc phục, ảnh
+trước/sau) · 8 mẫu bảng kiểm nghiệm thu Đạt/Không đạt/N-A, mục không đạt tự sinh lỗi tồn
+đọng · tab An toàn (HSE): ngày không tai nạn, sổ sự cố, họp an toàn đầu giờ, giấy phép làm việc.
+
+**Chi phí** — BOQ theo kỳ nghiệm thu (không lưu lũy kế, tính lại từ các kỳ) · phát sinh VO
+có trạng thái duyệt · khóa kỳ đã nộp Chủ đầu tư (chụp lại đơn giá) · ngân sách theo nhóm và
+sổ chi phí thực tế, lãi gộp · đề nghị thanh toán (giữ lại, khấu trừ tạm ứng, VAT) · xuất CSV.
+
+**Vận hành** — phân quyền phía máy chủ theo từng trường · thành viên theo dự án · nhật ký
+kiểm toán chỉ-thêm do máy chủ tự ghi · làm việc được khi mất mạng (hàng đợi + tự gửi lại) ·
+gộp ba chiều khi hai người lưu cùng lúc · ghi tệp nguyên tử + snapshot 14 ngày + email sao
+lưu hằng tuần · HTTPS tự bật khi có chứng chỉ · song ngữ Việt/Anh.
+
+---
+
+## Cấu trúc mã nguồn
+
+```
+Chạy nội bộ/            bản chạy trên một máy Windows/macOS/Linux   ← NGUỒN CHUẨN
+Chạy trên NAS/          bản chạy Docker (NAS công ty hoặc VPS)
+  server.js               máy chủ: Node thuần, không framework — API + phân quyền + lưu vết
+  ProjectManager.jsx      toàn bộ giao diện React (chỉ sửa ở bản "Chạy nội bộ")
+  public/app.js           bundle sinh ra từ ProjectManager.jsx — KHÔNG sửa tay
+build/                  npm run build     dựng app.js cho CẢ HAI bản + đóng dấu hash vào ?v=
+                        npm run dong-goi  đóng gói 2 zip phân phối vào ../files
+tests/                  bộ kiểm thử tự động — xem tests/README.md
+docs/                   tài liệu kỹ thuật, sách hướng dẫn, các báo cáo đánh giá độc lập
+```
+
+Hai thư mục `Chạy nội bộ` và `Chạy trên NAS` **phải giống nhau từng byte** ở
+`server.js`, `ProjectManager.jsx`, `public/shim.js`, `public/app.js`.
+`build/build.mjs` tự đồng bộ khi build; bộ kiểm thử chặn nếu lệch.
+
+### Kiến trúc rút gọn
+
+- **Đồng bộ**: máy trạm giữ cả khối trạng thái, ghi qua `POST /api/kv` (key `pm_shared_v3`)
+  kèm `rev` tăng dần. Máy chủ thẩm định phần thay đổi bằng `validateSharedWrite` (phân quyền
+  đến từng trường) và trả 409 khi rev cũ. Poll 4 giây chỉ hỏi `GET /api/kv/rev`.
+- **Xung đột**: 409 → máy trạm gộp ba chiều theo từng bản ghi thay vì tải lại bỏ hết.
+- **Phạm vi dự án**: dự án có `members` thì máy chủ **lọc khi đọc** và **ghép lại khi ghi**,
+  để người bị giới hạn không vô tình xóa dữ liệu họ không nhìn thấy.
+- **Tài chính**: lưu riêng `finance.json`, chống ghi đè bằng CAS (`expectedRev`),
+  quyền `canViewFinance` / `canEditFinance` tách rời.
+- **Lưu vết**: `audit.jsonl` chỉ-thêm, do máy chủ tự sinh từ phần diff — không ai xóa được
+  qua ứng dụng.
+- **An toàn dữ liệu**: ghi JSON nguyên tử + `.bak`, snapshot hằng ngày (giữ 14), email sao
+  lưu thứ Bảy, thùng rác 90 ngày cho dự án và hồ sơ.
+
+---
+
+## Phát triển
+
+```bash
+# Dựng lại giao diện sau khi sửa "Chạy nội bộ/ProjectManager.jsx"
 cd build && npm install && npm run build
 
-# Chạy thử
-cd "Chạy nội bộ" && node server.js
-# (dữ liệu test riêng: DATA_DIR=/duong/dan/khac PORT=3211 SETUP_CODE=TEST123 node server.js)
+# Chạy thử với dữ liệu riêng (đừng trỏ vào dữ liệu thật)
+DATA_DIR=/duong/dan/trong PORT=3211 SETUP_CODE=TEST123 node "Chạy nội bộ/server.js"
 
-# Kiểm tra TẤT CẢ trước khi phát hành (tự bật/tắt server, 1 lệnh)
+# Cổng kiểm soát trước khi phát hành — MỘT lệnh, tự bật/tắt máy chủ
 node tests/kiem-tra-tat-ca.mjs
 
-# Hoặc chạy từng bộ (cần server test đang chạy như dòng trên)
-node tests/test-authz.mjs
-node tests/test-license.mjs /duong/dan/DATA_DIR
-
-# Đóng gói giao khách (2 zip vào ../files)
+# Đóng gói 2 zip giao khách vào ../files
 cd build && npm run dong-goi
 ```
 
-## Kiến trúc nhanh
+`node tests/kiem-tra-tat-ca.mjs` chạy toàn bộ bộ kiểm thử, kiểm HTTPS, đối chiếu hai bản và
+kiểm tra gói phân phối; in **"ĐỦ ĐIỀU KIỆN PHÁT HÀNH"** hoặc **"CHƯA ĐẠT"** (thoát mã 1).
 
-- **Đồng bộ dữ liệu**: client giữ cả khối state, ghi qua `POST /api/kv`
-  (key `pm_shared_v3`) với `rev` tăng dần; máy chủ thẩm định diff và chặn
-  thay đổi vượt quyền (`validateSharedWrite`). Poll 4 giây chỉ hỏi
-  `GET /api/kv/rev`.
-- **Quyền xem tệp theo dự án** (`canViewProjectFiles`): chủ sở hữu / lãnh
-  đạo / teamlead / siteLoggers / người có việc được giao; công tắc
-  `features.fileByProject`.
-- **Chi phí + BOQ**: lưu riêng `finance.json`, gate `canViewFinance`;
-  BOQ theo kỳ nghiệm thu, không lưu lũy kế.
-- **An toàn dữ liệu**: ghi file nguyên tử + .bak; snapshot hằng ngày vào
-  `data/snapshots` (giữ 14); email sao lưu thứ Bảy (không kèm mật khẩu).
-- **HTTPS**: đặt chứng chỉ vào `data/tls` là tự bật (PEM hoặc PFX).
+### Quy trình phát hành
 
-Tác giả: Khuong Doan — https://khuongdoan.com/
-Phần mềm chia sẻ miễn phí theo giấy phép MIT (xem LICENSE.txt):
-ai cũng được dùng, sửa và phân phối lại, chỉ cần giữ dòng ghi danh tác giả.
-Từ bản 4.0.0 không còn bất kỳ cơ chế giới hạn thời gian hay mã kích hoạt nào.
+1. Bump version ở **cả hai** `package.json`.
+2. `cd build && npm run build`.
+3. `node tests/kiem-tra-tat-ca.mjs` — phải "ĐỦ ĐIỀU KIỆN PHÁT HÀNH".
+4. Cập nhật `CHANGELOG.md` và `CÓ GÌ MỚI.txt` của cả hai bản.
+   **Thay đổi hành vi** (quyền, mặc định, luồng làm việc) phải nêu ở ĐẦU "CÓ GÌ MỚI".
+5. `cd build && npm run dong-goi`.
+6. `git commit` → `git tag vX.Y.Z` → `git push --tags`.
+7. Giải nén thử zip, chạy `node server.js`, đăng nhập một lần trước khi giao khách.
 
-## Quy trình phát hành
+---
 
-- **Nhịp**: gộp thay đổi thành bản phát hành mỗi 2 tuần. Chỉ phát hành ngoài
-  nhịp khi vá lỗi bảo mật hoặc lỗi mất dữ liệu.
-- **Mỗi bản phát hành**: bump version trong cả 2 package.json → `npm run build`
-  → chạy `node tests/kiem-tra-tat-ca.mjs` (+ đo tải nếu đụng đồng bộ) → cập nhật CHANGELOG.md và
-  "CÓ GÌ MỚI.txt" → `npm run dong-goi` → commit → `git tag vX.Y.Z` → push
-  (`git push --tags`) → chờ CI xanh (Node 20, Node 24, Docker).
-- **Thay đổi hành vi** (quyền, mặc định, luồng làm việc): phải nêu ở đầu
-  "CÓ GÌ MỚI.txt" kèm cách xử lý, và báo trước cho khách đang dùng.
-- **Tài liệu**: bản phát hành thêm tính năng người dùng thấy được thì phải cập
-  nhật "Hướng dẫn sử dụng theo bộ phận" và "HƯỚNG DẪN CÀI ĐẶT" trong cùng đợt.
-- **Trước khi giao khách**: giải nén thử zip trong `files/`, chạy `node server.js`,
-  đăng nhập một lần.
+## Đóng góp
+
+Rất hoan nghênh báo lỗi và đề xuất qua Issues. Nếu gửi Pull Request:
+
+- Sửa giao diện thì sửa `Chạy nội bộ/ProjectManager.jsx` rồi chạy `npm run build`;
+  **đừng sửa tay** `public/app.js`.
+- Mọi thay đổi phải qua `node tests/kiem-tra-tat-ca.mjs`.
+- Thay đổi chạm tới phân quyền, tiền bạc hoặc xóa dữ liệu thì **kèm ca kiểm thử**.
+- Ghi chú trong mã bằng tiếng Việt, giải thích *vì sao* chứ không mô tả lại code.
+
+Lỗ hổng bảo mật: xem [SECURITY.md](SECURITY.md) — đừng mở Issue công khai.
+
+---
+
+## Giấy phép
+
+MIT — xem [LICENSE](LICENSE). Ai cũng được dùng, sửa và phân phối lại cho mục đích thương
+mại hay phi thương mại; điều kiện duy nhất là **giữ dòng ghi danh tác giả**.
+
+Phần mềm do **Khuong Doan** phát triển — <https://khuongdoan.com/>

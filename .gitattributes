@@ -1,0 +1,29 @@
+# Cố định kiểu xuống dòng để tệp không bị hỏng khi qua lại Windows / macOS / Linux.
+# (Không có tệp này, core.autocrlf trên Windows sẽ đổi "Khoi-dong (Mac-Linux).command"
+#  thành CRLF và macOS sẽ không chạy được.)
+
+# Mặc định: git tự nhận diện tệp văn bản, lưu trong kho bằng LF
+* text=auto eol=lf
+
+# Trình khởi động của Windows BẮT BUỘC dùng CRLF
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+*.ps1  text eol=crlf
+
+# Trình khởi động của macOS/Linux BẮT BUỘC dùng LF
+*.command text eol=lf
+*.sh      text eol=lf
+
+# Tệp nhị phân — đừng đụng vào, đừng cố so sánh từng dòng
+*.docx binary
+*.xlsx binary
+*.pdf  binary
+*.zip  binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.ico  binary
+*.pfx  binary
+
+# Bundle sinh ra từ ProjectManager.jsx — gộp diff cho gọn, đừng soi từng dòng
+public/app.js linguist-generated=true -diff
