@@ -1,5 +1,6 @@
 # Trạm Dự Án
 
+[![Kiểm tra](https://github.com/2ez4gcx/Project-hub/actions/workflows/test.yml/badge.svg)](https://github.com/2ez4gcx/Project-hub/actions/workflows/test.yml)
 [![Giấy phép: AGPL-3.0](https://img.shields.io/badge/gi%E1%BA%A5y%20ph%C3%A9p-AGPL--3.0-blue)](LICENSE)
 [![Node.js 18+](https://img.shields.io/badge/Node.js-18%2B-5FA04E?logo=node.js&logoColor=white)](https://nodejs.org)
 [![Kiểm thử: 384 ca](https://img.shields.io/badge/ki%E1%BB%83m%20th%E1%BB%AD-384%20ca-success)](tests/)
