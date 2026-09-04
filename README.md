@@ -61,3 +61,18 @@ cd build && npm run dong-goi
 - **HTTPS**: đặt chứng chỉ vào `data/tls` là tự bật (PEM hoặc PFX).
 
 Tác giả: Khuong Doan. Repo private — không phân phối mã nguồn.
+
+## Quy trình phát hành
+
+- **Nhịp**: gộp thay đổi thành bản phát hành mỗi 2 tuần. Chỉ phát hành ngoài
+  nhịp khi vá lỗi bảo mật hoặc lỗi mất dữ liệu.
+- **Mỗi bản phát hành**: bump version trong cả 2 package.json → `npm run build`
+  → chạy đủ 4 bộ test + đo tải nếu đụng đồng bộ → cập nhật CHANGELOG.md và
+  "CÓ GÌ MỚI.txt" → `npm run dong-goi` → commit → `git tag vX.Y.Z` → push
+  (`git push --tags`) → chờ CI xanh (Node 20, Node 24, Docker).
+- **Thay đổi hành vi** (quyền, mặc định, luồng làm việc): phải nêu ở đầu
+  "CÓ GÌ MỚI.txt" kèm cách xử lý, và báo trước cho khách đang dùng.
+- **Tài liệu**: bản phát hành thêm tính năng người dùng thấy được thì phải cập
+  nhật "Hướng dẫn sử dụng theo bộ phận" và "HƯỚNG DẪN CÀI ĐẶT" trong cùng đợt.
+- **Trước khi giao khách**: giải nén thử zip trong `files/`, chạy `node server.js`,
+  đăng nhập một lần.

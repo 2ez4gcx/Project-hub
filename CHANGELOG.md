@@ -1,5 +1,45 @@
 # Lịch sử phiên bản — Trạm Dự Án
 
+## v3.13.0 — 17/08/2026 (gói cải thiện 1 tuần theo audit ba vai trò)
+
+### Giao diện dễ đọc hơn cho mọi người (U1)
+- Sửa toàn bộ chữ và biểu tượng có tương phản dưới chuẩn WCAG AA: chữ phụ,
+  nút biểu tượng, nhãn biểu đồ, thẻ bộ phận, số liệu lớn, nút cam có chữ
+  trắng. Đo lại trên màn hình thật: **0 vi phạm** (trước đó 128 chỗ chữ
+  ở mức 2,56:1, chuẩn cần 4,5:1). Người lớn tuổi và người dùng ngoài
+  công trường đọc dễ hơn rõ rệt.
+
+### Hộp thoại trong app thay hộp thoại trình duyệt (U2)
+- 18 hộp thoại xác nhận/cảnh báo/nhập liệu kiểu cũ (chặn cả trình duyệt,
+  không theo giao diện phần mềm) nay là hộp thoại AntD trong app: có tiêu
+  đề tiếng Việt, nút Hủy/Xóa rõ ràng, bấm ra ngoài để đóng.
+- Đặt lại mật khẩu thành viên: dùng ô nhập mật khẩu có kiểm tra độ mạnh
+  ngay tại chỗ thay cho ô nhập thô của trình duyệt.
+
+### Nhanh hơn trên wifi và NAS (T4)
+- Bật nén gzip: **app.js 1,16 MB → 356 KB**; dữ liệu đồng bộ
+  **217 KB → 5,7 KB** mỗi lần tải. Mở phần mềm lần đầu và đồng bộ giữa
+  các máy nhanh hơn hẳn, nhất là qua wifi hoặc NAS ở xa.
+
+### Không chết âm thầm (T5)
+- Máy chủ ghi rõ lỗi nghiêm trọng vào security.log rồi thoát sạch để dịch
+  vụ/Docker khởi động lại, thay vì tắt lặng lẽ. Có xử lý tín hiệu dừng.
+- Hướng dẫn chạy nền tự khởi động lại (NSSM / Startup) trong sổ tay vận hành.
+
+### Tài liệu (P1, P4)
+- **Sách hướng dẫn sử dụng** cập nhật lên bản 3.12: thêm 5 mục song ngữ
+  (Gantt & đường găng, BOQ – khối lượng – chi phí, giao–trả về–thùng rác–
+  email, quyền xem tệp & sửa dữ liệu, vận hành HTTPS/sao lưu).
+- **Hướng dẫn cài đặt** cập nhật lên bản 3.12: thêm mục 16 (HTTPS trên máy
+  tính, đổi cổng, sao lưu hằng ngày, thay đổi hành vi về quyền, giấy phép).
+- **Mới: "VẬN HÀNH & SỰ CỐ.txt"** — sổ tay cho người quản trị tại công ty:
+  10 sự cố thường gặp kèm cách xử lý từng bước, việc cần làm hằng
+  ngày/tuần/tháng, khi nào cần gọi tác giả.
+
+### Quy trình phát hành (P2)
+- Bắt đầu gắn thẻ phiên bản (git tag) cho mỗi bản phát hành và ghi rõ
+  nhịp phát hành trong README.
+
 ## v3.12.1 — 17/08/2026
 
 ### Vá bug vỡ tiếng Việt với dữ liệu lớn (tìm ra nhờ đo tải)

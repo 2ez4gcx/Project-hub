@@ -1,8 +1,19 @@
 ═══════════════════════════════════════════════════════════════
-  TRẠM DỰ ÁN v3.10 — CÓ GÌ MỚI (so với v3.5)
+  TRẠM DỰ ÁN v3.13 — CÓ GÌ MỚI (so với v3.5)
 ═══════════════════════════════════════════════════════════════
 
-00) MỚI NHẤT (v3.11)
+000) MỚI NHẤT (v3.13) — DỄ DÙNG & NHANH HƠN
+   • Chữ và biểu tượng đậm rõ hơn: dễ đọc trên điện thoại ngoài nắng
+     và với người lớn tuổi.
+   • Các hộp thoại hỏi "có chắc không?" nay nằm gọn trong phần mềm,
+     có nút Hủy/Xóa rõ ràng thay cho hộp thoại xám của trình duyệt.
+   • Mở phần mềm và đồng bộ NHANH HƠN NHIỀU qua wifi/NAS (nén dữ liệu).
+   • Có sổ tay "VẬN HÀNH & SỰ CỐ.txt": 10 tình huống thường gặp và
+     cách tự xử lý (quên mật khẩu, lỡ xóa, khôi phục dữ liệu, đổi máy).
+   • Sách hướng dẫn sử dụng và hướng dẫn cài đặt đã cập nhật đầy đủ
+     các tính năng mới (Gantt, BOQ, quyền xem tệp, HTTPS).
+
+00) v3.11
    • ĐƯỜNG CONG S trong tab BOQ & Khối lượng: so kế hoạch với thực
      hiện theo % giá trị — biết ngay dự án nhanh hay chậm về TIỀN.
    • Tạo dự án mới có MẪU SẴN: Thi công nhà phố / Fit-out văn phòng /

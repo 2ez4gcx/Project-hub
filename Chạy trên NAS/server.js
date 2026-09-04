@@ -601,7 +601,37 @@ function readBody(req) {
     req.on("close", () => settle({}));
   });
 }
-function json(res, code, obj) { res.writeHead(code, { "Content-Type": "application/json" }); res.end(JSON.stringify(obj)); }
+function json(res, code, obj, req) {
+  const buf = Buffer.from(JSON.stringify(obj));
+  if (code === 200 && req && acceptsGzip(req) && buf.length >= GZIP_MIN) {
+    try {
+      const gz = zlib.gzipSync(buf, { level: 6 });
+      res.writeHead(code, { "Content-Type": "application/json", "Content-Encoding": "gzip", "Content-Length": gz.length, Vary: "Accept-Encoding" });
+      return res.end(gz);
+    } catch {}
+  }
+  res.writeHead(code, { "Content-Type": "application/json", "Content-Length": buf.length });
+  res.end(buf);
+}
+
+/* ---- T4 (audit 3 vai trò): nén gzip ----
+   app.js 1,1MB tải qua wifi/NAS ở xa khá chậm; gzip đưa xuống ~350KB.
+   Chỉ nén khi trình duyệt khai báo hỗ trợ và nội dung đủ lớn để bõ công nén. */
+const zlib = require("zlib");
+const GZIP_MIN = 1024;
+const GZIP_EXT = new Set([".html", ".js", ".css", ".json", ".svg", ".txt", ".map"]);
+function acceptsGzip(req) { return /\bgzip\b/.test(String(req.headers["accept-encoding"] || "")); }
+function sendMaybeGzip(req, res, buf, headers) {
+  if (acceptsGzip(req) && buf.length >= GZIP_MIN) {
+    try {
+      const gz = zlib.gzipSync(buf, { level: 6 });
+      res.writeHead(200, { ...headers, "Content-Encoding": "gzip", "Content-Length": gz.length, Vary: "Accept-Encoding" });
+      return res.end(gz);
+    } catch {}
+  }
+  res.writeHead(200, { ...headers, "Content-Length": buf.length });
+  res.end(buf);
+}
 
 const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8", ".json": "application/json", ".svg": "image/svg+xml", ".ico": "image/x-icon" };
@@ -713,7 +743,7 @@ const requestHandler = async (req, res) => {
     const list = loadRecords().filter((r) => (!pid || r.projectId === pid) && viewOK(r.projectId))
       .map((r) => ({ id: r.id, projectId: r.projectId, date: r.date, type: r.type, number: r.number || "", note: r.note || "", createdBy: r.createdBy || "", createdAt: r.createdAt, files: (r.files || []).map((f, i) => ({ idx: i, name: f.name, size: f.size, mime: f.mime })) }))
       .sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.createdAt || 0) - (a.createdAt || 0));
-    return json(res, 200, { records: list });
+    return json(res, 200, { records: list }, req);
   }
   if (p === "/api/records" && req.method === "POST") {
     if (!canRecords(me)) return json(res, 403, { error: "forbidden" });
@@ -773,7 +803,7 @@ const requestHandler = async (req, res) => {
     const tid = u.searchParams.get("taskId") || "";
     if (!canViewTaskFiles(me, tid)) return json(res, 200, { files: [] });
     const arr = (loadTaskFiles()[tid] || []).map((f, i) => ({ idx: i, name: f.name, size: f.size, mime: f.mime, by: f.by || "" }));
-    return json(res, 200, { files: arr });
+    return json(res, 200, { files: arr }, req);
   }
   if (p === "/api/taskfiles/upload" && req.method === "POST") {
     if (!me) return json(res, 403, { error: "forbidden" });
@@ -825,7 +855,7 @@ const requestHandler = async (req, res) => {
     const list = loadSiteLogs().filter((r) => (!pid || r.projectId === pid) && viewOK(r.projectId))
       .map((r) => ({ id: r.id, projectId: r.projectId, date: r.date, weatherAM: r.weatherAM || "", weatherPM: r.weatherPM || "", manpower: r.manpower || "", work: r.work || "", equipment: r.equipment || "", issues: r.issues || "", nextPlan: r.nextPlan || "", createdBy: r.createdBy || "", createdAt: r.createdAt, photos: (r.photos || []).map((f, i) => ({ idx: i, name: f.name, size: f.size, mime: f.mime })) }))
       .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
-    return json(res, 200, { logs: list });
+    return json(res, 200, { logs: list }, req);
   }
   if (p === "/api/sitelogs" && req.method === "POST") {
     if (!canRecords(me)) return json(res, 403, { error: "forbidden" });
@@ -890,7 +920,7 @@ const requestHandler = async (req, res) => {
   if (p === "/api/logout" && req.method === "POST") {
     const h = req.headers["authorization"] || ""; tokens.delete(h.startsWith("Bearer ") ? h.slice(7) : ""); return json(res, 200, { ok: true });
   }
-  if (p === "/api/accounts" && req.method === "GET") return json(res, 200, { accounts: loadAccounts().map(safe) });
+  if (p === "/api/accounts" && req.method === "GET") return json(res, 200, { accounts: loadAccounts().map(safe) }, req);
 
   if (p === "/api/accounts" && req.method === "POST") {
     if (!canManageMembers(me)) return json(res, 403, { error: "forbidden" });
@@ -997,7 +1027,7 @@ const requestHandler = async (req, res) => {
   // ---- finance (owner or permitted manager only) ----
   if (p === "/api/finance" && req.method === "GET") {
     if (!canFinance(me)) return json(res, 403, { error: "forbidden" });
-    return json(res, 200, loadFinance());
+    return json(res, 200, loadFinance(), req);
   }
   if (p === "/api/finance" && req.method === "POST") {
     if (!canFinance(me)) return json(res, 403, { error: "forbidden" });
@@ -1024,7 +1054,7 @@ const requestHandler = async (req, res) => {
     const key = u.searchParams.get("key");
     if (!KV_READ_KEYS.has(key)) return json(res, 403, { error: "bad_key" });
     const d = loadData();
-    return json(res, 200, { value: key in d ? d[key] : null });
+    return json(res, 200, { value: key in d ? d[key] : null }, req); // khối lớn nhất — gzip giúp nhiều nhất
   }
   if (p === "/api/kv" && req.method === "POST") {
     const { key, value } = await readBody(req);
@@ -1065,7 +1095,9 @@ const requestHandler = async (req, res) => {
     let nc = {};
     if (ex2 === ".html") nc = { "Cache-Control": "no-store" };
     else if ([".js", ".css", ".woff", ".woff2", ".png", ".jpg", ".svg", ".ico"].includes(ex2)) nc = { "Cache-Control": "public, max-age=31536000, immutable" };
-    res.writeHead(200, { "Content-Type": MIME[ex2] || "application/octet-stream", ...nc });
+    const headers = { "Content-Type": MIME[ex2] || "application/octet-stream", ...nc };
+    if (GZIP_EXT.has(ex2)) return sendMaybeGzip(req, res, buf, headers);
+    res.writeHead(200, headers);
     res.end(buf);
   });
 };
@@ -1091,6 +1123,20 @@ function loadTLS() {
 const TLS = loadTLS();
 const PROTO = TLS ? "https" : "http";
 const server = TLS ? require("https").createServer(TLS.options, requestHandler) : http.createServer(requestHandler);
+
+/* ---- T5 (audit 3 vai trò): KHÔNG CHẾT ÂM THẦM ----
+   Lỗi không bắt được trước đây làm tiến trình thoát mà không để lại dấu vết; bản chạy nội bộ
+   không có ai khởi động lại nên người dùng chỉ thấy "trang không mở được". Nay ghi rõ vào
+   security.log rồi thoát mã 1 để dịch vụ/NSSM/Docker khởi động lại. */
+process.on("uncaughtException", (err) => {
+  try { slog("LỖI NGHIÊM TRỌNG (uncaughtException): " + (err && err.stack || err)); } catch {}
+  console.error("  [X] May chu gap loi nghiem trong va se thoat. Xem data/security.log de biet chi tiet.");
+  setTimeout(() => process.exit(1), 100);
+});
+process.on("unhandledRejection", (reason) => {
+  try { slog("CẢNH BÁO (unhandledRejection): " + (reason && reason.stack || reason)); } catch {}
+});
+process.on("SIGTERM", () => { try { slog("Máy chủ nhận tín hiệu dừng (SIGTERM)."); } catch {} server.close(() => process.exit(0)); setTimeout(() => process.exit(0), 3000); });
 
 /* ===================== EMAIL REMINDER SCHEDULER ===================== */
 let nodemailer = null;
