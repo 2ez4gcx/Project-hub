@@ -92,104 +92,21 @@ function saveConfigFile(obj) { return writeJsonAtomic(CONFIG_PATH, JSON.stringif
 })();
 let CONFIG = loadConfig();
 
-/* ===================== LICENSE (giấy phép có thời hạn 6 tháng) =====================
-   App chứa KHÓA CÔNG KHAI để kiểm tra mã gia hạn. Mã gia hạn do tác giả tạo bằng
-   KHÓA RIÊNG (không có trong app). Hết hạn -> chế độ CHỈ ĐỌC, KHÔNG xóa dữ liệu. */
-const LICENSE_PUBLIC_KEY = "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAemYPTLcLeo7RJ4orF58pGq8W2EPH663Ocp1XxJF06+M=\n-----END PUBLIC KEY-----\n";
-const LICENSE_MONTHS_DEFAULT = 6;
-const LICENSE_AUTHOR = "Khuong Doan";
-let APP_VERSION = "3.3.0"; try { APP_VERSION = require("./package.json").version || APP_VERSION; } catch (e) {}
-const LICENSE_YEAR = 2026;
-function addMonths(ms, n) { const d = new Date(ms); d.setMonth(d.getMonth() + n); return d.getTime(); }
-
-/* ---- GIA CỐ BẢN DÙNG THỬ (v3.8.1) ----
-   Trước đây hạn dùng thử là một CON SỐ THÔ trong config.json — sửa số là dùng vĩnh viễn.
-   Bây giờ: hạn dùng thử được KÝ HMAC và lưu 3 BẢN (config.json, tài khoản chủ trong
-   accounts.json, key ẩn __lic trong data.json — client không đọc/ghi được qua /api/kv).
-   - Sửa số ở đâu -> chữ ký bản đó sai -> bị bỏ qua; các bản còn lại khôi phục lại.
-   - Mọi bản đều bị sửa -> CHỈ ĐỌC (không cấp trial mới cho dấu vết giả).
-   - Muốn xóa sạch dấu vết để "làm mới" trial thì phải xóa cả data.json lẫn accounts.json
-     — tức là mất toàn bộ công việc và tài khoản.
-   - Mốc 'seen' tiến theo giờ và được ký kèm: lùi đồng hồ máy quá 3 ngày -> CHỈ ĐỌC.
-   (Mã nguồn chạy trên máy khách nên không có khóa tuyệt đối; mục tiêu là nâng rào cản
-   từ "sửa một con số" lên "phải phá hủy dữ liệu của chính mình".) */
-const TRIAL_KEY = crypto.createHash("sha256").update(LICENSE_PUBLIC_KEY + "|TDA-trial-v1|" + LICENSE_AUTHOR).digest();
-const trialSig = (expiry, seen) => crypto.createHmac("sha256", TRIAL_KEY).update("TDA-TRIAL|" + expiry + "|" + seen).digest("hex");
-const CLOCK_ROLLBACK_MS = 3 * 86400000;
-function readTrialRec(tr) {
-  if (!tr || typeof tr.expiry !== "number" || typeof tr.seen !== "number" || typeof tr.sig !== "string") return null;
-  return trialSig(tr.expiry, tr.seen) === tr.sig ? { expiry: tr.expiry, seen: tr.seen, valid: true } : { valid: false };
-}
-// Gom 3 bản trial. Trả về { valid: [..bản ký đúng..], present: có dấu vết trial nào không }
-function collectTrial() {
-  const out = { valid: [], present: false };
-  const push = (tr) => { const r = readTrialRec(tr); if (r) { out.present = true; if (r.valid) out.valid.push(r); } };
-  try { push(((loadConfig() || {}).license || {}).trial); } catch {}
-  try { const accs = JSON.parse(fs.readFileSync(ACCOUNTS, "utf8")); const ownr = (accs || []).find((a) => a && a.role === "owner" && a.licTrial); if (ownr) push(ownr.licTrial); } catch {}
-  try { push(loadData().__lic); } catch {}
-  return out;
-}
-// Ghi bản trial (đã ký) vào cả 3 nơi.
-function writeTrialEverywhere(expiry, seen) {
-  const tr = { expiry, seen, sig: trialSig(expiry, seen) };
-  try { const c = loadConfig(); c.license = { ...(c.license || {}), trial: tr }; delete c.license.expiry; saveConfigFile(c); CONFIG = c; } catch {}
-  try {
-    const accs = JSON.parse(fs.readFileSync(ACCOUNTS, "utf8"));
-    const i = (accs || []).findIndex((a) => a && a.role === "owner");
-    if (i >= 0) { accs[i].licTrial = tr; saveAccounts(accs); }
-  } catch {}
-  try { const d = loadData(); d.__lic = tr; saveData(d); } catch {}
-  return tr;
-}
-function getLicenseExpiry() {
-  const c = loadConfig(); const lic = (c && c.license) || {};
-  if (lic.code) { const pl = verifyLicenseCode(lic.code); return pl ? pl.exp : 1; } // có mã ký -> lấy hạn từ chữ ký; mã bị sửa/hỏng -> 1 (đã qua = chỉ đọc)
-  const ct = collectTrial();
-  if (ct.valid.length) {
-    const seen = Math.max(...ct.valid.map((r) => r.seen));
-    if (Date.now() < seen - CLOCK_ROLLBACK_MS) return 1; // đồng hồ máy bị lùi -> chỉ đọc
-    return Math.min(...ct.valid.map((r) => r.expiry));  // lấy hạn SỚM nhất trong các bản hợp lệ
-  }
-  if (ct.present) return 1; // có dấu vết trial nhưng toàn chữ ký sai -> chỉ đọc, không cấp mới
-  return Number(lic.expiry) || 0; // bản cũ chưa ký -> dùng tạm, ensureLicense sẽ nâng cấp
-}
-function setLicense(exp, code) { const c = loadConfig(); c.license = { ...(c.license || {}), expiry: exp }; if (code) c.license.code = code; saveConfigFile(c); CONFIG = c; }
-function ensureLicense() {
-  const lic = (loadConfig() || {}).license || {};
-  if (lic.code) return; // đã kích hoạt bằng mã ký
-  const ct = collectTrial();
-  if (ct.valid.length) { // đồng bộ lại: bản thiếu/bị sửa được khôi phục từ bản hợp lệ (hạn sớm nhất, seen mới nhất)
-    writeTrialEverywhere(Math.min(...ct.valid.map((r) => r.expiry)), Math.max(...ct.valid.map((r) => r.seen), Date.now()));
-    return;
-  }
-  if (ct.present) { slog("GIẤY PHÉP dùng thử có dấu hiệu bị sửa (chữ ký sai ở mọi bản) — chuyển CHỈ ĐỌC."); return; }
-  const legacy = Number(lic.expiry) || 0;
-  if (legacy) { writeTrialEverywhere(legacy, Date.now()); slog("Nâng cấp hạn dùng thử sang dạng có chữ ký."); return; }
-  if (loadAccounts().length > 0) writeTrialEverywhere(addMonths(Date.now(), LICENSE_MONTHS_DEFAULT), Date.now());
-}
-// Tiến mốc 'seen' mỗi giờ (không bao giờ lùi) — nền tảng của chống lùi đồng hồ.
-function touchTrial() {
-  const lic = (loadConfig() || {}).license || {};
-  if (lic.code) return;
-  const ct = collectTrial();
-  if (!ct.valid.length) return;
-  const seen = Math.max(...ct.valid.map((r) => r.seen));
-  if (Date.now() > seen) writeTrialEverywhere(Math.min(...ct.valid.map((r) => r.expiry)), Date.now());
-}
-function licenseReadOnly() { const e = getLicenseExpiry(); return e > 0 && Date.now() > e; }
-function verifyLicenseCode(code) {
-  try {
-    const parts = String(code || "").trim().split(".");
-    if (parts.length !== 3 || parts[0] !== "TDA1") return null;
-    const ok = crypto.verify(null, Buffer.from(parts[1]), crypto.createPublicKey(LICENSE_PUBLIC_KEY), Buffer.from(parts[2], "base64url"));
-    if (!ok) return null;
-    const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString());
-    if (!payload || typeof payload.exp !== "number") return null;
-    return payload;
-  } catch { return null; }
-}
+/* Phiên bản phần mềm — hiện ở góc thanh bên và trong /api/config */
+let APP_VERSION = "4.0.0";
+try { APP_VERSION = require("./package.json").version || APP_VERSION; } catch (e) {}
 
 function loadData() { try { return JSON.parse(fs.readFileSync(DATA, "utf8")); } catch { return {}; } }
+/* Dọn dấu vết cơ chế giấy phép của các bản trước (phần mềm nay dùng tự do, không giới hạn).
+   Chạy một lần khi khởi động, không đụng dữ liệu công việc. */
+function donDauVetGiayPhep() {
+  try { const c = loadConfig(); if (c && c.license) { delete c.license; saveConfigFile(c); CONFIG = c; } } catch {}
+  try { const d = loadData(); if (d && d.__lic) { delete d.__lic; saveData(d); } } catch {}
+  try {
+    const accs = JSON.parse(fs.readFileSync(ACCOUNTS, "utf8"));
+    if (Array.isArray(accs) && accs.some((a) => a && a.licTrial)) { for (const a of accs) delete a.licTrial; saveAccounts(accs); }
+  } catch {}
+}
 function saveData(d) { writeJsonAtomic(DATA, JSON.stringify(d)); }
 // ---- Trạng thái nhắc việc/sao lưu: TÁCH KHỎI data.json.
 // (Trước đây scheduler load data.json -> await gửi email -> save lại bản CŨ, có thể đè mất
@@ -672,7 +589,6 @@ const requestHandler = async (req, res) => {
     const salt = makeSalt();
     const acc = { id: uid(), name: String(name).trim(), email: String(email).trim().toLowerCase(), role: "owner", dept: "Lead", canAssign: true, canViewHistory: true, canViewFinance: true, canViewWorkload: true, canManageMembers: true, noReport: true, salt, hash: hashPw(password, salt) };
     saveAccounts([acc]);
-    writeTrialEverywhere(addMonths(Date.now(), LICENSE_MONTHS_DEFAULT), Date.now());
     SETUP_CODE = "";
     slog("Tạo tài khoản CHỦ SỞ HỮU đầu tiên: " + acc.email + " từ " + clientIp(req));
     const tok = newToken(acc.id);
@@ -709,30 +625,6 @@ const requestHandler = async (req, res) => {
   const isFileUpload = p === "/api/records/file" || p === "/api/sitelogs/photo" || p === "/api/taskfiles/upload";
   if (req.method === "POST" && needsAuth && !isFileUpload && Number(req.headers["content-length"] || 0) > 8e6) {
     return json(res, 413, { error: "too_large", message: "Dữ liệu gửi lên quá lớn (tối đa 8MB)." });
-  }
-
-  // ---- license: chặn ghi khi hết hạn (chế độ chỉ đọc). Đọc (GET) vẫn cho phép. ----
-  const WRITE_PATHS = new Set(["/api/kv", "/api/finance", "/api/accounts", "/api/accounts/update", "/api/accounts/delete", "/api/settings", "/api/records", "/api/records/file", "/api/records/delete", "/api/sitelogs", "/api/sitelogs/photo", "/api/sitelogs/delete", "/api/taskfiles/upload", "/api/taskfiles/delete"]);
-  if (req.method === "POST" && WRITE_PATHS.has(p) && licenseReadOnly()) {
-    return json(res, 423, { error: "license_expired", message: "Giấy phép đã hết hạn — phần mềm đang ở chế độ CHỈ ĐỌC. Liên hệ tác giả để gia hạn.", expiry: getLicenseExpiry() });
-  }
-  if (p === "/api/license" && req.method === "GET") {
-    const exp = getLicenseExpiry();
-    const daysLeft = exp ? Math.ceil((exp - Date.now()) / 86400000) : null;
-    return json(res, 200, { expiry: exp, daysLeft, readOnly: licenseReadOnly(), author: LICENSE_AUTHOR, year: LICENSE_YEAR });
-  }
-  if (p === "/api/license/activate" && req.method === "POST") {
-    if (!me || me.role !== "owner") return json(res, 403, { error: "forbidden" });
-    const { code } = await readBody(req);
-    const payload = verifyLicenseCode(code);
-    if (!payload) return json(res, 400, { error: "bad_code", message: "Mã gia hạn không hợp lệ." });
-    if (payload.exp <= Date.now()) return json(res, 400, { error: "code_expired", message: "Mã gia hạn này đã hết hạn." });
-    const curExp = getLicenseExpiry();
-    if (payload.exp > curExp) setLicense(payload.exp, String(code).trim());
-    const newExp = Math.max(curExp, payload.exp);
-    slog("Kích hoạt giấy phép tới " + new Date(newExp).toISOString().slice(0, 10) + " bởi " + me.email);
-    const daysLeft = Math.ceil((newExp - Date.now()) / 86400000);
-    return json(res, 200, { ok: true, expiry: newExp, daysLeft, readOnly: false });
   }
 
   // ---- BIÊN BẢN ----
@@ -1122,7 +1014,18 @@ function loadTLS() {
 }
 const TLS = loadTLS();
 const PROTO = TLS ? "https" : "http";
-const server = TLS ? require("https").createServer(TLS.options, requestHandler) : http.createServer(requestHandler);
+function safeHandler(req, res) {
+  Promise.resolve()
+    .then(() => requestHandler(req, res))
+    .catch((err) => {
+      try { slog("LỖI xử lý yêu cầu " + req.method + " " + req.url + ": " + (err && err.stack || err)); } catch {}
+      try {
+        if (!res.headersSent) json(res, 500, { error: "server_error", message: "Máy chủ gặp lỗi khi xử lý yêu cầu này." });
+        else res.end();
+      } catch {}
+    });
+}
+const server = TLS ? require("https").createServer(TLS.options, safeHandler) : http.createServer(safeHandler);
 
 /* ---- T5 (audit 3 vai trò): KHÔNG CHẾT ÂM THẦM ----
    Lỗi không bắt được trước đây làm tiến trình thoát mà không để lại dấu vết; bản chạy nội bộ
@@ -1388,10 +1291,9 @@ server.listen(PORT, "0.0.0.0", () => {
   console.log("   Email nhắc việc: " + (mailReady ? "ĐÃ cấu hình" : "CHƯA cấu hình (chạy thử khô — vào Cài đặt để điền)"));
   console.log("   Sao lưu hằng tuần (T7): " + ((cfg.backup && cfg.backup.email) ? ("-> " + cfg.backup.email) : "(chưa đặt email nhận sao lưu)"));
   console.log("   Bảo mật: khóa đăng nhập sau " + MAX_FAILS + " lần sai, phiên hết hạn sau 12 giờ.");
-  ensureLicense();
-  { const e = getLicenseExpiry(); const dl = e ? Math.ceil((e - Date.now()) / 86400000) : 0;
-    console.log("   Giấy phép: " + (e ? ("còn " + dl + " ngày (hết hạn " + new Date(e).toISOString().slice(0,10) + ")" + (licenseReadOnly() ? " — ĐANG CHỈ ĐỌC" : "")) : "(chưa đặt)")); }
+  try { donDauVetGiayPhep(); } catch {}
   console.log("   Dữ liệu: " + DATA + "\n   Tài khoản: " + ACCOUNTS + "\n   Nhật ký bảo mật: " + path.join(DATA_DIR, "security.log") + "\n");
+  console.log("   Tác giả: Khuong Doan · https://khuongdoan.com/");
   console.log("   Nhấn Ctrl+C để dừng.\n");
   const sec = Math.max(20, (loadConfig().reminderCheckSeconds || 60));
   runReminderCheck().catch(() => {});
@@ -1400,7 +1302,6 @@ server.listen(PORT, "0.0.0.0", () => {
   setInterval(() => runBackupCheck().catch(() => {}), 3600 * 1000);
   try { runSnapshotCheck(); } catch {}
   setInterval(() => { try { runSnapshotCheck(); } catch {} }, 3600 * 1000);
-  setInterval(() => { try { touchTrial(); } catch {} }, 3600 * 1000);
   runOverdueDigest().catch(() => {});
   setInterval(() => runOverdueDigest().catch(() => {}), 30 * 60 * 1000);
   setInterval(purgeTokens, 10 * 60 * 1000);

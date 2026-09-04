@@ -1,8 +1,17 @@
 ═══════════════════════════════════════════════════════════════
-  TRẠM DỰ ÁN v3.13 — CÓ GÌ MỚI (so với v3.5)
+  TRẠM DỰ ÁN v4.0 — CÓ GÌ MỚI (so với v3.5)
 ═══════════════════════════════════════════════════════════════
 
-000) MỚI NHẤT (v3.13) — DỄ DÙNG & NHANH HƠN
+0000) PHẦN MỀM NAY MIỄN PHÍ, DÙNG VĨNH VIỄN (v4.0)
+   • Tác giả chia sẻ phần mềm miễn phí cho mọi người: KHÔNG còn hạn
+     6 tháng, KHÔNG cần mã gia hạn, KHÔNG còn chế độ chỉ đọc.
+   • Thanh nhắc gia hạn và mục "Gia hạn giấy phép" đã được gỡ bỏ.
+   • Cập nhật lên bản này: chép đè cả thư mục (trừ thư mục "data")
+     rồi khởi động lại. Dữ liệu giữ nguyên, không cần làm gì thêm.
+   • Điều kiện duy nhất khi chia sẻ lại cho người khác: giữ dòng ghi
+     danh tác giả. Chi tiết trong file LICENSE.txt.
+
+000) DỄ DÙNG & NHANH HƠN (v3.13)
    • Chữ và biểu tượng đậm rõ hơn: dễ đọc trên điện thoại ngoài nắng
      và với người lớn tuổi.
    • Các hộp thoại hỏi "có chắc không?" nay nằm gọn trong phần mềm,
@@ -77,6 +86,7 @@
    • Đồng bộ giữa các máy nhẹ hơn hẳn — hợp với NAS yếu; hết cảnh báo
      "có người khác vừa cập nhật" oan.
 
+Tác giả: Khuong Doan — https://khuongdoan.com/
 Lịch sử chi tiết từng phiên bản: file CHANGELOG.md kèm trong gói này.
 Cách cập nhật: chép ĐÈ toàn bộ thư mục (trừ thư mục "data") rồi khởi
 động lại. Dữ liệu cũ giữ nguyên; hạn dùng thử hiện tại giữ nguyên.

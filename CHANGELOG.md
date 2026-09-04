@@ -1,5 +1,32 @@
 # Lịch sử phiên bản — Trạm Dự Án
 
+## v4.0.0 — 04/09/2026 — PHẦN MỀM TỰ DO
+
+### Gỡ bỏ hoàn toàn cơ chế giấy phép
+Tác giả quyết định chia sẻ phần mềm miễn phí cho mọi người. Toàn bộ phần
+khóa bản quyền đã được gỡ khỏi mã nguồn, không phải vô hiệu hóa:
+- Bỏ hạn dùng thử 6 tháng, chữ ký số của hạn dùng thử và 3 bản phản chiếu
+  (config.json, tài khoản chủ, kho dữ liệu), cơ chế chống lùi đồng hồ.
+- Bỏ chế độ CHỈ ĐỌC khi hết hạn: máy chủ không còn chặn ghi, không còn
+  trả lỗi 423 cho bất kỳ thao tác nào.
+- Bỏ hai endpoint /api/license và /api/license/activate, bỏ khóa công khai
+  dùng để kiểm mã gia hạn.
+- Giao diện: bỏ thanh nhắc gia hạn màu vàng/đỏ, hộp thoại "Gia hạn giấy
+  phép" và mục tương ứng trong Cài đặt.
+- Khi khởi động, phần mềm tự dọn dấu vết giấy phép cũ trong thư mục dữ
+  liệu (config.json, data.json, accounts.json). Người dùng không phải làm gì.
+- Bỏ bộ test giấy phép (8 ca) khỏi bộ kiểm thử và CI.
+
+### Giấy phép mới
+- LICENSE.txt: dùng, sao chép, chỉnh sửa, phân phối và bán tự do (MIT),
+  điều kiện duy nhất là giữ lại dòng ghi danh tác giả. Không giới hạn thời
+  gian, không mã kích hoạt, không bảo hành.
+- Cập nhật hai tài liệu .docx và sổ tay vận hành cho khớp.
+
+Nâng cấp từ bản cũ: chép đè toàn bộ thư mục (trừ thư mục "data") rồi khởi
+động lại. Dữ liệu giữ nguyên; hạn dùng thử cũ trở nên vô nghĩa.
+
+
 ## v3.13.0 — 17/08/2026 (gói cải thiện 1 tuần theo audit ba vai trò)
 
 ### Giao diện dễ đọc hơn cho mọi người (U1)

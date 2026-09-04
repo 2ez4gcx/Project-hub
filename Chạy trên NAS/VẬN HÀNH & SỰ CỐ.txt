@@ -124,7 +124,7 @@
   Trên NAS Synology (Docker) đã tự khởi động lại sẵn, không cần làm gì.
 
 ╔══════════════════════════════════════════════════════════════════════╗
-║  KHI NÀO GỌI TÁC GIẢ (huukhuongxd@gmail.com)                         ║
+║  KHI NÀO GỌI TÁC GIẢ — Khuong Doan · https://khuongdoan.com/         ║
 ╚══════════════════════════════════════════════════════════════════════╝
   • Cửa sổ máy chủ báo "May chu gap loi nghiem trong" lặp lại nhiều lần.
   • Mất dữ liệu mà các cách ở mục 7–8 không lấy lại được.

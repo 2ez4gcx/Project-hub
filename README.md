@@ -56,14 +56,14 @@ cd build && npm run dong-goi
   `features.fileByProject`.
 - **Chi phí + BOQ**: lưu riêng `finance.json`, gate `canViewFinance`;
   BOQ theo kỳ nghiệm thu, không lưu lũy kế.
-- **License**: mã gia hạn ký Ed25519 (khóa riêng KHÔNG có trong repo);
-  bản dùng thử ký HMAC, lưu 3 bản, chống lùi đồng hồ. Hết hạn = CHỈ ĐỌC,
-  không bao giờ xóa dữ liệu.
 - **An toàn dữ liệu**: ghi file nguyên tử + .bak; snapshot hằng ngày vào
   `data/snapshots` (giữ 14); email sao lưu thứ Bảy (không kèm mật khẩu).
 - **HTTPS**: đặt chứng chỉ vào `data/tls` là tự bật (PEM hoặc PFX).
 
-Tác giả: Khuong Doan. Repo private — không phân phối mã nguồn.
+Tác giả: Khuong Doan — https://khuongdoan.com/
+Phần mềm chia sẻ miễn phí theo giấy phép MIT (xem LICENSE.txt):
+ai cũng được dùng, sửa và phân phối lại, chỉ cần giữ dòng ghi danh tác giả.
+Từ bản 4.0.0 không còn bất kỳ cơ chế giới hạn thời gian hay mã kích hoạt nào.
 
 ## Quy trình phát hành
 

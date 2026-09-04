@@ -679,6 +679,17 @@ function seedServer(lang) {
    MAIN
 =================================================================== */
 const AUTHOR_CREDIT = "Phần mềm do Khuong Doan phát triển — © 2026";
+const AUTHOR_URL = "https://khuongdoan.com/";
+/* Dòng ghi danh tác giả + link trang web, đặt ở góc dưới (sidebar và màn đăng nhập) */
+function AuthorCredit({ suffix, className }) {
+  return (
+    <p className={className || "text-xs text-slate-500 text-center leading-tight pt-1"}>
+      {AUTHOR_CREDIT}{suffix || ""}
+      {" · "}
+      <a href={AUTHOR_URL} target="_blank" rel="noopener noreferrer" className="text-orange-700 hover:underline">khuongdoan.com</a>
+    </p>
+  );
+}
 
 const ANTD_THEME = { token: { colorPrimary: "#f97316", colorInfo: "#f97316", colorLink: "#ea580c", colorPrimaryHover: "#fb923c", borderRadius: 10, fontFamily: "inherit", controlHeight: 38 }, components: { Button: { fontWeight: 600, primaryShadow: "none", colorPrimary: "#c2410c", colorPrimaryHover: "#9a3412", colorPrimaryActive: "#7c2d12" } } };
 export default function ProjectManager() {
@@ -715,7 +726,6 @@ function ProjectManagerInner() {
   const [detailTask, setDetailTask] = useState(null);
   const [modal, setModal] = useState(null);
   const [navOpen, setNavOpen] = useState(false);
-  const [license, setLicense] = useState(null);
   const [loaded, setLoaded] = useState(false);
   const [storageOK, setStorageOK] = useState(true);
   const [lastSync, setLastSync] = useState(null);
@@ -760,19 +770,11 @@ function ProjectManagerInner() {
     if (a.ok) setMembers((a.body.accounts || []).map(normMember));
   };
 
-  const refreshLicense = async () => { const r = await api("/api/license"); if (r.ok) setLicense(r.body); return r.body; };
-  const activateLicense = async (code) => {
-    const r = await api("/api/license/activate", { method: "POST", body: JSON.stringify({ code }) });
-    if (r.ok) setLicense((prev) => ({ ...(prev || {}), expiry: r.body.expiry, daysLeft: r.body.daysLeft, readOnly: false }));
-    return r;
-  };
-
   const afterLogin = async (user) => {
     setAuthUser(user); setCurrentUserId(user.id);
     const a = await api("/api/accounts");
     const accts = (a.body?.accounts || []).map(normMember);
     setMembers(accts);
-    refreshLicense();
     if (user.role === "owner" || user.canViewFinance) {
       const f = await api("/api/finance"); if (f.ok) { setFinance(normalizeFinance(f.body)); financeRev.current = f.body.rev || 0; }
     } else setFinance({ investorContracts: [], subContracts: [] });
@@ -844,7 +846,6 @@ function ProjectManagerInner() {
   /* save */
   useEffect(() => {
     if (!loaded || !storageOK) return;
-    if (license && license.readOnly) return; // giấy phép hết hạn -> chỉ đọc, ngừng đồng bộ
     if (suppressSave.current) { suppressSave.current = false; return; }
     const id = setTimeout(() => {
       const coreStr = buildCore({ projects, sections, tasks, history, dailyReports, trash, members, finance }, !serverMode);
@@ -857,7 +858,7 @@ function ProjectManagerInner() {
       window.storage.set(SHARED_KEY, JSON.stringify(payload), true)
         .then((resKv) => {
           if (resKv === "conflict") { pullRemote(true); antMessage.warning(lang === "vi" ? "Có người khác vừa cập nhật — đã tải lại dữ liệu mới, vui lòng thao tác lại." : "Someone else just updated — reloaded latest data, please redo."); }
-          else if (resKv && typeof resKv === "object" && resKv.error) { pullRemote(true); antMessage.error(resKv.error); } // máy chủ từ chối (vượt quyền / hết hạn giấy phép) -> tải lại dữ liệu đúng
+          else if (resKv && typeof resKv === "object" && resKv.error) { pullRemote(true); antMessage.error(resKv.error); } // máy chủ từ chối (vượt quyền) -> tải lại dữ liệu đúng
           else setLastSync(Date.now());
         })
         .catch(() => setStorageOK(false));
@@ -1426,7 +1427,7 @@ function ProjectManagerInner() {
             <Globe size={15} className="text-slate-500 ml-1.5" />
             {["vi", "en"].map((l) => (<button key={l} onClick={() => setLang(l)} className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-colors ${lang === l ? "bg-white text-orange-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}>{l === "vi" ? "Tiếng Việt" : "English"}</button>))}
           </div>
-          <p className="text-xs text-slate-500 text-center leading-tight pt-1">{AUTHOR_CREDIT}{appVersion ? " · v" + appVersion : ""}</p>
+          <AuthorCredit suffix={appVersion ? " · v" + appVersion : ""} />
         </div>
       </aside>
 
@@ -1468,18 +1469,6 @@ function ProjectManagerInner() {
           )}
         </header>
 
-        {license && (license.readOnly || (typeof license.daysLeft === "number" && license.daysLeft <= 30)) && (
-          <div className={`px-3 md:px-6 py-2 text-sm flex items-center gap-2 border-b border-amber-200 ${license.readOnly ? "bg-red-50 text-red-600" : "bg-amber-50 text-amber-700"}`}>
-            <Lock size={15} className="shrink-0" />
-            <span className="flex-1">
-              {license.readOnly
-                ? "Giấy phép đã hết hạn — phần mềm đang ở chế độ CHỈ ĐỌC (thay đổi sẽ không được lưu/đồng bộ). Liên hệ tác giả để gia hạn."
-                : "Giấy phép còn " + license.daysLeft + " ngày. Liên hệ tác giả để gia hạn."}
-            </span>
-            {canManage && <AntBtn size="small" type="primary" onClick={() => setModal("license")}>Nhập mã gia hạn</AntBtn>}
-          </div>
-        )}
-
         {showFilters && !isBoardlessView && project && (
           <div className="bg-white border-b border-slate-200 px-3 md:px-6 py-3 flex flex-wrap items-center gap-3">
             <AntSelect value={filterPriority} onChange={(v) => setFilterPriority(v)} style={{ minWidth: 150 }} options={[{ value: "", label: t.allPriorities }, ...PRIORITY_ORDER.map((p) => ({ value: p, label: t.priorities[p] }))]} />
@@ -1515,7 +1504,7 @@ function ProjectManagerInner() {
           {project && view === "board" && <BoardView t={t} lang={lang} canEdit={canEdit} memberById={memberById} sections={STATUS_ORDER.map((s) => ({ id: s, name: t.statuses[s] }))} tasks={projectTasks} blockedIds={blockedIds} onMove={(id, sid) => setStatus(id, sid)} onOpenTask={(id) => setDetailTask(id)} onQuickAdd={(sid, title) => addTask(sid, title)} />}
           {project && view === "calendar" && <CalendarView t={t} lang={lang} tasks={projectTasks} onOpenTask={(id) => setDetailTask(id)} />}
           {project && view === "timeline" && <TimelineView t={t} lang={lang} canEdit={canEdit} tasks={projectTasks} memberById={memberById} project={project} canBaseline={myRole === "owner" || !!me?.isLeader} onSaveBaseline={async () => { if (!project.baseline || await askConfirm(antModal, t, t.baselineConfirm)) saveBaseline(project.id); }} onOpenTask={(id) => setDetailTask(id)} onReschedule={(id, sd, dd) => patchTask(id, { startDate: sd, dueDate: dd })} />}
-          {project && view === "construction" && <ConstructionSiteView t={t} lang={lang} project={project} me={me} myRole={myRole} members={members} features={features} canEdit={canEdit} readOnly={!!(license && license.readOnly)} onSetLoggers={(ids) => setProjectSiteLoggers(project.id, ids)} />}
+          {project && view === "construction" && <ConstructionSiteView t={t} lang={lang} project={project} me={me} myRole={myRole} members={members} features={features} canEdit={canEdit} onSetLoggers={(ids) => setProjectSiteLoggers(project.id, ids)} />}
           {!project && !isBoardlessView && (
             <div className="h-full flex flex-col items-center justify-center text-center text-slate-500"><Folder size={48} className="mb-3 opacity-40" /><p className="text-lg font-medium text-slate-500">{t.welcome}</p><p className="text-sm">{t.welcomeHint}</p></div>
           )}
@@ -1548,14 +1537,13 @@ function ProjectManagerInner() {
           <button onClick={() => restoreProject(undoInfo.id)} className="text-sm font-semibold text-orange-300 hover:text-orange-200">{t.undo}</button>
         </div>
       )}
-      {modal === "settings" && <SettingsModal t={t} lang={lang} onLoad={loadSettings} onSave={saveSettings} onFeatures={setFeatures} onClose={() => setModal(null)} membersCount={members.length} onOpenMembers={() => setModal("members")} onOpenLicense={() => setModal("license")} />}
-      {modal === "license" && <LicenseModal t={t} license={license} onActivate={activateLicense} onClose={() => setModal(null)} />}
+      {modal === "settings" && <SettingsModal t={t} lang={lang} onLoad={loadSettings} onSave={saveSettings} onFeatures={setFeatures} onClose={() => setModal(null)} membersCount={members.length} onOpenMembers={() => setModal("members")} />}
     </div>
   );
 }
 
 /* ============================ shared bits ============================ */
-function RecordsView({ t, lang, project, canEdit, readOnly }) {
+function RecordsView({ t, lang, project, canEdit }) {
   const { modal: antModal } = AntApp.useApp();
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1581,7 +1569,7 @@ function RecordsView({ t, lang, project, canEdit, readOnly }) {
         <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2"><ScrollText size={20} className="text-orange-500" />{t.records}</h2>
         <div className="flex items-center gap-2">
           {types.length > 0 && <AntSelect value={filter} onChange={(v) => setFilter(v)} size="small" style={{ minWidth: 150 }} options={[{ value: "", label: t.allTypes }, ...types.map((ty) => ({ value: ty, label: ty }))]} />}
-          {canEdit && !readOnly && <AntBtn type="primary" icon={<Plus size={16} />} onClick={() => setModal(true)}>{t.addRecord}</AntBtn>}
+          {canEdit && <AntBtn type="primary" icon={<Plus size={16} />} onClick={() => setModal(true)}>{t.addRecord}</AntBtn>}
         </div>
       </div>
       {loading ? <p className="text-slate-500 text-sm">…</p> : shown.length === 0 ? (
@@ -1600,7 +1588,7 @@ function RecordsView({ t, lang, project, canEdit, readOnly }) {
                   {rec.note && <p className="text-sm text-slate-600 mt-1 whitespace-pre-wrap break-words">{rec.note}</p>}
                   {rec.createdBy && <p className="text-xs text-slate-500 mt-1">{rec.createdBy}</p>}
                 </div>
-                {canEdit && !readOnly && <button onClick={() => del(rec)} className="text-slate-500 hover:text-red-500 p-1 shrink-0" title={t.delete}><Trash2 size={15} /></button>}
+                {canEdit && <button onClick={() => del(rec)} className="text-slate-500 hover:text-red-500 p-1 shrink-0" title={t.delete}><Trash2 size={15} /></button>}
               </div>
               {rec.files.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-3">
@@ -1657,7 +1645,7 @@ function RecordModal({ t, project, onClose, onSaved }) {
   );
 }
 
-function ConstructionSiteView({ t, lang, project, me, myRole, members, features, canEdit, readOnly, onSetLoggers }) {
+function ConstructionSiteView({ t, lang, project, me, myRole, members, features, canEdit, onSetLoggers }) {
   const cfeat = (k) => (features || {})[k] !== false;
   const [tab, setTab] = useState(cfeat("sitelog") ? "site" : "records");
   const loggers = project.siteLoggers || [];
@@ -1669,11 +1657,11 @@ function ConstructionSiteView({ t, lang, project, me, myRole, members, features,
       <div className="max-w-4xl mx-auto px-3 md:px-6 pt-4">
         <AntTabs activeKey={tab} onChange={setTab} tabBarStyle={{ marginBottom: 0 }} items={[{ key: "site", label: t.siteTab, show: cfeat("sitelog") }, { key: "records", label: t.recordsTab, show: cfeat("records") }].filter((x) => x.show).map(({ key, label }) => ({ key, label }))} />
       </div>
-      {(tab === "site" && cfeat("sitelog")) ? <SiteLogView t={t} lang={lang} project={project} me={me} myRole={myRole} members={members} readOnly={readOnly} onSetLoggers={onSetLoggers} /> : <RecordsView t={t} lang={lang} project={project} canEdit={canRecord} readOnly={readOnly} />}
+      {(tab === "site" && cfeat("sitelog")) ? <SiteLogView t={t} lang={lang} project={project} me={me} myRole={myRole} members={members} onSetLoggers={onSetLoggers} /> : <RecordsView t={t} lang={lang} project={project} canEdit={canRecord} />}
     </div>
   );
 }
-function SiteLogView({ t, lang, project, me, myRole, members, readOnly, onSetLoggers }) {
+function SiteLogView({ t, lang, project, me, myRole, members, onSetLoggers }) {
   const { modal: antModal } = AntApp.useApp();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1681,7 +1669,7 @@ function SiteLogView({ t, lang, project, me, myRole, members, readOnly, onSetLog
   const [assignOpen, setAssignOpen] = useState(false);
   const loggers = project.siteLoggers || [];
   const canManage = myRole === "owner" || !!(me && me.isLeader);
-  const canLog = !readOnly && (canManage || !!(me && ((me.isTeamlead && (me.dept || "") === "Site") || loggers.includes(me.id))));
+  const canLog = (canManage || !!(me && ((me.isTeamlead && (me.dept || "") === "Site") || loggers.includes(me.id))));
   const load = async () => { setLoading(true); const r = await api("/api/sitelogs?projectId=" + encodeURIComponent(project.id)); if (r.ok) setLogs(r.body.logs || []); setLoading(false); };
   useEffect(() => { load(); }, [project.id]); // eslint-disable-line
   const openPhoto = async (log, f) => { try { const tok = getToken(); const res = await fetch("/api/sitelogs/photo?logId=" + log.id + "&idx=" + f.idx, { headers: tok ? { Authorization: "Bearer " + tok } : {} }); const blob = await res.blob(); const url = URL.createObjectURL(blob); window.open(url, "_blank"); setTimeout(() => URL.revokeObjectURL(url), 60000); } catch {} };
@@ -3587,6 +3575,7 @@ function buildReportHTML({ t, lang, project, projects, tasks, members, finance, 
     <body style="font-family:Arial,system-ui,sans-serif;max-width:900px;margin:24px auto;padding:0 16px;color:#1e293b">
     <h1 style="color:#ea580c;margin-bottom:0">${esc(t.appName)} — ${esc(t.reportFor)}</h1>
     <div style="color:#64748b;font-size:12px">${t.generatedAt}: ${now.toLocaleString(lang === "vi" ? "vi-VN" : "en-US")}</div>
+    <div style="color:#94a3b8;font-size:11px;margin-top:2px">Phần mềm do Khuong Doan phát triển · <a href="https://khuongdoan.com/" style="color:#c2410c">khuongdoan.com</a></div>
     ${body}</body></html>`;
 }
 
@@ -4098,7 +4087,7 @@ function MembersModal({ t, members, meId, canManage, actorIsOwner, serverMode, f
 }
 
 /* ============================ SETTINGS MODAL ============================ */
-function SettingsModal({ t, lang, onLoad, onSave, onFeatures, onClose, membersCount, onOpenMembers, onOpenLicense }) {
+function SettingsModal({ t, lang, onLoad, onSave, onFeatures, onClose, membersCount, onOpenMembers }) {
   const [s, setS] = useState(null);
   const [msg, setMsg] = useState("");
   const [feats, setFeats] = useState(FEATURE_ALL_ON);
@@ -4126,13 +4115,6 @@ function SettingsModal({ t, lang, onLoad, onSave, onFeatures, onClose, membersCo
             <Users size={16} className="text-orange-500" />
             <span className="flex-1 text-sm font-medium text-slate-700">{t.manageMembers}</span>
             <span className="text-xs text-slate-500">{membersCount}</span>
-            <ArrowRight size={16} className="text-slate-500" />
-          </button>
-        )}
-        {onOpenLicense && (
-          <button onClick={onOpenLicense} className="w-full flex items-center gap-2 rounded-lg border border-slate-200 p-3 text-left hover:bg-slate-50 transition">
-            <Lock size={16} className="text-orange-500" />
-            <span className="flex-1 text-sm font-medium text-slate-700">Gia hạn giấy phép</span>
             <ArrowRight size={16} className="text-slate-500" />
           </button>
         )}
@@ -4181,37 +4163,6 @@ function SettingsModal({ t, lang, onLoad, onSave, onFeatures, onClose, membersCo
   );
 }
 
-/* ============================ LICENSE MODAL ============================ */
-function LicenseModal({ t, license, onActivate, onClose }) {
-  const [code, setCode] = useState("");
-  const [msg, setMsg] = useState("");
-  const [busy, setBusy] = useState(false);
-  const exp = license && license.expiry ? new Date(license.expiry) : null;
-  const submit = async () => {
-    if (!code.trim()) return;
-    setBusy(true); setMsg("");
-    const r = await onActivate(code.trim());
-    setBusy(false);
-    if (r && r.ok) { setMsg("ok"); setTimeout(onClose, 1200); }
-    else setMsg((r && r.body && r.body.message) || "Mã không hợp lệ.");
-  };
-  return (
-    <AntModal open onCancel={onClose} footer={null} width={480}
-      title={<span className="flex items-center gap-2"><Lock size={19} className="text-orange-500" />Gia hạn giấy phép</span>}>
-      <p className="text-xs text-slate-500 mb-3">
-        {license && license.readOnly
-          ? "Giấy phép đã hết hạn, phần mềm đang ở chế độ chỉ đọc. "
-          : (exp ? ("Giấy phép hiện có hiệu lực đến " + exp.toLocaleDateString("vi-VN") + ". ") : "")}
-        Liên hệ tác giả để nhận mã gia hạn rồi dán vào ô dưới.
-      </p>
-      <AntInput.TextArea value={code} onChange={(e) => setCode(e.target.value)} rows={3} placeholder="Dán mã gia hạn (bắt đầu bằng TDA1...)" />
-      {msg && <p className={`text-sm mt-2 ${msg === "ok" ? "text-green-600" : "text-red-500"}`}>{msg === "ok" ? "Đã gia hạn thành công!" : msg}</p>}
-      <AntBtn type="primary" block size="large" loading={busy} disabled={!code.trim()} onClick={submit} style={{ marginTop: 12 }}>{busy ? "Đang kiểm tra..." : "Kích hoạt"}</AntBtn>
-      <p className="text-xs text-slate-500 mt-3 text-center">{AUTHOR_CREDIT}</p>
-    </AntModal>
-  );
-}
-
 /* ============================ AUTH SCREEN (setup / login) ============================ */
 function AuthScreen({ mode, t, lang, setLang, error, onSubmit }) {
   const [name, setName] = useState("");
@@ -4238,7 +4189,7 @@ function AuthScreen({ mode, t, lang, setLang, error, onSubmit }) {
           {isSetup && <p className="text-xs text-slate-500 -mt-1">{lang === "vi" ? "Xem mã trong cửa sổ máy chủ (Terminal / Log của container)." : "Find the code in the server console / container log."}</p>}
           {error && <AntAlert type="error" showIcon message={error} />}
           <AntBtn type="primary" size="large" block disabled={!ok} onClick={submit}>{isSetup ? t.createOwnerBtn : t.signIn}</AntBtn>
-          <p className="text-xs text-slate-500 mt-4 text-center">{AUTHOR_CREDIT}</p>
+          <AuthorCredit className="text-xs text-slate-500 mt-4 text-center" />
         </div>
         <div className="flex items-center justify-center mt-5">
           <Segmented size="small" value={lang} onChange={(v) => setLang(v)} options={[{ label: "Tiếng Việt", value: "vi" }, { label: "English", value: "en" }]} />

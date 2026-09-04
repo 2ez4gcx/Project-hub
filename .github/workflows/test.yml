@@ -42,9 +42,6 @@ jobs:
       - name: Test nghiệp vụ (đồng bộ, tệp, BOQ, CAS tài chính)
         run: node tests/test-nghiep-vu.mjs
 
-      - name: Test gia cố bản dùng thử
-        run: node tests/test-license.mjs /tmp/tda-data
-
       - name: Diễn tập khôi phục dữ liệu (JSON + tệp đính kèm)
         run: node tests/test-restore.mjs /tmp/tda-data 3299
 

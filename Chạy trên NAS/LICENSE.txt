@@ -1,23 +1,54 @@
-BẢN QUYỀN & GIẤY PHÉP SỬ DỤNG — "TRẠM DỰ ÁN"
-© 2026 Khuong Doan. Bảo lưu mọi quyền.
+GIẤY PHÉP SỬ DỤNG — "TRẠM DỰ ÁN"
+© 2026 Khuong Doan
 
-1. Tác giả: Phần mềm "Trạm Dự Án" do Khuong Doan phát triển. Khuong Doan giữ
-   toàn bộ quyền tác giả đối với mã nguồn và sản phẩm.
+═══════════════════════════════════════════════════════════════════════
+  PHẦN MỀM NÀY ĐƯỢC CHIA SẺ MIỄN PHÍ CHO MỌI NGƯỜI
+═══════════════════════════════════════════════════════════════════════
 
-2. Ghi danh: Dòng ghi danh tác giả ("Phần mềm do Khuong Doan phát triển — © 2026")
-   phải được giữ nguyên, không được gỡ bỏ hay che giấu trong bất kỳ bản sử dụng nào.
+Tác giả cho phép bất kỳ ai nhận được phần mềm này (kể cả mã nguồn) được
+quyền sử dụng, sao chép, chỉnh sửa, gộp vào phần mềm khác, đăng tải, phân
+phối, cấp phép lại và bán, không giới hạn — miễn phí và không cần xin phép,
+với hai điều kiện:
 
-3. Giấy phép có thời hạn: Phần mềm được cấp phép sử dụng theo chu kỳ 6 (sáu) tháng.
-   Khi hết hạn, phần mềm tự chuyển sang chế độ CHỈ ĐỌC (xem và xuất dữ liệu vẫn
-   được; không tạo/sửa/đồng bộ). Dữ liệu của người dùng KHÔNG bị xóa. Việc gia hạn
-   được thực hiện bằng mã gia hạn do tác giả cấp.
+1. GIỮ GHI DANH TÁC GIẢ
+   Dòng ghi danh và thông báo bản quyền này phải được giữ lại trong mọi
+   bản sao hoặc phần đáng kể của phần mềm.
 
-4. Không can thiệp cơ chế giấy phép: Người sử dụng không được vô hiệu hóa, chỉnh
-   sửa hay né tránh cơ chế ghi danh và cơ chế giấy phép nêu trên.
+2. KHÔNG BẢO HÀNH
+   Phần mềm được cung cấp "nguyên trạng", không kèm bảo đảm dưới bất kỳ
+   hình thức nào, dù rõ ràng hay ngụ ý, bao gồm nhưng không giới hạn ở
+   khả năng bán được, sự phù hợp cho một mục đích cụ thể và không vi phạm
+   quyền của bên thứ ba. Trong mọi trường hợp, tác giả không chịu trách
+   nhiệm cho bất kỳ khiếu nại, thiệt hại hay trách nhiệm pháp lý nào phát
+   sinh từ việc sử dụng phần mềm.
 
-5. Miễn trừ trách nhiệm: Phần mềm được cung cấp "nguyên trạng", không kèm bảo hành.
-   Tác giả không chịu trách nhiệm cho thiệt hại phát sinh từ việc sử dụng.
+Không còn giới hạn thời gian sử dụng, không cần mã kích hoạt, không có
+chế độ chỉ đọc. Dữ liệu của bạn nằm trọn trong thư mục "data" trên máy
+của bạn — tác giả không thu thập gì.
 
-6. Liên hệ gia hạn / hỗ trợ: Khuong Doan — huukhuongxd@gmail.com
+═══════════════════════════════════════════════════════════════════════
+  ENGLISH (MIT License)
+═══════════════════════════════════════════════════════════════════════
 
-Việc tiếp tục sử dụng phần mềm đồng nghĩa với việc chấp nhận các điều khoản trên.
+Copyright (c) 2026 Khuong Doan
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+
+═══════════════════════════════════════════════════════════════════════
+Tác giả: Khuong Doan · huukhuongxd@gmail.com · https://khuongdoan.com/

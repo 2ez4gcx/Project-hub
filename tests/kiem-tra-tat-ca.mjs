@@ -21,7 +21,8 @@ const ok = (name, good, extra) => {
 };
 const h = (t) => console.log("\n[1m" + t + "[0m");
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const waitUp = async (url, n = 40) => { for (let i = 0; i < n; i++) { try { const r = await fetch(url); if (r.ok) return true; } catch {} await sleep(500); } return false; };
+const fetchT = (url, ms = 4000) => fetch(url, { signal: AbortSignal.timeout(ms) });   // tránh treo vô hạn khi máy chủ nhận kết nối nhưng không trả lời
+const waitUp = async (url, n = 40) => { for (let i = 0; i < n; i++) { try { const r = await fetchT(url); if (r.ok) return true; } catch {} await sleep(500); } return false; };
 
 const tmp = mkdtempSync(path.join(tmpdir(), "tda-kt-"));
 const servers = [];
@@ -49,7 +50,7 @@ for (const f of ["server.js", "reset-password.js"]) {
 }
 
 // ───────────────────────── 3. Bốn bộ test nghiệp vụ ─────────────────────────
-h("3. Bộ kiểm thử (phân quyền, nghiệp vụ, giấy phép, khôi phục)");
+h("3. Bộ kiểm thử (phân quyền, nghiệp vụ, khôi phục)");
 const DATA = path.join(tmp, "data");
 mkdirSync(DATA, { recursive: true });
 const srv = spawn(process.execPath, [path.join(LOCAL, "server.js")],
@@ -70,7 +71,6 @@ let cases = 0;
 if (up) {
   cases += runTest("test-authz.mjs");
   cases += runTest("test-nghiep-vu.mjs");
-  cases += runTest("test-license.mjs", [DATA]);           // phá trạng thái giấy phép -> chạy áp chót
   cases += runTest("test-restore.mjs", [DATA, String(RESTORE_PORT)]);
 }
 try { srv.kill(); } catch {}
@@ -93,7 +93,7 @@ if (ssl.status !== 0) {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";           // chứng chỉ tự ký
   let good = false;
   for (let i = 0; i < 40 && !good; i++) {
-    try { const r = await fetch("https://localhost:" + TLS_PORT + "/api/config"); good = r.ok && (await r.json()).serverMode === true; } catch {}
+    try { const r = await fetchT("https://localhost:" + TLS_PORT + "/api/config"); good = r.ok && (await r.json()).serverMode === true; } catch {}
     if (!good) await sleep(500);
   }
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = prev;

@@ -8,11 +8,10 @@
 │ Hằng ngày : Không cần làm gì. Phần mềm tự sao lưu vào data/snapshots │
 │ Hằng tuần : Kiểm tra đã nhận email sao lưu thứ Bảy chưa              │
 │ Hằng tháng: Chép cả thư mục "data" ra ổ cứng ngoài hoặc Google Drive │
-│ 6 tháng   : Xin mã gia hạn giấy phép trước khi hết hạn 30 ngày       │
 └──────────────────────────────────────────────────────────────────────┘
 
 ╔══════════════════════════════════════════════════════════════════════╗
-║  10 SỰ CỐ THƯỜNG GẶP — CÁCH XỬ LÝ                                    ║
+║  9 SỰ CỐ THƯỜNG GẶP — CÁCH XỬ LÝ                                    ║
 ╚══════════════════════════════════════════════════════════════════════╝
 
 ───────────────────────────────────────────────────────────────────────
@@ -65,24 +64,15 @@
   → Nếu người đó cần quyền rộng hơn: Cộng tác → bật ô "Giao việc".
 
 ───────────────────────────────────────────────────────────────────────
-6) PHẦN MỀM BÁO "GIẤY PHÉP ĐÃ HẾT HẠN — CHẾ ĐỘ CHỈ ĐỌC"
-───────────────────────────────────────────────────────────────────────
-  Dữ liệu KHÔNG mất, chỉ tạm khóa việc tạo/sửa.
-  → Liên hệ tác giả (huukhuongxd@gmail.com) xin MÃ GIA HẠN.
-  → Đăng nhập bằng tài khoản Chủ sở hữu → Cài đặt → "Gia hạn giấy phép"
-    → dán mã (bắt đầu bằng TDA1...) → Kích hoạt.
-  ⚠ KHÔNG sửa tay file cấu hình để kéo dài hạn: phần mềm sẽ khóa chặt hơn.
-
-───────────────────────────────────────────────────────────────────────
-7) LỠ XÓA DỰ ÁN / CÔNG VIỆC
+6) LỠ XÓA DỰ ÁN / CÔNG VIỆC
 ───────────────────────────────────────────────────────────────────────
   → Sidebar → "Thùng rác": dự án và công việc bị xóa nằm đó 90 ngày,
     bấm "Khôi phục" là lấy lại nguyên vẹn cả bình luận và tệp đính kèm.
-  → Nếu đã quá 90 ngày hoặc đã xóa vĩnh viễn: dùng cách 8 (khôi phục
+  → Nếu đã quá 90 ngày hoặc đã xóa vĩnh viễn: dùng cách 7 (khôi phục
     từ bản sao lưu).
 
 ───────────────────────────────────────────────────────────────────────
-8) KHÔI PHỤC DỮ LIỆU TỪ BẢN SAO LƯU
+7) KHÔI PHỤC DỮ LIỆU TỪ BẢN SAO LƯU
 ───────────────────────────────────────────────────────────────────────
   Nguồn sao lưu có sẵn (chọn cái gần nhất còn đúng):
     • data\snapshots\NĂM-THÁNG-NGÀY\   (tự chụp mỗi ngày, giữ 14 ngày)
@@ -95,10 +85,10 @@
     4. Bật lại phần mềm, đăng nhập, kiểm tra dữ liệu.
   ⚠ Tệp đính kèm và ảnh nhật ký KHÔNG nằm trong snapshot/email — chúng ở
     data\uploads, data\nhatky-thi-cong, data\task-uploads. Muốn an toàn
-    tuyệt đối phải chép cả thư mục "data" (xem mục 10).
+    tuyệt đối phải chép cả thư mục "data" (xem mục 9).
 
 ───────────────────────────────────────────────────────────────────────
-9) CHUYỂN SANG MÁY KHÁC / ĐỔI MÁY CHỦ
+8) CHUYỂN SANG MÁY KHÁC / ĐỔI MÁY CHỦ
 ───────────────────────────────────────────────────────────────────────
   1. Cài Node.js bản LTS trên máy mới (nodejs.org).
   2. Chép TOÀN BỘ thư mục phần mềm (gồm cả thư mục "data") sang máy mới.
@@ -108,7 +98,7 @@
   5. Báo địa chỉ mới cho mọi người (địa chỉ in trong cửa sổ máy chủ).
 
 ───────────────────────────────────────────────────────────────────────
-10) MUỐN PHẦN MỀM TỰ CHẠY LẠI KHI MÁY KHỞI ĐỘNG HOẶC KHI LỖI
+9) MUỐN PHẦN MỀM TỰ CHẠY LẠI KHI MÁY KHỞI ĐỘNG HOẶC KHI LỖI
 ───────────────────────────────────────────────────────────────────────
   Cách đơn giản (tự chạy khi bật máy):
     • Nhấn Windows + R, gõ:  shell:startup  → Enter.
@@ -124,11 +114,10 @@
   Trên NAS Synology (Docker) đã tự khởi động lại sẵn, không cần làm gì.
 
 ╔══════════════════════════════════════════════════════════════════════╗
-║  KHI NÀO GỌI TÁC GIẢ (huukhuongxd@gmail.com)                         ║
+║  KHI NÀO GỌI TÁC GIẢ — Khuong Doan · https://khuongdoan.com/         ║
 ╚══════════════════════════════════════════════════════════════════════╝
   • Cửa sổ máy chủ báo "May chu gap loi nghiem trong" lặp lại nhiều lần.
-  • Mất dữ liệu mà các cách ở mục 7–8 không lấy lại được.
-  • Cần mã gia hạn giấy phép.
+  • Mất dữ liệu mà các cách ở mục 6–7 không lấy lại được.
   • Nghi ngờ có người can thiệp trái phép (xem data\security.log).
   Khi liên hệ, gửi kèm: mô tả sự việc, ảnh chụp cửa sổ máy chủ, và
   20 dòng cuối của file data\security.log.
