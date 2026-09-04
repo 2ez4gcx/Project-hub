@@ -1,0 +1,345 @@
+══════════════════════════════════════════════════════════════════════
+  TRẠM DỰ ÁN — HƯỚNG DẪN 3: ĐƯA LÊN HOSTING + TÊN MIỀN
+  (cho phép truy cập từ Internet, ví dụ  https://duan.congty.com)
+══════════════════════════════════════════════════════════════════════
+
+  ⚠ ĐỌC MỤC 0 TRƯỚC KHI LÀM. Đây là cách triển khai RỦI RO NHẤT trong
+    ba cách, vì phần mềm sẽ nằm trên Internet công cộng.
+
+
+══════════════════════════════════════════════════════════════════════
+  0. TRƯỚC HẾT — BẠN CÓ THẬT SỰ CẦN KHÔNG?
+══════════════════════════════════════════════════════════════════════
+
+  Lý do hay gặp là "cho anh em ngoài công trường vào được". Với nhu
+  cầu đó, **VPN là lựa chọn tốt hơn hosting**:
+    • Không mở gì ra Internet → không ai dò quét được.
+    • Miễn phí (NAS Synology/QNAP có sẵn VPN Server).
+    • Cài trên điện thoại một lần, bật là dùng.
+    → Xem "HƯỚNG DẪN 2 - Chạy trên NAS công ty.txt", mục
+      "CHO NGƯỜI NGOÀI CÔNG TRƯỜNG DÙNG".
+
+  CHỈ NÊN đưa lên hosting khi:
+    • Nhiều đối tác ngoài công ty (chủ đầu tư, tư vấn giám sát, thầu
+      phụ) cần vào thường xuyên và không thể cài VPN cho họ.
+    • Công ty không có NAS và không có máy chạy 24/7.
+    • Có người chịu trách nhiệm theo dõi máy chủ hằng tháng.
+
+  NÓI THẲNG VỀ GIỚI HẠN CỦA PHẦN MỀM:
+  Trạm Dự Án được thiết kế cho **mạng nội bộ**. Nó có sẵn: mật khẩu
+  băm, khóa đăng nhập sau 5 lần sai (15 phút), phân quyền phía máy
+  chủ theo từng trường, nhật ký kiểm toán chỉ-thêm, chặn tải lên các
+  đuôi file nguy hiểm, và không dùng cookie (nên không có lỗ hổng
+  CSRF). Nhưng nó CHƯA có: xác thực 2 lớp (2FA), giới hạn tần suất
+  cho các API ngoài đăng nhập, và tường lửa ứng dụng.
+
+  ➜ Vì vậy nếu đưa lên Internet, **BẮT BUỘC làm đủ mục 5 (siết bảo
+    mật)**. Bỏ qua mục đó thì đừng mở ra Internet.
+
+
+══════════════════════════════════════════════════════════════════════
+  1. CHỌN NƠI ĐẶT MÁY CHỦ
+══════════════════════════════════════════════════════════════════════
+
+  Phần mềm là một tiến trình Node.js ghi file xuống ổ đĩa. Vì vậy:
+
+  ✔ DÙNG ĐƯỢC — VPS (máy chủ ảo) có ổ đĩa riêng:
+      • Việt Nam: Viettel IDC, VNPT, Vinahost, Tinohost, AZDIGI…
+        (đặt trong nước thì truy cập từ công trường nhanh hơn)
+      • Nước ngoài: DigitalOcean, Vultr, Linode, Hetzner
+      • Cấu hình tối thiểu: 1 vCPU, 1 GB RAM, 20 GB SSD
+        (đủ cho ~30 người dùng; ảnh nhật ký nhiều thì tăng đĩa)
+      • Hệ điều hành: Ubuntu 22.04 hoặc 24.04 LTS
+
+  ✘ KHÔNG DÙNG ĐƯỢC:
+      • Hosting cPanel / shared hosting chỉ chạy PHP — không chạy Node.
+      • Vercel, Netlify, Cloudflare Pages và các nền tảng "serverless"
+        — chúng KHÔNG giữ file giữa các lần chạy, dữ liệu sẽ mất sạch.
+      • Heroku / Render gói miễn phí — ổ đĩa bị xóa mỗi lần deploy.
+
+  Chi phí tham khảo: VPS ~100.000–250.000 đ/tháng, tên miền .com
+  ~250.000 đ/năm, .vn ~750.000 đ/năm.
+
+
+══════════════════════════════════════════════════════════════════════
+  2. CHUẨN BỊ TÊN MIỀN
+══════════════════════════════════════════════════════════════════════
+
+  • Mua tên miền (Nhân Hòa, Mắt Bão, PA Việt Nam, Namecheap,
+    Cloudflare…). Hoặc dùng tên miền sẵn có của công ty và tạo một
+    tên miền con, ví dụ  duan.congty.com.
+
+  • Vào phần quản lý DNS của tên miền, tạo bản ghi:
+
+        Loại: A
+        Tên:  duan            (hoặc @ nếu dùng tên miền chính)
+        Trỏ tới: <IP của VPS>
+        TTL:  tự động / 300
+
+  • Chờ 5–30 phút. Kiểm tra bằng cách mở Command Prompt trên máy bạn:
+
+        nslookup duan.congty.com
+
+    Ra đúng IP của VPS là được.
+
+
+══════════════════════════════════════════════════════════════════════
+  3. CÀI ĐẶT TRÊN VPS (khoảng 20 phút)
+══════════════════════════════════════════════════════════════════════
+
+  Kết nối SSH vào VPS (Windows dùng PowerShell hoặc PuTTY):
+
+        ssh root@<IP-VPS>
+
+BƯỚC 3.1 — Cập nhật và cài Docker
+──────────────────────────────────────────────────────────────────────
+      apt update && apt upgrade -y
+      curl -fsSL https://get.docker.com | sh
+
+BƯỚC 3.2 — Tạo người dùng riêng (đừng chạy mọi thứ bằng root)
+──────────────────────────────────────────────────────────────────────
+      adduser tramduan            # đặt mật khẩu mạnh khi được hỏi
+      usermod -aG docker tramduan
+      su - tramduan
+
+BƯỚC 3.3 — Chép mã nguồn lên
+──────────────────────────────────────────────────────────────────────
+  Trên MÁY CỦA BẠN (không phải trên VPS), mở PowerShell tại thư mục
+  chứa gói đã giải nén rồi chạy:
+
+      scp -r "Chạy trên NAS" tramduan@<IP-VPS>:~/tram-du-an
+
+  Hoặc dùng WinSCP / FileZilla (giao diện kéo thả) cho dễ.
+
+BƯỚC 3.4 — Cấu hình trước khi chạy
+──────────────────────────────────────────────────────────────────────
+  Trên VPS:
+
+      cd ~/tram-du-an
+      nano docker-compose.yml
+
+  Sửa lại cho giống bên dưới (chú ý 3 chỗ đánh dấu ★):
+
+      services:
+        tram-du-an:
+          build: .
+          container_name: tram-du-an
+          ports:
+            - "127.0.0.1:3000:3000"      ★ CHỈ mở cho chính máy này,
+                                           KHÔNG mở ra Internet
+          environment:
+            - DATA_DIR=/app/data
+            - TZ=Asia/Ho_Chi_Minh
+            - TRUST_PROXY=true           ★ để lấy đúng IP người dùng
+            - SETUP_CODE=DatMotChuoiKho  ★ tự đặt mã cài đặt của bạn
+          volumes:
+            - ./data:/app/data
+          restart: unless-stopped
+
+  Ctrl+O, Enter, Ctrl+X để lưu và thoát.
+
+  ⚠ Dấu  127.0.0.1:  ở dòng ports là RẤT QUAN TRỌNG. Thiếu nó thì
+    cổng 3000 mở thẳng ra Internet, bỏ qua toàn bộ lớp HTTPS bên dưới.
+
+BƯỚC 3.5 — Chạy
+──────────────────────────────────────────────────────────────────────
+      docker compose up -d --build
+      docker compose logs -f          # xem chạy được chưa (Ctrl+C để thoát)
+
+
+══════════════════════════════════════════════════════════════════════
+  4. HTTPS + TÊN MIỀN (dùng Caddy — tự xin chứng chỉ, không phải gia hạn)
+══════════════════════════════════════════════════════════════════════
+
+  Quay lại quyền root:   exit   (rồi  su -  nếu cần)
+
+      apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
+      curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+      curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
+      apt update && apt install -y caddy
+
+  Sửa cấu hình:
+
+      nano /etc/caddy/Caddyfile
+
+  Xóa hết nội dung cũ, thay bằng (đổi tên miền và email của bạn):
+
+      duan.congty.com {
+          reverse_proxy 127.0.0.1:3000
+
+          # Tệp đính kèm và ảnh nhật ký có thể tới 40 MB
+          request_body {
+              max_size 45MB
+          }
+
+          header {
+              Strict-Transport-Security "max-age=31536000"
+              X-Content-Type-Options "nosniff"
+              X-Frame-Options "SAMEORIGIN"
+              Referrer-Policy "no-referrer"
+          }
+
+          encode gzip
+      }
+
+  Lưu rồi khởi động lại:
+
+      systemctl restart caddy
+      systemctl status caddy       # phải thấy "active (running)"
+
+  Caddy TỰ xin chứng chỉ Let's Encrypt và tự gia hạn. Sau 1–2 phút mở:
+
+      https://duan.congty.com
+
+  → Có ổ khóa xanh là xong. Lấy MÃ CÀI ĐẶT trong
+    docker compose logs (hoặc dùng SETUP_CODE bạn đã tự đặt) rồi tạo
+    tài khoản Chủ sở hữu.
+
+  (Nếu quen Nginx hơn thì dùng Nginx + certbot cũng được, miễn là
+   proxy về 127.0.0.1:3000, đặt client_max_body_size 45m, và truyền
+   header X-Forwarded-For.)
+
+
+══════════════════════════════════════════════════════════════════════
+  5. SIẾT BẢO MẬT — BẮT BUỘC KHI RA INTERNET
+══════════════════════════════════════════════════════════════════════
+
+  5.1 TƯỜNG LỬA — chỉ mở 3 cổng
+  ────────────────────────────────────────────────────────────────────
+      ufw allow 22/tcp        # SSH
+      ufw allow 80/tcp        # HTTP (Caddy dùng để xin chứng chỉ)
+      ufw allow 443/tcp       # HTTPS
+      ufw enable
+      ufw status              # kiểm tra lại: KHÔNG được thấy 3000
+
+  5.2 KHÓA SSH — bỏ đăng nhập bằng mật khẩu
+  ────────────────────────────────────────────────────────────────────
+  Tạo khóa trên máy bạn (nếu chưa có):   ssh-keygen -t ed25519
+  Chép lên VPS:                           ssh-copy-id tramduan@<IP-VPS>
+  Rồi trên VPS:  nano /etc/ssh/sshd_config  → đặt
+
+        PermitRootLogin no
+        PasswordAuthentication no
+
+  Lưu, rồi:  systemctl restart ssh
+  ⚠ Thử mở một cửa sổ SSH MỚI để chắc chắn vào được TRƯỚC khi đóng
+    cửa sổ đang dùng — sai bước này là tự khóa mình ra ngoài.
+
+  5.3 CHỐNG DÒ MẬT KHẨU
+  ────────────────────────────────────────────────────────────────────
+      apt install -y fail2ban
+      systemctl enable --now fail2ban
+
+  Phần mềm đã tự khóa 15 phút sau 5 lần đăng nhập sai (theo IP +
+  email), nhưng fail2ban chặn thêm ở tầng mạng cho SSH.
+
+  5.4 TỰ CẬP NHẬT BẢN VÁ HỆ ĐIỀU HÀNH
+  ────────────────────────────────────────────────────────────────────
+      apt install -y unattended-upgrades
+      dpkg-reconfigure --priority=low unattended-upgrades
+
+  5.5 QUY ĐỊNH VỀ TÀI KHOẢN (quan trọng không kém phần kỹ thuật)
+  ────────────────────────────────────────────────────────────────────
+   • Phần mềm bắt mật khẩu tối thiểu 8 ký tự có cả chữ và số. Trên
+     Internet, hãy yêu cầu nhân viên đặt **ít nhất 12 ký tự**, không
+     dùng lại mật khẩu của email/Facebook.
+   • Chủ sở hữu là tài khoản mạnh nhất — đặt mật khẩu dài, không chia
+     sẻ cho ai, không dùng chung với tài khoản làm việc hằng ngày.
+   • Nhân viên nghỉ việc là **xóa tài khoản ngay** trong "Cộng tác".
+   • Với đối tác ngoài (chủ đầu tư, giám sát): dùng tính năng
+     **Thành viên dự án** để họ chỉ thấy đúng dự án của họ, và bỏ
+     tích "Sửa chi phí".
+   • Mỗi tháng vào "Lịch sử thay đổi" → tab "Nhật ký máy chủ" xem có
+     truy cập lạ không (có ghi IP của từng thao tác).
+
+  5.6 GIỚI HẠN THEO IP (nếu công ty có IP tĩnh — an toàn nhất)
+  ────────────────────────────────────────────────────────────────────
+  Nếu chỉ vài người từ vài nơi cố định cần vào, thêm vào Caddyfile,
+  bên trong khối tên miền:
+
+      @ngoai not remote_ip 113.161.x.x 1.2.3.4
+      respond @ngoai "Khong duoc phep" 403
+
+  (thay bằng IP thật của văn phòng và nhà bạn)
+
+
+══════════════════════════════════════════════════════════════════════
+  6. SAO LƯU TỰ ĐỘNG (đừng bỏ qua — VPS cũng hỏng được)
+══════════════════════════════════════════════════════════════════════
+
+  6.1 Bật snapshot của nhà cung cấp VPS (thường ~20.000 đ/tháng).
+      Đây là lớp cứu hộ nhanh nhất khi hỏng nặng.
+
+  6.2 Sao lưu thư mục data ra ngoài VPS, mỗi ngày:
+
+      su - tramduan
+      nano ~/saoluu.sh
+
+  Nội dung:
+
+      #!/bin/bash
+      NGAY=$(date +%F)
+      cd ~/tram-du-an
+      tar czf /tmp/tramduan-$NGAY.tar.gz data
+      # gửi lên nơi khác (chọn 1 cách, cài rclone hoặc dùng scp):
+      # rclone copy /tmp/tramduan-$NGAY.tar.gz gdrive:SaoLuuTramDuAn/
+      find /tmp -name 'tramduan-*.tar.gz' -mtime +14 -delete
+
+  Cấp quyền chạy và hẹn giờ 2 giờ sáng mỗi ngày:
+
+      chmod +x ~/saoluu.sh
+      crontab -e
+      # thêm dòng:
+      0 2 * * * /home/tramduan/saoluu.sh >> /home/tramduan/saoluu.log 2>&1
+
+  6.3 Trong phần mềm, vào "Cài đặt" điền email nhận sao lưu — mỗi thứ
+      Bảy phần mềm tự gửi một bản về hộp thư đó.
+
+  ⚠ Mỗi quý hãy THỬ KHÔI PHỤC một bản sao lưu ở máy khác. Bản sao lưu
+    chưa từng khôi phục thử thì chưa chắc là bản sao lưu.
+
+
+══════════════════════════════════════════════════════════════════════
+  7. CẬP NHẬT PHẦN MỀM SAU NÀY
+══════════════════════════════════════════════════════════════════════
+      # trên máy bạn: chép mã mới lên (TRỪ thư mục data)
+      scp -r "Chạy trên NAS"/* tramduan@<IP-VPS>:~/tram-du-an/
+
+      # trên VPS:
+      cd ~/tram-du-an
+      tar czf ~/truoc-khi-cap-nhat.tar.gz data      # sao lưu nhanh
+      docker compose up -d --build
+      docker compose logs -f
+
+  Rồi bảo mọi người bấm Ctrl + F5 một lần.
+  Đọc "CÓ GÌ MỚI.txt" phần đầu — luôn ghi rõ THAY ĐỔI HÀNH VI.
+
+
+══════════════════════════════════════════════════════════════════════
+  8. KIỂM TRA SAU KHI CÀI XONG — DANH SÁCH TÍCH
+══════════════════════════════════════════════════════════════════════
+  [ ] https://tenmien... mở được, có ổ khóa xanh
+  [ ] http://<IP-VPS>:3000  KHÔNG mở được từ bên ngoài (phải bị chặn)
+  [ ] ufw status  không liệt kê cổng 3000
+  [ ] Đăng nhập sai 5 lần thì bị khóa 15 phút
+  [ ] Tải lên được ảnh nhật ký ~10 MB (kiểm max_size của Caddy)
+  [ ] Giờ hiển thị trong phần mềm đúng giờ Việt Nam
+  [ ] "Lịch sử thay đổi" → "Nhật ký máy chủ" ghi đúng IP thật của bạn,
+      không phải 127.0.0.1  (nếu sai: thiếu TRUST_PROXY=true)
+  [ ] Script sao lưu đã chạy và file .tar.gz đã lên đám mây
+  [ ] Đã thử khôi phục một bản sao lưu ở nơi khác
+
+
+══════════════════════════════════════════════════════════════════════
+  9. CHI PHÍ VÀ CÔNG SỨC DUY TRÌ — NHÌN THẲNG
+══════════════════════════════════════════════════════════════════════
+  • Tiền: VPS + tên miền + snapshot ≈ 150.000–350.000 đ/tháng.
+  • Công: khoảng 1 giờ mỗi tháng — kiểm nhật ký truy cập, xác nhận sao
+    lưu chạy đủ, cập nhật bản vá hệ điều hành.
+  • Rủi ro: máy chủ trên Internet bị dò quét liên tục. Làm đủ mục 5 thì
+    an toàn ở mức hợp lý cho dữ liệu nội bộ công ty; nhưng nếu dữ liệu
+    dự án thuộc loại nhạy cảm (quốc phòng, hạ tầng trọng yếu…) thì nên
+    quay lại phương án NAS + VPN.
+
+──────────────────────────────────────────────────────────────────────
+Phần mềm do Khuong Doan phát triển — https://khuongdoan.com/

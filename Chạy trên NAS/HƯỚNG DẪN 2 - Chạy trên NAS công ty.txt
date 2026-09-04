@@ -1,0 +1,231 @@
+══════════════════════════════════════════════════════════════════════
+  TRẠM DỰ ÁN — HƯỚNG DẪN 2: CHẠY TRÊN NAS NỘI BỘ CÔNG TY
+  (Synology · QNAP · NAS khác có Docker · NAS không có Docker)
+══════════════════════════════════════════════════════════════════════
+
+  Đây là cách triển khai CHÍNH THỨC cho công ty: NAS chạy 24/7, dữ liệu
+  nằm trên đĩa công ty, mọi người trong văn phòng và ngoài công trường
+  (qua VPN) đều dùng được.
+
+  ➤ Nếu bạn dùng SYNOLOGY và chỉ muốn 4 bước nhanh nhất:
+    mở "HUONG DAN NAS (Synology).txt". File bạn đang đọc là bản ĐẦY ĐỦ
+    (nhiều loại NAS, HTTPS, sao lưu, cập nhật, xử lý sự cố).
+
+  Cần chuẩn bị:
+   • NAS có ít nhất 1 GB RAM trống và 2 GB đĩa trống.
+   • Quyền quản trị NAS.
+   • Gói  tram-du-an-nas.zip  đã giải nén.
+
+
+══════════════════════════════════════════════════════════════════════
+  CÁCH 1 — SYNOLOGY (Container Manager)   ★ khuyên dùng
+══════════════════════════════════════════════════════════════════════
+
+BƯỚC 1. Chép phần mềm lên NAS
+──────────────────────────────────────────────────────────────────────
+  • Mở "File Station".
+  • Tạo thư mục:   docker  →  bên trong tạo  tram-du-an
+    (đường dẫn đầy đủ:  /volume1/docker/tram-du-an)
+  • Kéo TOÀN BỘ file trong gói vào đó: server.js, package.json,
+    package-lock.json, Dockerfile, docker-compose.yml, config.json,
+    thư mục public, các file .txt...
+
+BƯỚC 2. Cài Container Manager
+──────────────────────────────────────────────────────────────────────
+  • "Trung tâm gói" (Package Center) → tìm "Container Manager" → Cài đặt.
+  • DSM cũ hơn 7.2: gói tên là "Docker".
+
+BƯỚC 3. Tạo dự án và chạy
+──────────────────────────────────────────────────────────────────────
+  • Container Manager → "Dự án" (Project) → "Tạo".
+  • Tên dự án:  tram-du-an
+  • Đường dẫn:  chọn  /volume1/docker/tram-du-an
+  • Nguồn:      "Dùng docker-compose.yml có sẵn" (nó tự nhận file này).
+  • Tiếp theo → Xong. Lần đầu build mất vài phút (tải Node.js).
+  • Trạng thái "Running / Đang chạy" là được.
+
+BƯỚC 4. Mở phần mềm & tạo Chủ sở hữu
+──────────────────────────────────────────────────────────────────────
+  • Xem IP của NAS: DSM → Bảng điều khiển → Mạng (dạng 192.168.1.x).
+  • Máy tính/điện thoại cùng mạng, mở:   http://<IP-NAS>:3000
+
+  • LẤY MÃ CÀI ĐẶT: Container Manager → chọn container tram-du-an →
+    tab "Nhật ký" (Log). Tìm dòng:
+
+        *  MÃ CÀI ĐẶT (nhập khi tạo tài khoản chủ): A3F19B
+
+  • Trên trang web điền: họ tên, email, mật khẩu, và MÃ CÀI ĐẶT đó.
+    → Bạn là Chủ sở hữu.
+
+  • Sau đó vào "Cộng tác" tạo tài khoản cho từng nhân viên.
+
+  XONG. Mọi người vào  http://<IP-NAS>:3000  đăng nhập bằng email +
+  mật khẩu.
+
+
+══════════════════════════════════════════════════════════════════════
+  CÁCH 2 — QNAP (Container Station)
+══════════════════════════════════════════════════════════════════════
+  • App Center → cài "Container Station".
+  • Chép gói vào  /share/Container/tram-du-an  (dùng File Station).
+  • Container Station → "Ứng dụng" (Applications) → "Tạo" →
+    dán nội dung file  docker-compose.yml  vào ô YAML → Tạo.
+  • Lấy MÃ CÀI ĐẶT trong tab Log của container, rồi làm như Bước 4 ở trên.
+
+
+══════════════════════════════════════════════════════════════════════
+  CÁCH 3 — NAS / MÁY CHỦ LINUX BẤT KỲ CÓ DOCKER (dòng lệnh)
+══════════════════════════════════════════════════════════════════════
+  SSH vào máy rồi chạy:
+
+      cd /duong/dan/toi/tram-du-an
+      docker compose up -d --build          # lần đầu: build + chạy nền
+      docker compose logs -f                # xem log, tìm MÃ CÀI ĐẶT
+                                            # (Ctrl+C để thoát xem log)
+
+  Lệnh hay dùng về sau:
+
+      docker compose ps                     # xem còn chạy không
+      docker compose restart                # khởi động lại
+      docker compose down                   # dừng hẳn
+      docker compose up -d --build           # cập nhật sau khi chép mã mới
+
+
+══════════════════════════════════════════════════════════════════════
+  CÁCH 4 — NAS KHÔNG CÓ DOCKER (chạy Node trực tiếp)
+══════════════════════════════════════════════════════════════════════
+  Một số NAS đời thấp không cài được Docker. Nếu NAS cài được Node.js
+  (Synology có gói "Node.js v20" trong Package Center):
+
+      cd /volume1/docker/tram-du-an
+      npm ci --omit=dev        # cài thư viện, làm 1 lần
+      node server.js
+
+  Để chạy nền và tự bật lại sau khi NAS khởi động, tạo một "Tác vụ
+  theo lịch" (DSM → Bảng điều khiển → Tác vụ theo lịch):
+      • Loại: Tác vụ do người dùng định nghĩa
+      • Chạy khi: Khởi động (Boot-up)
+      • Người dùng: root
+      • Lệnh:
+            cd /volume1/docker/tram-du-an && /usr/local/bin/node server.js >> /volume1/docker/tram-du-an/data/server.log 2>&1 &
+
+  (Đường dẫn node có thể khác — kiểm bằng  which node.)
+
+
+══════════════════════════════════════════════════════════════════════
+  CẤU HÌNH THÊM (không bắt buộc)
+══════════════════════════════════════════════════════════════════════
+
+ĐỔI CỔNG (nếu 3000 đã bị dịch vụ khác của NAS dùng)
+──────────────────────────────────────────────────────────────────────
+  Sửa  docker-compose.yml, dòng ports:
+
+      ports:
+        - "3100:3000"        # bên NGOÀI 3100, bên trong vẫn 3000
+
+  Rồi  docker compose up -d.  Địa chỉ thành  http://<IP-NAS>:3100
+
+BIẾN MÔI TRƯỜNG CÓ THỂ ĐẶT (trong docker-compose.yml, mục environment)
+──────────────────────────────────────────────────────────────────────
+  DATA_DIR=/app/data       nơi chứa dữ liệu (đừng đổi khi dùng Docker)
+  TZ=Asia/Ho_Chi_Minh      múi giờ — QUAN TRỌNG, sai giờ thì hạn việc
+                           và nhật ký ngày sẽ lệch
+  TRUST_PROXY=true         BẬT khi chạy sau reverse proxy, để phần mềm
+                           lấy đúng IP thật của người dùng (dùng cho
+                           nhật ký bảo mật và khóa đăng nhập sai)
+  SETUP_CODE=xxxxxx        tự đặt mã cài đặt thay vì để máy sinh ngẫu nhiên
+  SMTP_HOST / SMTP_USER / SMTP_PASS / SMTP_PORT / SMTP_FROM
+                           email nhắc việc (điền trong Cài đặt cũng được)
+
+BẬT HTTPS TRONG MẠNG NỘI BỘ
+──────────────────────────────────────────────────────────────────────
+  Cách gọn nhất trên Synology: dùng Reverse Proxy của DSM
+  (Bảng điều khiển → Cổng ứng dụng → Reverse Proxy), trỏ
+  https://tramduan.<tên-nas>.synology.me  →  localhost:3000,
+  rồi bật  TRUST_PROXY=true  trong docker-compose.yml.
+
+  Chi tiết từng bước: "BẢO MẬT - Bật HTTPS trên Synology (đọc kỹ).txt".
+
+  Cách 2 (không cần proxy): đặt cert.pem + key.pem vào  data/tls  →
+  phần mềm TỰ chạy HTTPS, không phải cấu hình gì thêm.
+
+
+══════════════════════════════════════════════════════════════════════
+  CHO NGƯỜI NGOÀI CÔNG TRƯỜNG DÙNG
+══════════════════════════════════════════════════════════════════════
+
+  ➤ CÁCH ĐÚNG: **VPN**. Bật VPN Server trên NAS (Synology: gói
+    "VPN Server", chọn OpenVPN hoặc WireGuard). Điện thoại ngoài công
+    trường bật VPN là vào được  http://<IP-NAS>:3000  như đang ngồi
+    ở văn phòng. An toàn, không mở gì ra Internet.
+
+  ⚠ ĐỪNG mở thẳng cổng 3000 ra Internet (port forwarding trên router).
+    Làm vậy là để nguyên phần mềm hứng dò quét mật khẩu từ khắp thế
+    giới. Nếu bắt buộc phải cho truy cập từ Internet, xem
+    "HƯỚNG DẪN 3 - Đưa lên hosting và tên miền.txt" — trong đó có đủ
+    các bước siết bảo mật cần thiết.
+
+
+══════════════════════════════════════════════════════════════════════
+  SAO LƯU
+══════════════════════════════════════════════════════════════════════
+  Toàn bộ dữ liệu nằm trong thư mục  data  cạnh docker-compose.yml
+  (trong container là /app/data):
+
+      data/data.json        công việc, dự án, lịch sử
+      data/accounts.json    tài khoản (mật khẩu đã băm)
+      data/finance.json     hợp đồng, BOQ, chi phí
+      data/records.json     biên bản        + data/uploads/
+      data/sitelogs.json    nhật ký thi công + data/nhatky-thi-cong/
+      data/audit.jsonl      nhật ký kiểm toán — ai sửa gì, lúc nào
+      data/snapshots/       bản chụp mỗi ngày, giữ 14 ngày
+
+  PHẦN MỀM TỰ LÀM: chụp snapshot mỗi ngày (14 ngày) và gửi email sao
+  lưu mỗi thứ Bảy nếu bạn điền email nhận sao lưu trong Cài đặt.
+
+  BẠN PHẢI LÀM: bật **Hyper Backup** (Synology) hoặc **Hybrid Backup
+  Sync** (QNAP) sao lưu thư mục  /volume1/docker/tram-du-an/data  sang
+  ổ ngoài hoặc đám mây, chạy hằng ngày. Snapshot nằm cùng NAS nên
+  hỏng NAS là mất cả — sao lưu ra ngoài mới cứu được.
+
+  ⚠ Ảnh nhật ký và tệp đính kèm nằm trong data/uploads và
+    data/nhatky-thi-cong. Sao lưu cả thư mục data là đủ.
+
+  KHÔI PHỤC: dừng container → thay thư mục data bằng bản sao lưu →
+  chạy lại container.
+
+
+══════════════════════════════════════════════════════════════════════
+  CẬP NHẬT LÊN BẢN MỚI
+══════════════════════════════════════════════════════════════════════
+  1. Sao lưu thư mục  data  (hoặc chụp snapshot NAS).
+  2. Chép đè các file mới vào /volume1/docker/tram-du-an,
+     **TRỪ thư mục "data"**.
+  3. Container Manager → dự án tram-du-an → "Xây dựng lại" (Rebuild),
+     hoặc dòng lệnh:   docker compose up -d --build
+  4. Bảo mọi người bấm  Ctrl + F5  một lần trong trình duyệt.
+  5. Đọc "CÓ GÌ MỚI.txt" — phần đầu ghi rõ những THAY ĐỔI HÀNH VI.
+
+
+══════════════════════════════════════════════════════════════════════
+  XỬ LÝ SỰ CỐ NHANH
+══════════════════════════════════════════════════════════════════════
+  Container không lên          → xem tab Log của container. Hay gặp:
+                                 hết dung lượng volume, hoặc cổng 3000
+                                 đã bị dịch vụ khác chiếm.
+  Vào web bị "không kết nối"   → kiểm tra container còn "Running";
+                                 thử  http://<IP-NAS>:3000/api/config
+                                 (phải trả về một dòng JSON).
+  Quên MÃ CÀI ĐẶT              → xem lại tab Log, hoặc đặt SETUP_CODE
+                                 trong docker-compose.yml rồi khởi động lại.
+  Quên mật khẩu Chủ sở hữu     → "BẢO MẬT - Quên mật khẩu quản trị
+                                 (đọc kỹ).txt"
+  Giờ trong phần mềm bị lệch   → thiếu  TZ=Asia/Ho_Chi_Minh  trong
+                                 docker-compose.yml
+  Nhật ký bảo mật ghi sai IP   → thiếu  TRUST_PROXY=true  khi chạy sau
+                                 reverse proxy
+
+  Đầy đủ hơn: "VẬN HÀNH & SỰ CỐ.txt" (9 tình huống thường gặp).
+
+──────────────────────────────────────────────────────────────────────
+Phần mềm do Khuong Doan phát triển — https://khuongdoan.com/

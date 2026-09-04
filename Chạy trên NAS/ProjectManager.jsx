@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback, memo } from "react";
 import "@ant-design/v5-patch-for-react-19";
 import { ConfigProvider, App as AntApp, Button as AntBtn, Input as AntInput, Card as AntCard, Alert as AntAlert, Segmented, Typography, Select as AntSelect, Checkbox as AntCheckbox, Badge as AntBadge, Tag as AntTag, Tooltip as AntTooltip, Modal as AntModal, Drawer as AntDrawer, Tabs as AntTabs, Progress as AntProgress, Empty as AntEmpty, Slider as AntSlider, Switch as AntSwitch, Popover as AntPopover } from "antd";
 import {
@@ -6,7 +6,7 @@ import {
   X, Check, Trash2, Flag, Clock, Tag as TagIcon, Folder, Globe,
   ChevronLeft, ChevronRight, CheckCircle2, Circle, AlertTriangle,
   CircleDot, Filter, Inbox, Sparkles, Users, MessageSquare, Send,
-  Crown, Pencil, RefreshCw, UserPlus, Lock, LogOut, Share2,
+  Crown, Pencil, RefreshCw, UserPlus, Lock, LogOut, Share2, Mic, Camera, ClipboardCheck,
   History, ScrollText, Mail, Bell, Star, UserCheck, Percent,
   Wallet, Banknote, TrendingUp, TrendingDown, Receipt, Settings,
   Gauge, Download, Network, CalendarRange, ArrowRight, ListChecks,
@@ -21,7 +21,89 @@ const T = {
     cancel: "Hủy", addTask: "Thêm việc", searchPlaceholder: "Tìm việc...",
     list: "Danh sách", board: "Bảng", calendar: "Lịch",
     noTasks: "Chưa có việc nào ở đây.", noTasksHint: "Nhấn “Thêm việc” để bắt đầu.",
-    addSection: "Thêm cột", sectionName: "Tên cột",
+    addSection: "Thêm giai đoạn", sectionName: "Tên giai đoạn",
+    groupBy: "Nhóm theo", groupStatus: "Trạng thái", groupSection: "Giai đoạn",
+    takePhoto: "Chụp ảnh", pickPhoto: "Chọn ảnh có sẵn", compressing: "Đang thu nhỏ ảnh…",
+    defects: "Lỗi tồn đọng", defectAdd: "Ghi nhận lỗi", defectNone: "Chưa có lỗi tồn đọng nào.",
+    recAcceptType: "Nghiệm thu nội bộ",
+    recTrash: "Thùng rác hồ sơ", close: "Đóng",
+    recTrashHint: "Biên bản và nhật ký đã xóa được giữ 90 ngày rồi mới xóa hẳn. Khôi phục lại trong thời gian đó.",
+    deletedBy: "Người xóa", purgeIn: "còn {n} ngày trước khi xóa hẳn",
+    purgeConfirm: "Xóa VĨNH VIỄN hồ sơ này cùng toàn bộ tệp/ảnh kèm theo? Không lấy lại được.", recSafetyType: "An toàn đầu giờ", recPermitType: "Giấy phép làm việc",
+    hseTab: "An toàn (HSE)",
+    hseDaysSafe: "Ngày không tai nạn", hseLastIncident: "Sự cố gần nhất:", hseNoIncidentYet: "Chưa ghi nhận sự cố nào",
+    hseIncidents: "Số sự cố đã ghi", hseToolbox: "Họp an toàn đầu giờ", hseThisWeek: "trong 7 ngày qua",
+    hsePermits: "Giấy phép làm việc",
+    hseIncidentLog: "Sổ sự cố / mất an toàn", hseNoIncident: "Chưa có sự cố nào được ghi trong nhật ký thi công.",
+    hseChecks: "Biên bản an toàn & giấy phép", hseNoChecks: "Chưa lập biên bản an toàn nào.",
+    hseHint: "Sự cố lấy từ mục “Sự cố / mất an toàn” của nhật ký thi công. Họp an toàn đầu giờ và giấy phép làm việc lập ở tab Biên bản, chọn loại tương ứng rồi dùng mẫu bảng kiểm có sẵn.",
+    lagDays: "ngày trễ",
+    projMembers: "Thành viên dự án",
+    finTabCost: "Chi phí thực tế",
+    mergeOk: "Có người khác vừa lưu — thay đổi của bạn đã được gộp vào bản mới, không mất gì.",
+    mergeConflict: "Đã gộp xong, nhưng {n} mục bị người khác sửa cùng lúc nên giữ bản của họ: {ten}. Hãy kiểm tra lại các mục này.",
+    mergeFallback: "Có người khác vừa cập nhật — đã tải lại dữ liệu mới, vui lòng kiểm tra lại thao tác vừa rồi.",
+    payReq: "Đề nghị thanh toán", payReqNo: "Số đề nghị",
+    payPeriodValue: "Giá trị thực hiện trong kỳ (chưa VAT)",
+    payRetention: "Giữ lại bảo hành", payAdvance: "Khấu trừ tạm ứng", payVAT: "Thuế VAT",
+    payBeforeVAT: "Cộng trước thuế", payTotal: "SỐ TIỀN ĐỀ NGHỊ THANH TOÁN",
+    payHint: "Giá trị kỳ lấy thẳng từ cột “Kỳ này” của bảng BOQ ở trên — không phải nhập lại tay.",
+    voAdd: "Thêm phát sinh (VO)", voToggle: "Chuyển thành dòng phát sinh / dòng gốc",
+    voPending: "{n} dòng phát sinh chưa được duyệt, tổng",
+    voPendingHint: "chưa cộng vào giá trị hợp đồng cho tới khi Chủ đầu tư duyệt.",
+    periodLock: "Khóa kỳ", periodLocked: "Kỳ đã khóa", periodUnlock: "Mở khóa kỳ",
+    periodLockedHint: "Kỳ này đã nộp Chủ đầu tư và được khóa — số liệu chỉ xem, muốn sửa phải mở khóa (có ghi lý do).",
+    periodUnlockWarn: "Mở khóa một kỳ đã nộp sẽ cho phép sửa số liệu thanh toán. Việc này được ghi vào nhật ký kiểm toán.",
+    periodUnlockReason: "Lý do mở khóa…",
+    costPickProject: "Chọn một dự án ở trên để xem ngân sách và chi phí.",
+    costRevenue: "Doanh thu đã nghiệm thu", costBudget: "Ngân sách", costCommitted: "Đã cam kết (thầu phụ)",
+    costActual: "Chi phí thực tế", costGross: "Lãi gộp tạm tính", costLeft: "Còn lại",
+    costGroup: "Nhóm chi phí", costLedger: "Sổ chi phí thực tế", costAdd: "Ghi một khoản chi",
+    costNone: "Chưa ghi khoản chi nào cho dự án này.",
+    costSupplier: "Nhà cung cấp / thầu phụ", costDoc: "Chứng từ", costAmount: "Số tiền",
+    costHint: "Doanh thu lấy từ khối lượng đã nghiệm thu trong BOQ; lãi gộp = doanh thu − chi phí thực tế. Cam kết là tổng giá trị hợp đồng thầu phụ đã ký của dự án.",
+    finReadOnly: "Bạn chỉ có quyền XEM số liệu tài chính.",
+    projMembersLocked: "Dự án đã giới hạn thành viên",
+    projMembersOpen: "Mở cho cả công ty",
+    projMembersHintOpen: "Đang MỞ: mọi người trong công ty đều xem được dự án này. Chọn người bên dưới để giới hạn lại.",
+    projMembersHintLocked: "Chỉ những người được tích mới xem được dự án, công việc, tệp và hồ sơ của dự án này.",
+    projMembersNote: "Chủ sở hữu và Lãnh đạo luôn xem được mọi dự án.",
+    people: "người", hours: "giờ", qty: "SL", unit: "ĐVT",
+    temp: "Nhiệt độ", rainHours: "Giờ mưa", stopHours: "Giờ ngừng việc",
+    manpowerTable: "Nhân lực theo tổ đội / nghề", crewName: "Tổ đội / nghề", addCrew: "Thêm tổ đội",
+    equipTable: "Máy móc – thiết bị", equipName: "Loại máy", addEquip: "Thêm máy",
+    qtyTable: "Khối lượng thi công trong ngày", qtyItem: "Hạng mục", qtyToday: "KL hôm nay",
+    addQty: "Thêm dòng khối lượng", pickBoq: "— Lấy từ hạng mục BOQ —",
+    qtyHint: "Khối lượng nhập ở đây là số, nên cộng dồn được theo hạng mục khi lập kỳ nghiệm thu.",
+    incident: "Có sự cố / mất an toàn trong ngày", incLow: "Nhẹ", incMed: "Trung bình", incHigh: "Nghiêm trọng",
+    incWhat: "Diễn biến sự cố", incFix: "Biện pháp khắc phục đã làm", incWho: "Người liên quan",
+    supervisorNote: "Ý kiến TVGS / Chủ đầu tư", supervisorNoteHint: "Ghi lại chỉ đạo tại hiện trường trong ngày…",
+    siteStatus: "Trạng thái", siteDraft: "Nháp", siteSubmitted: "Đã nộp", siteApproved: "Chỉ huy trưởng đã duyệt",
+    siteLockedHint: "Đã duyệt — khóa sửa", saveDraft: "Lưu nháp", submitLog: "Nộp nhật ký",
+    approveLog: "Duyệt nhật ký", unlockLog: "Mở khóa để sửa",
+    depTypeHint: "FS: xong việc trước mới bắt đầu · SS: cùng bắt đầu · FF: cùng kết thúc · SF: hiếm dùng. Số ngày trễ dương = chờ thêm, âm = làm chồng lấn.",
+    zoomDay: "Ngày", zoomWeek: "Tuần", zoomMonth: "Tháng",
+    workCalendar: "Lịch làm việc", weeklyOff: "Ngày nghỉ hằng tuần", holidays: "Ngày lễ / ngày nghỉ riêng", add: "Thêm",
+    workCalendarHint: "Đường găng và dự trữ được tính theo ngày thi công thật, bỏ qua các ngày nghỉ ở trên.",
+    chkTemplate: "Mẫu bảng kiểm", chkPickTemplate: "— Chọn mẫu công tác —",
+    chkPass: "Đạt", chkFail: "Không đạt", chkNotePh: "Mô tả chỗ không đạt…",
+    chkAddItem: "Thêm mục kiểm tra", chkResult: "Kết quả nghiệm thu",
+    chkPassAll: "ĐẠT — tất cả các mục", chkFailN: "KHÔNG ĐẠT — {n} mục", chkPending: "Còn {n} mục chưa chấm",
+    chkWillCreateDefects: "sẽ tự tạo {n} lỗi tồn đọng khi lưu",
+    chkDefectsMade: "Đã tạo {n} lỗi tồn đọng từ các mục không đạt.",
+    trashReason: "Lý do xóa (ghi vào nhật ký)", trashKept90: "Hồ sơ được giữ trong thùng rác 90 ngày trước khi xóa hẳn.",
+    defectArea: "Vị trí", defectAreaHint: "VD: Tầng 3 – trục C2 – phòng ngủ",
+    defectDesc: "Mô tả lỗi", defectDescHint: "VD: Tường bị rỗ, lộ cốt liệu",
+    defectSeverity: "Mức độ", defectSev: { high: "Nặng", med: "Trung bình", low: "Nhẹ" },
+    defectContractor: "Nhà thầu chịu trách nhiệm", defectDue: "Hạn khắc phục",
+    defectOpen: "Đang mở", defectFixed: "Đã sửa – chờ xác nhận", defectVerified: "Đã xác nhận đóng", defectOverdue: "Quá hạn khắc phục",
+    defectAllAreas: "Mọi vị trí", defectAllContractors: "Mọi nhà thầu", defectAllStates: "Mọi trạng thái",
+    defectFlowHint: "Vòng đời: Cần làm = đang mở · Chờ phê duyệt = nhà thầu báo đã sửa · Hoàn thành = QC đã xác nhận đóng. Mở một dòng để giao người, đính ảnh trước/sau và bình luận.",
+    photoBefore: "Ảnh trước khắc phục", photoAfter: "Ảnh sau khắc phục",
+    micHint: "Bấm rồi nói — máy tự ghi thành chữ",
+    noSection: "Chưa xếp giai đoạn",
+    groupPctHint: "% hoàn thành của giai đoạn, tính theo trọng số thời lượng từng việc",
+    milestone: "Mốc", milestoneHint: "Việc thời lượng 0 ngày — mốc bàn giao/nghiệm thu",
     done: "Hoàn thành", showCompleted: "Hiện việc đã xong",
     filter: "Lọc", allPriorities: "Mọi mức ưu tiên",
     allAssignees: "Mọi người", clearFilters: "Xóa bộ lọc",
@@ -51,10 +133,11 @@ const T = {
       owner: "Toàn quyền: chỉnh sửa, giao việc, chi phí, quản lý thành viên, cài đặt.",
       member: "Thành viên: quyền hạn do Chủ sở hữu cấp qua các ô bên dưới.",
     },
-    caps: { canAssign: "Giao việc", canViewFinance: "Chi phí", canViewHistory: "Lịch sử", canViewWorkload: "Khối lượng", canManageMembers: "Tạo tài khoản", isLeader: "Lãnh đạo", isTeamlead: "Teamlead", noReport: "Miễn báo cáo" },
+    caps: { canAssign: "Giao việc", canViewFinance: "Chi phí", canEditFinance: "Sửa chi phí", canViewHistory: "Lịch sử", canViewWorkload: "Khối lượng", canManageMembers: "Tạo tài khoản", isLeader: "Lãnh đạo", isTeamlead: "Teamlead", noReport: "Miễn báo cáo" },
     capHints: {
       canAssign: "Giao việc: tạo/sửa công việc, giao người, đặt nhắc việc, quản lý cột & dự án.",
-      canViewFinance: "Chi phí: xem và cập nhật mục Chi phí (hợp đồng, thanh toán, dòng tiền).",
+      canViewFinance: "Chi phí: XEM mục Chi phí (hợp đồng, BOQ, thanh toán, dòng tiền).",
+      canEditFinance: "Sửa chi phí: được nhập/sửa số liệu. Bỏ tích để Kế toán hoặc Lãnh đạo CHỈ XEM, không sửa được.",
       canViewHistory: "Lịch sử: xem nhật ký thay đổi.",
       canViewWorkload: "Khối lượng: xem công suất làm việc của các thành viên.",
       canManageMembers: "Tạo tài khoản: được vào mục Thành viên để tạo tài khoản và phân quyền (chỉ Chủ sở hữu mới cấp được quyền này).",
@@ -115,9 +198,9 @@ const T = {
     criticalPath: "Đường găng", criticalBadge: "Găng", normalTask: "Việc thường", depLine: "Phụ thuộc",
     criticalTip: "ĐƯỜNG GĂNG — việc này trễ ngày nào, cả dự án trễ ngày đó", slackDays: "Dự trữ", daysUnit: "ngày",
     depViolation: "Bắt đầu trước khi việc phụ thuộc hoàn thành — kiểm tra lại lịch!",
-    undatedHint: "việc chưa đặt ngày (không hiển thị trên sơ đồ)", cycleWarn: "Phụ thuộc vòng tròn — không tính được đường găng.",
+    undatedHint: "việc chưa đặt ngày (không hiển thị trên sơ đồ)", ganttFiltered: "đang lọc — đường găng vẫn tính trên toàn dự án", cycleWarn: "Phụ thuộc vòng tròn — không tính được đường găng.",
     noTimelineData: "Chưa có công việc nào có ngày để vẽ. Hãy đặt Ngày bắt đầu và Hạn chót.",
-    startDate: "Ngày bắt đầu", plannedDays: "Tiến độ dự kiến (ngày)", today2: "Hôm nay", statuses: { todo: "Cần làm", doing: "Đang làm", review: "Chờ phê duyệt", onhold: "On hold / Blocked", done: "Hoàn thành" }, statusLabel: "Trạng thái", approver: "Người phê duyệt", byLeader: "Lãnh đạo phê duyệt", byTeamlead: "Teamlead phê duyệt", approveBtn: "Phê duyệt", dailyReport: "Báo cáo ngày", todayReport: "Báo cáo hôm nay", myReports: "Của tôi", reportTracking: "Theo dõi nộp", submitReport: "Gửi báo cáo", reportSubmitted: "Đã gửi", reportMissing: "Chưa gửi", reportAddLine: "Thêm dòng", reportWhatDone: "Đã làm gì", reportPct: "% phần mình", reportIssue: "Vướng mắc / đề xuất", reportOf: "Báo cáo của", reportNone: "Chưa có báo cáo.", reportDeadlineNote: "Hạn nộp: trong 48 giờ kể từ 17:30 của ngày báo cáo.", reportSel: "Chọn công tác...", reportComment: "Bình luận báo cáo...", constructionSite: "Nhật ký thi công", siteTab: "Nhật ký", recordsTab: "Biên bản", addSiteLog: "Thêm nhật ký", siteDate: "Ngày", siteWeather: "Thời tiết", siteAM: "Sáng", sitePM: "Chiều", wSun: "Nắng", wRain: "Mưa", siteManpower: "Nhân lực", siteWork: "Hạng mục + khối lượng", siteEquip: "Thiết bị & vật tư", siteIssues: "Vướng mắc ảnh hưởng tiến độ", siteNext: "Kế hoạch ngày tiếp theo", sitePhotos: "Ảnh hiện trường", siteNoLogs: "Chưa có nhật ký.", siteAssign: "Chỉ định người lập", siteSave: "Lưu nhật ký", siteRequired: "Cần điền Hạng mục và ít nhất 1 ảnh.", positionLabel: "Chức vụ", featuresTitle: "Tính năng", featuresHint: "Bật/tắt nhóm tính năng cho công ty này; tắt sẽ ẩn khỏi mọi người dùng.", presetLabel: "Cấu hình nhanh", presetFull: "Đầy đủ", presetTask: "Chỉ công việc", presetDesign: "Thiết kế", trashTitle: "Thùng rác", trashEmpty: "Thùng rác trống.", restore: "Khôi phục", deleteForever: "Xóa vĩnh viễn", movedToTrash: "Đã chuyển vào thùng rác", undo: "Hoàn tác", trashHint: "Dự án đã xóa được giữ ở đây; chỉ Chủ sở hữu mới xóa vĩnh viễn.", searchAll: "Tìm kiếm", searchAllPlaceholder: "Tìm công việc trong mọi dự án...", resultsFound: "kết quả", noResults: "Không tìm thấy công việc nào.", attachments: "Tệp đính kèm", posLeader: "Lãnh đạo", posStaff: "Nhân viên", posTeamlead: "Teamlead (trưởng bộ phận)", posDeputy: "Phó giám đốc", posCustom: "Tùy chỉnh", advancedPerms: "Tùy chỉnh nâng cao", recur: "Lặp lại", recurNone: "Không lặp", recurWeekly: "Hàng tuần", recurMonthly: "Hàng tháng",
+    startDate: "Ngày bắt đầu", plannedDays: "Tiến độ dự kiến (ngày)", today2: "Hôm nay", statuses: { todo: "Cần làm", doing: "Đang làm", review: "Chờ phê duyệt", onhold: "On hold / Blocked", done: "Hoàn thành" }, statusLabel: "Trạng thái", approver: "Người phê duyệt", byLeader: "Lãnh đạo phê duyệt", byTeamlead: "Teamlead phê duyệt", approveBtn: "Phê duyệt", dailyReport: "Báo cáo ngày", todayReport: "Báo cáo hôm nay", myReports: "Của tôi", reportTracking: "Theo dõi nộp", submitReport: "Gửi báo cáo", reportSubmitted: "Đã gửi", reportMissing: "Chưa gửi", reportAddLine: "Thêm dòng", reportWhatDone: "Đã làm gì", reportPct: "% phần mình", reportIssue: "Vướng mắc / đề xuất", reportOf: "Báo cáo của", reportNone: "Chưa có báo cáo.", reportDeadlineNote: "Hạn nộp: trong 48 giờ kể từ 17:30 của ngày báo cáo.", reportSel: "Chọn công tác...", reportComment: "Bình luận báo cáo...", constructionSite: "Nhật ký thi công", siteTab: "Nhật ký", recordsTab: "Biên bản", addSiteLog: "Thêm nhật ký", siteDate: "Ngày", siteWeather: "Thời tiết", siteAM: "Sáng", sitePM: "Chiều", wSun: "Nắng", wRain: "Mưa", siteManpower: "Nhân lực", siteWork: "Hạng mục + khối lượng", siteEquip: "Thiết bị & vật tư", siteIssues: "Vướng mắc ảnh hưởng tiến độ", siteNext: "Kế hoạch ngày tiếp theo", sitePhotos: "Ảnh hiện trường", siteNoLogs: "Chưa có nhật ký.", siteAssign: "Chỉ định người lập", siteSave: "Lưu nhật ký", siteRequired: "Cần điền Hạng mục và ít nhất 1 ảnh.", sitePhotoFail: "Nhật ký đã lưu nhưng {n} ảnh KHÔNG tải lên được — mở lại nhật ký để thêm ảnh.", positionLabel: "Chức vụ", featuresTitle: "Tính năng", featuresHint: "Bật/tắt nhóm tính năng cho công ty này; tắt sẽ ẩn khỏi mọi người dùng.", presetLabel: "Cấu hình nhanh", presetFull: "Đầy đủ", presetTask: "Chỉ công việc", presetDesign: "Thiết kế", trashTitle: "Thùng rác", trashEmpty: "Thùng rác trống.", restore: "Khôi phục", deleteForever: "Xóa vĩnh viễn", movedToTrash: "Đã chuyển vào thùng rác", undo: "Hoàn tác", trashHint: "Dự án đã xóa được giữ ở đây; chỉ Chủ sở hữu mới xóa vĩnh viễn.", searchAll: "Tìm kiếm", searchAllPlaceholder: "Tìm công việc trong mọi dự án...", resultsFound: "kết quả", noResults: "Không tìm thấy công việc nào.", attachments: "Tệp đính kèm", posLeader: "Lãnh đạo", posStaff: "Nhân viên", posTeamlead: "Teamlead (trưởng bộ phận)", posDeputy: "Phó giám đốc", posCustom: "Tùy chỉnh", advancedPerms: "Tùy chỉnh nâng cao", recur: "Lặp lại", recurNone: "Không lặp", recurWeekly: "Hàng tuần", recurMonthly: "Hàng tháng",
     records: "Biên bản", addRecord: "Thêm biên bản", noRecords: "Chưa có biên bản nào.", allTypes: "Tất cả loại", more: "khác", recDate: "Ngày", recType: "Loại biên bản", recNumber: "Số biên bản (tùy chọn)", recNumberPh: "Ví dụ: 06", recNote: "Ghi chú nội dung (bắt buộc)", recFiles: "Tệp (PDF / ảnh)", recFilesChosen: "tệp đã chọn", recFieldType: "Biên bản hiện trường", recMeetingType: "Biên bản họp", recDirectiveType: "Chỉ thị công trường", recSaving: "Đang lưu...", confirmDeleteRecord: "Xóa biên bản này (kèm các tệp)?", saveFailed: "Lưu thất bại.",
     // dependencies
     dependencies: "Phụ thuộc", waitingOn: "Đang chờ", blocking: "Đang chặn",
@@ -183,6 +266,10 @@ const T = {
     // sync / collaborate
     collaborate: "Cộng tác", invite: "Mời người khác",
     synced: "Đã đồng bộ", syncNow: "Đồng bộ ngay", syncing: "Đang đồng bộ...",
+    unsaved: "CHƯA LƯU — mất kết nối", unsavedRetry: "Đang thử gửi lại...",
+    unsavedWarn: "Có thay đổi chưa lưu do mất kết nối. Giữ trang này mở cho tới khi lưu được.",
+    unsavedGone: "Thay đổi ngoại tuyến đã bị bỏ vì trên máy chủ có bản mới hơn. Vui lòng kiểm tra và nhập lại.",
+    savedBack: "Đã kết nối lại — thay đổi của bạn đã được lưu.",
     offline: "Không lưu được — chạy ở chế độ tạm.",
     howToConnect: "Cách kết nối nhiều người",
     connectSteps: [
@@ -204,10 +291,18 @@ const T = {
       section_add: "đã thêm cột", project_create: "đã tạo dự án", project_delete: "đã xóa dự án",
       member_add: "đã thêm thành viên", member_remove: "đã gỡ thành viên",
       member_role: "đã đổi vai trò của", member_cap: "đã đổi quyền của", history_grant: "đã cấp quyền xem lịch sử cho", history_revoke: "đã thu hồi quyền xem lịch sử của",
-      task_reject: "đã trả về việc",
+      task_reject: "đã trả về việc", baseline_save: "đã lưu kế hoạch gốc cho", trash_purge: "đã xóa vĩnh viễn", project_members: "đã đổi thành viên dự án",
       task_assign: "đã giao việc", task_workdone: "đã cập nhật hoàn thành", task_reminder: "đã đặt nhắc việc cho",
     },
     emptyVal: "(trống)",
+    loading: "Đang tải…",
+    histApp: "Lịch sử ứng dụng",
+    histServer: "Nhật ký máy chủ",
+    histServerHint: "Do máy chủ tự ghi — không sửa/xóa được từ ứng dụng.",
+    histServerHead: "500 vết gần nhất",
+    auditNoServer: "Chỉ có khi chạy chế độ máy chủ (LAN/NAS), và chỉ Chủ sở hữu / Lãnh đạo xem được.",
+    auditEntity: { project: "dự án", task: "công việc", boq: "khối lượng (BOQ)", contract: "hợp đồng", report: "báo cáo", trash: "thùng rác" },
+    auditField: { "tạo mới": "đã tạo", "xóa": "đã xóa", "xóa vĩnh viễn": "đã xóa vĩnh viễn", workdone: "sửa % hoàn thành", dueDate: "sửa hạn chót", startDate: "sửa ngày bắt đầu", duration: "sửa thời lượng", status: "đổi trạng thái", title: "đổi tên", priority: "đổi ưu tiên", assignees: "đổi người làm", section: "chuyển hạng mục", donGia: "sửa đơn giá", khoiLuong: "sửa khối lượng hợp đồng", khoiLuongKy: "sửa khối lượng kỳ nghiệm thu", giaTri: "sửa giá trị hợp đồng" },
   },
   en: {
     appName: "Project Hub", tagline: "Work management",
@@ -216,7 +311,89 @@ const T = {
     cancel: "Cancel", addTask: "Add task", searchPlaceholder: "Search tasks...",
     list: "List", board: "Board", calendar: "Calendar",
     noTasks: "No tasks here yet.", noTasksHint: "Click “Add task” to begin.",
-    addSection: "Add column", sectionName: "Column name",
+    addSection: "Add phase", sectionName: "Phase name",
+    groupBy: "Group by", groupStatus: "Status", groupSection: "Phase",
+    takePhoto: "Take photo", pickPhoto: "Choose photos", compressing: "Shrinking photos…",
+    defects: "Punch list", defectAdd: "Log a defect", defectNone: "No open defects.",
+    recAcceptType: "Internal acceptance check",
+    recTrash: "Records trash", close: "Close",
+    recTrashHint: "Deleted records and site logs are kept for 90 days before being purged. Restore them within that window.",
+    deletedBy: "Deleted by", purgeIn: "{n} days left before purge",
+    purgeConfirm: "Permanently delete this record and all its files/photos? This cannot be undone.", recSafetyType: "Toolbox talk", recPermitType: "Permit to work",
+    hseTab: "Safety (HSE)",
+    hseDaysSafe: "Days without incident", hseLastIncident: "Last incident:", hseNoIncidentYet: "No incident recorded yet",
+    hseIncidents: "Incidents recorded", hseToolbox: "Toolbox talks", hseThisWeek: "in the last 7 days",
+    hsePermits: "Permits to work",
+    hseIncidentLog: "Incident / near-miss log", hseNoIncident: "No incident recorded in the site logs.",
+    hseChecks: "Safety records & permits", hseNoChecks: "No safety record yet.",
+    hseHint: "Incidents come from the site log's incident section. Toolbox talks and permits are created in the Records tab using the matching checklist template.",
+    lagDays: "days lag",
+    projMembers: "Project members",
+    finTabCost: "Actual cost",
+    mergeOk: "Someone else saved at the same time — your changes were merged in, nothing was lost.",
+    mergeConflict: "Merged, but {n} item(s) were edited by someone else at the same time, so theirs were kept: {ten}. Please re-check those.",
+    mergeFallback: "Someone else just updated — reloaded the latest data, please re-check your last action.",
+    payReq: "Payment application", payReqNo: "Application no.",
+    payPeriodValue: "Work done this period (excl. VAT)",
+    payRetention: "Retention", payAdvance: "Advance recovery", payVAT: "VAT",
+    payBeforeVAT: "Net before VAT", payTotal: "AMOUNT APPLIED FOR",
+    payHint: "The period value comes straight from the \u201cThis period\u201d column of the BOQ above - no retyping.",
+    voAdd: "Add variation (VO)", voToggle: "Toggle variation / original line",
+    voPending: "{n} variation line(s) not yet approved, worth",
+    voPendingHint: "not counted in the contract value until the client approves.",
+    periodLock: "Lock period", periodLocked: "Period locked", periodUnlock: "Unlock period",
+    periodLockedHint: "This period was submitted to the client and locked - figures are read-only; unlock (with a reason) to edit.",
+    periodUnlockWarn: "Unlocking a submitted period allows payment figures to be changed. This is written to the audit log.",
+    periodUnlockReason: "Reason for unlocking...",
+    costPickProject: "Pick a project above to see its budget and costs.",
+    costRevenue: "Certified revenue", costBudget: "Budget", costCommitted: "Committed (subcontracts)",
+    costActual: "Actual cost", costGross: "Gross margin (indicative)", costLeft: "Remaining",
+    costGroup: "Cost group", costLedger: "Actual cost ledger", costAdd: "Record a cost",
+    costNone: "No costs recorded for this project yet.",
+    costSupplier: "Supplier / subcontractor", costDoc: "Document", costAmount: "Amount",
+    costHint: "Revenue comes from certified BOQ quantities; gross margin = revenue - actual cost. Committed is the total signed subcontract value for the project.",
+    finReadOnly: "You have view-only access to financial figures.",
+    projMembersLocked: "Project restricted to its members",
+    projMembersOpen: "Open to everyone",
+    projMembersHintOpen: "Currently OPEN: everyone in the company can see this project. Tick people below to restrict it.",
+    projMembersHintLocked: "Only the people ticked can see this project's tasks, files and records.",
+    projMembersNote: "Owner and Leaders can always see every project.",
+    people: "people", hours: "h", qty: "Qty", unit: "Unit",
+    temp: "Temperature", rainHours: "Rain hours", stopHours: "Work stopped (h)",
+    manpowerTable: "Manpower by crew / trade", crewName: "Crew / trade", addCrew: "Add crew",
+    equipTable: "Plant & equipment", equipName: "Equipment", addEquip: "Add equipment",
+    qtyTable: "Quantities placed today", qtyItem: "Item", qtyToday: "Qty today",
+    addQty: "Add quantity line", pickBoq: "— Pick from BOQ —",
+    qtyHint: "These quantities are numbers, so they roll up per BOQ item when you draw up an acceptance period.",
+    incident: "Incident / safety event today", incLow: "Minor", incMed: "Moderate", incHigh: "Serious",
+    incWhat: "What happened", incFix: "Corrective action taken", incWho: "People involved",
+    supervisorNote: "Supervisor / client remarks", supervisorNoteHint: "Instructions given on site today…",
+    siteStatus: "Status", siteDraft: "Draft", siteSubmitted: "Submitted", siteApproved: "Approved by site manager",
+    siteLockedHint: "Approved — locked", saveDraft: "Save draft", submitLog: "Submit log",
+    approveLog: "Approve log", unlockLog: "Unlock for editing",
+    depTypeHint: "FS: start after the predecessor finishes · SS: start together · FF: finish together · SF: rarely used. Positive lag waits; negative lag overlaps.",
+    zoomDay: "Day", zoomWeek: "Week", zoomMonth: "Month",
+    workCalendar: "Work calendar", weeklyOff: "Weekly days off", holidays: "Holidays / other days off", add: "Add",
+    workCalendarHint: "Critical path and float are computed in real working days, skipping the days off above.",
+    chkTemplate: "Checklist template", chkPickTemplate: "— Pick a work type —",
+    chkPass: "Pass", chkFail: "Fail", chkNotePh: "Describe what failed…",
+    chkAddItem: "Add check item", chkResult: "Acceptance result",
+    chkPassAll: "PASS — all items", chkFailN: "FAIL — {n} item(s)", chkPending: "{n} item(s) not scored",
+    chkWillCreateDefects: "will create {n} punch-list item(s) on save",
+    chkDefectsMade: "Created {n} punch-list item(s) from the failed checks.",
+    trashReason: "Reason for deletion (goes to the log)", trashKept90: "Records stay in the trash for 90 days before being purged.",
+    defectArea: "Location", defectAreaHint: "e.g. L3 – grid C2 – bedroom",
+    defectDesc: "Defect", defectDescHint: "e.g. Honeycombing, aggregate exposed",
+    defectSeverity: "Severity", defectSev: { high: "High", med: "Medium", low: "Low" },
+    defectContractor: "Responsible contractor", defectDue: "Rectify by",
+    defectOpen: "Open", defectFixed: "Fixed – awaiting check", defectVerified: "Closed out", defectOverdue: "Past rectify date",
+    defectAllAreas: "All locations", defectAllContractors: "All contractors", defectAllStates: "All states",
+    defectFlowHint: "Lifecycle: To do = open · Pending approval = contractor reports fixed · Done = QC closed it out. Open a row to assign, attach before/after photos and comment.",
+    photoBefore: "Before photos", photoAfter: "After photos",
+    micHint: "Tap and speak — dictation to text",
+    noSection: "No phase",
+    groupPctHint: "Phase completion, weighted by each task's duration",
+    milestone: "Milestone", milestoneHint: "Zero-duration task — a handover/acceptance milestone",
     done: "Done", showCompleted: "Show completed",
     filter: "Filter", allPriorities: "All priorities",
     allAssignees: "Everyone", clearFilters: "Clear filters",
@@ -246,10 +423,11 @@ const T = {
       owner: "Full access: edit, assign, costs, manage members, settings.",
       member: "Member: capabilities granted by the Owner via the toggles below.",
     },
-    caps: { canAssign: "Assign work", canViewFinance: "Costs", canViewHistory: "History", canViewWorkload: "Workload", canManageMembers: "Create accounts", isLeader: "Leader", isTeamlead: "Team lead", noReport: "No report" },
+    caps: { canAssign: "Assign work", canViewFinance: "Costs", canEditFinance: "Edit costs", canViewHistory: "History", canViewWorkload: "Workload", canManageMembers: "Create accounts", isLeader: "Leader", isTeamlead: "Team lead", noReport: "No report" },
     capHints: {
       canAssign: "Assign work: create/edit tasks, assign people, reminders, manage columns & projects.",
-      canViewFinance: "Costs: view and edit the Costs section (contracts, payments, cashflow).",
+      canViewFinance: "Costs: VIEW the Costs section (contracts, BOQ, payments, cashflow).",
+      canEditFinance: "Edit costs: may enter and change figures. Untick for view-only access (accountants, leaders).",
       canViewHistory: "History: view the change log.",
       canViewWorkload: "Workload: view each member\u2019s capacity.",
       canManageMembers: "Create accounts: access Members to create accounts and assign permissions (only the Owner can grant this).",
@@ -303,9 +481,9 @@ const T = {
     criticalPath: "Critical path", criticalBadge: "Critical", normalTask: "Normal task", depLine: "Dependency",
     criticalTip: "CRITICAL PATH — any delay here delays the whole project", slackDays: "Slack", daysUnit: "days",
     depViolation: "Starts before its dependency finishes — check the schedule!",
-    undatedHint: "task(s) without dates (hidden from chart)", cycleWarn: "Circular dependencies — cannot compute critical path.",
+    undatedHint: "task(s) without dates (hidden from chart)", ganttFiltered: "filtered view — critical path still computed on the whole project", cycleWarn: "Circular dependencies — cannot compute critical path.",
     noTimelineData: "No tasks with dates yet. Set Start date and Due date.",
-    startDate: "Start date", plannedDays: "Planned duration (days)", today2: "Today", statuses: { todo: "To do", doing: "In progress", review: "Pending approval", onhold: "On hold / Blocked", done: "Done" }, statusLabel: "Status", approver: "Approver", byLeader: "Leader approves", byTeamlead: "Teamlead approves", approveBtn: "Approve", dailyReport: "Daily report", todayReport: "Today\u2019s report", myReports: "Mine", reportTracking: "Submission tracking", submitReport: "Submit report", reportSubmitted: "Submitted", reportMissing: "Not submitted", reportAddLine: "Add line", reportWhatDone: "What you did", reportPct: "My %", reportIssue: "Issues / suggestions", reportOf: "Report of", reportNone: "No report yet.", reportDeadlineNote: "Deadline: within 48h from 5:30 PM of the report day.", reportSel: "Select task...", reportComment: "Comment on report...", constructionSite: "Site log", siteTab: "Site log", recordsTab: "Records", addSiteLog: "Add log", siteDate: "Date", siteWeather: "Weather", siteAM: "AM", sitePM: "PM", wSun: "Sunny", wRain: "Rain", siteManpower: "Manpower", siteWork: "Work + quantity", siteEquip: "Equipment & materials", siteIssues: "Issues affecting progress", siteNext: "Next-day plan", sitePhotos: "Site photos", siteNoLogs: "No log yet.", siteAssign: "Assign loggers", siteSave: "Save log", siteRequired: "Fill Work and at least 1 photo.", positionLabel: "Position", featuresTitle: "Features", featuresHint: "Enable/disable feature groups for this company; disabling hides them from everyone.", presetLabel: "Quick preset", presetFull: "Full", presetTask: "Tasks only", presetDesign: "Design", trashTitle: "Trash", trashEmpty: "Trash is empty.", restore: "Restore", deleteForever: "Delete forever", movedToTrash: "Moved to trash", undo: "Undo", trashHint: "Deleted projects are kept here; only the owner can delete forever.", searchAll: "Search", searchAllPlaceholder: "Search tasks across all projects...", resultsFound: "results", noResults: "No matching tasks.", attachments: "Attachments", posLeader: "Leader", posStaff: "Staff", posTeamlead: "Teamlead", posDeputy: "Deputy director", posCustom: "Custom", advancedPerms: "Advanced permissions", recur: "Repeat", recurNone: "No repeat", recurWeekly: "Weekly", recurMonthly: "Monthly",
+    startDate: "Start date", plannedDays: "Planned duration (days)", today2: "Today", statuses: { todo: "To do", doing: "In progress", review: "Pending approval", onhold: "On hold / Blocked", done: "Done" }, statusLabel: "Status", approver: "Approver", byLeader: "Leader approves", byTeamlead: "Teamlead approves", approveBtn: "Approve", dailyReport: "Daily report", todayReport: "Today\u2019s report", myReports: "Mine", reportTracking: "Submission tracking", submitReport: "Submit report", reportSubmitted: "Submitted", reportMissing: "Not submitted", reportAddLine: "Add line", reportWhatDone: "What you did", reportPct: "My %", reportIssue: "Issues / suggestions", reportOf: "Report of", reportNone: "No report yet.", reportDeadlineNote: "Deadline: within 48h from 5:30 PM of the report day.", reportSel: "Select task...", reportComment: "Comment on report...", constructionSite: "Site log", siteTab: "Site log", recordsTab: "Records", addSiteLog: "Add log", siteDate: "Date", siteWeather: "Weather", siteAM: "AM", sitePM: "PM", wSun: "Sunny", wRain: "Rain", siteManpower: "Manpower", siteWork: "Work + quantity", siteEquip: "Equipment & materials", siteIssues: "Issues affecting progress", siteNext: "Next-day plan", sitePhotos: "Site photos", siteNoLogs: "No log yet.", siteAssign: "Assign loggers", siteSave: "Save log", siteRequired: "Fill Work and at least 1 photo.", sitePhotoFail: "Log saved but {n} photo(s) failed to upload — reopen the log to add them.", positionLabel: "Position", featuresTitle: "Features", featuresHint: "Enable/disable feature groups for this company; disabling hides them from everyone.", presetLabel: "Quick preset", presetFull: "Full", presetTask: "Tasks only", presetDesign: "Design", trashTitle: "Trash", trashEmpty: "Trash is empty.", restore: "Restore", deleteForever: "Delete forever", movedToTrash: "Moved to trash", undo: "Undo", trashHint: "Deleted projects are kept here; only the owner can delete forever.", searchAll: "Search", searchAllPlaceholder: "Search tasks across all projects...", resultsFound: "results", noResults: "No matching tasks.", attachments: "Attachments", posLeader: "Leader", posStaff: "Staff", posTeamlead: "Teamlead", posDeputy: "Deputy director", posCustom: "Custom", advancedPerms: "Advanced permissions", recur: "Repeat", recurNone: "No repeat", recurWeekly: "Weekly", recurMonthly: "Monthly",
     records: "Records", addRecord: "Add record", noRecords: "No records yet.", allTypes: "All types", more: "more", recDate: "Date", recType: "Record type", recNumber: "Record no. (optional)", recNumberPh: "e.g. 06", recNote: "Content note (required)", recFiles: "Files (PDF / photos)", recFilesChosen: "file(s) chosen", recFieldType: "Site record", recMeetingType: "Meeting minutes", recDirectiveType: "Site directive", recSaving: "Saving...", confirmDeleteRecord: "Delete this record (with its files)?", saveFailed: "Save failed.",
     dependencies: "Dependencies", waitingOn: "Waiting on", blocking: "Blocking",
     addDependency: "Add a prerequisite task", dependsHint: "This task should start after its “waiting on” tasks are done.",
@@ -361,6 +539,10 @@ const T = {
     minAgo: (n) => `${n}m ago`, hrAgo: (n) => `${n}h ago`, dayAgo: (n) => `${n}d ago`,
     collaborate: "Collaborate", invite: "Invite others",
     synced: "Synced", syncNow: "Sync now", syncing: "Syncing...",
+    unsaved: "NOT SAVED — no connection", unsavedRetry: "Retrying...",
+    unsavedWarn: "Unsaved changes because the connection dropped. Keep this page open until they are saved.",
+    unsavedGone: "Offline changes were dropped because the server has a newer version. Please check and re-enter.",
+    savedBack: "Back online — your changes have been saved.",
     offline: "Can't save — running in temporary mode.",
     howToConnect: "How to connect multiple people",
     connectSteps: [
@@ -382,10 +564,18 @@ const T = {
       section_add: "added column", project_create: "created project", project_delete: "deleted project",
       member_add: "added member", member_remove: "removed member",
       member_role: "changed role of", member_cap: "changed capability of", history_grant: "granted history access to", history_revoke: "revoked history access from",
-      task_reject: "returned task",
+      task_reject: "returned task", baseline_save: "saved baseline for", trash_purge: "permanently deleted", project_members: "changed project members",
       task_assign: "assigned", task_workdone: "updated progress on", task_reminder: "set a reminder for",
     },
     emptyVal: "(empty)",
+    loading: "Loading…",
+    histApp: "App history",
+    histServer: "Server audit log",
+    histServerHint: "Written by the server — cannot be edited or deleted from the app.",
+    histServerHead: "latest 500 entries",
+    auditNoServer: "Available only in server mode (LAN/NAS), and only to Owner / Leader.",
+    auditEntity: { project: "project", task: "task", boq: "BOQ item", contract: "contract", report: "report", trash: "trash" },
+    auditField: { "tạo mới": "created", "xóa": "deleted", "xóa vĩnh viễn": "purged", workdone: "changed progress", dueDate: "changed due date", startDate: "changed start date", duration: "changed duration", status: "changed status", title: "renamed", priority: "changed priority", assignees: "changed assignees", section: "moved section", donGia: "changed unit price", khoiLuong: "changed contract quantity", khoiLuongKy: "changed period quantity", giaTri: "changed contract value" },
   },
 };
 
@@ -413,6 +603,7 @@ const FEATURE_LIST = [
   { key: "workload", vi: "Khối lượng", en: "Workload" },
   { key: "sitelog", vi: "Nhật ký thi công", en: "Site logs" },
   { key: "records", vi: "Biên bản", en: "Records / minutes" },
+  { key: "defects", vi: "Lỗi tồn đọng (punch list)", en: "Punch list / defects" },
   { key: "history", vi: "Lịch sử thay đổi", en: "Change history" },
   { key: "notifications", vi: "Nhắc nhở & Email", en: "Reminders & Email" },
   { key: "viewBoard", vi: "Xem dạng Bảng (Kanban)", en: "Board (Kanban) view" },
@@ -461,9 +652,9 @@ const FEATURE_PRESETS = {
   task: { ...FEATURE_ALL_ON, finance: false, dailyReport: false, workload: false, sitelog: false, records: false },
   design: { ...FEATURE_ALL_ON, sitelog: false, records: false },
 };
-const BLANK_CAPS = { canAssign: false, canViewFinance: false, canViewHistory: false, canViewWorkload: false, canManageMembers: false, isLeader: false, isTeamlead: false, noReport: false, position: "" };
+const BLANK_CAPS = { canAssign: false, canViewFinance: false, canEditFinance: true, canViewHistory: false, canViewWorkload: false, canManageMembers: false, isLeader: false, isTeamlead: false, noReport: false, position: "" };
 const POSITION_PRESETS = {
-  leader:   { position: "leader",   isLeader: true,  noReport: true,  canViewFinance: true, canViewWorkload: true, canViewHistory: true },
+  leader:   { position: "leader",   isLeader: true,  noReport: true,  canViewFinance: true, canEditFinance: false, canViewWorkload: true, canViewHistory: true },
   deputy:   { position: "deputy",   isLeader: true,  canAssign: true, canViewFinance: true, canViewWorkload: true, canViewHistory: true },
   teamlead: { position: "teamlead", isTeamlead: true, canAssign: true, canViewWorkload: true },
   staff:    { position: "" },
@@ -620,10 +811,12 @@ function normalizeTask(x, members) {
     subtasks: [], comments: [], tags: [], ...x,
     assignees, primaryAssigneeId: primary, workdone,
     reminderLead: x.reminderLead ?? null, reminderSentKey: x.reminderSentKey || "", recur: x.recur || "none", recurSpawned: !!x.recurSpawned,
-    startDate: x.startDate || "", duration: x.duration || null,
+    startDate: x.startDate || "", duration: x.duration || null, milestone: !!x.milestone,
+    kind: x.kind === "defect" ? "defect" : "task",
+    defect: x.kind === "defect" ? { viTri: (x.defect && x.defect.viTri) || "", mucDo: (x.defect && x.defect.mucDo) || "med", nhaThau: (x.defect && x.defect.nhaThau) || "" } : undefined,
     status: (STATUS_ORDER.includes(x.status) ? x.status : ((x.completed || workdone >= 100) ? "done" : (workdone > 0 ? "doing" : "todo"))),
     approver: x.approver === "leader" ? "leader" : "teamlead",
-    dependsOn: Array.isArray(x.dependsOn) ? x.dependsOn : [],
+    dependsOn: Array.isArray(x.dependsOn) ? x.dependsOn.filter((d) => typeof d === "string" ? !!d : !!(d && d.id)) : [],
     assignedAt: x.assignedAt || null, completedAt: x.completedAt || null,
     completed: (STATUS_ORDER.includes(x.status) ? x.status : ((x.completed || workdone >= 100) ? "done" : (workdone > 0 ? "doing" : "todo"))) === "done",
   };
@@ -729,6 +922,10 @@ function ProjectManagerInner() {
   const [loaded, setLoaded] = useState(false);
   const [storageOK, setStorageOK] = useState(true);
   const [lastSync, setLastSync] = useState(null);
+  const [offlinePending, setOfflinePending] = useState(false); // còn thay đổi chưa gửi được lên máy chủ
+  const pendingRef = useRef(null);
+  const goc3Chieu = useRef(null);   // U5: bản đồng bộ gần nhất, dùng làm gốc khi gộp xung đột                              // { value } — bản chờ gửi
+  const PENDING_KEY = "pm_pending_v4";
   const [syncing, setSyncing] = useState(false);
 
   // server auth
@@ -760,6 +957,9 @@ function ProjectManagerInner() {
     if (!keepMembers) setMembers(mem);
     if (!keepMembers) setFinance(fin);
     lastSavedRef.current = buildCore({ projects: s.projects || [], sections: s.sections || [], tasks: normTasks, history: s.history || [], dailyReports: s.dailyReports || [], trash: s.trash || [], members: mem, finance: fin }, !keepMembers);
+    /* U5: mốc chung để gộp khi xung đột — đây là bản MÁY CHỦ mà cả hai bên cùng xuất phát. */
+    goc3Chieu.current = { projects: s.projects || [], sections: s.sections || [], tasks: normTasks,
+                          history: s.history || [], dailyReports: s.dailyReports || [], trash: s.trash || [] };
     setHistory(s.history || []); setDailyReports(s.dailyReports || []); setTrash(s.trash || []); localRev.current = s.rev || 0;
     const SPECIAL = ["dashboard", "mywork", "dailyreport", "history", "finance", "workload", "search"];
     setActiveProject((cur) => (SPECIAL.includes(cur) || (s.projects || []).some((x) => x.id === cur)) ? cur : ((s.projects && s.projects[0] && s.projects[0].id) || "dashboard"));
@@ -857,14 +1057,59 @@ function ProjectManagerInner() {
       if (!serverMode) { payload.members = members; payload.finance = finance; }
       window.storage.set(SHARED_KEY, JSON.stringify(payload), true)
         .then((resKv) => {
-          if (resKv === "conflict") { pullRemote(true); antMessage.warning(lang === "vi" ? "Có người khác vừa cập nhật — đã tải lại dữ liệu mới, vui lòng thao tác lại." : "Someone else just updated — reloaded latest data, please redo."); }
+          if (resKv === "conflict") { gopKhiXungDot(payload); }
+          else if (resKv === "offline") { markPending(JSON.stringify(payload)); antMessage.error(t.unsavedWarn); } // mất mạng: giữ lại để gửi sau
           else if (resKv && typeof resKv === "object" && resKv.error) { pullRemote(true); antMessage.error(resKv.error); } // máy chủ từ chối (vượt quyền) -> tải lại dữ liệu đúng
-          else setLastSync(Date.now());
+          else {
+            clearPending(); setLastSync(Date.now());
+            /* U5: lưu thành công -> máy chủ và máy trạm lại giống nhau, đây là mốc gộp mới. */
+            goc3Chieu.current = { projects: payload.projects, sections: payload.sections, tasks: payload.tasks,
+                                  history: payload.history, dailyReports: payload.dailyReports, trash: payload.trash };
+          }
         })
-        .catch(() => setStorageOK(false));
+        .catch(() => { markPending(JSON.stringify(payload)); });
     }, 500);
     return () => clearTimeout(id);
   }, [projects, sections, tasks, members, history, finance, dailyReports, trash]); // eslint-disable-line
+
+  /* ---- Hàng đợi khi mất kết nối (audit 04/09 B2) ----
+     Trước đây mất mạng vẫn hiện "Đã đồng bộ" và thao tác chỉ nằm trong RAM: tải lại trang là mất.
+     Nay: giữ bản chờ trong localStorage, tự gửi lại khi có mạng, và chặn đóng tab khi còn nợ. */
+  const markPending = (value) => {
+    pendingRef.current = { value };
+    try { localStorage.setItem(PENDING_KEY, value); } catch {}
+    setOfflinePending(true);
+  };
+  const clearPending = () => {
+    pendingRef.current = null;
+    try { localStorage.removeItem(PENDING_KEY); } catch {}
+    setOfflinePending(false);
+  };
+  const flushPending = async () => {
+    const p = pendingRef.current;
+    if (!p || !window.storage) return;
+    const res = await window.storage.set(SHARED_KEY, p.value, true).catch(() => "offline");
+    if (res === "offline") return;                       // vẫn mất mạng — giữ nguyên hàng đợi
+    if (res === "conflict" || (res && res.error)) {      // máy chủ có bản mới hơn hoặc từ chối -> phải bỏ
+      clearPending(); pullRemote(true);
+      antMessage.warning(res === "conflict" ? t.unsavedGone : res.error);
+      return;
+    }
+    clearPending(); setLastSync(Date.now()); antMessage.success(t.savedBack);
+  };
+  useEffect(() => {
+    if (!loaded || !serverMode) return;
+    try { const v = localStorage.getItem(PENDING_KEY); if (v && !pendingRef.current) { pendingRef.current = { value: v }; setOfflinePending(true); } } catch {}
+  }, [loaded, serverMode]); // eslint-disable-line
+  useEffect(() => {
+    if (!offlinePending) return;
+    const iv = setInterval(() => { flushPending(); }, 15000);
+    const onOnline = () => flushPending();
+    const onLeave = (e) => { e.preventDefault(); e.returnValue = ""; return ""; };
+    window.addEventListener("online", onOnline);
+    window.addEventListener("beforeunload", onLeave);
+    return () => { clearInterval(iv); window.removeEventListener("online", onOnline); window.removeEventListener("beforeunload", onLeave); };
+  }, [offlinePending]); // eslint-disable-line
 
   /* finance: server mode persists separately (gated endpoint), có CAS chống ghi đè đồng thời */
   const financeReady = useRef(false);
@@ -885,6 +1130,49 @@ function ProjectManagerInner() {
   }, [finance]); // eslint-disable-line
 
   /* poll */
+  /* U5: xung đột -> tải bản mới của máy chủ rồi GỘP thay đổi của mình lên, thay vì bỏ hết. */
+  const gopKhiXungDot = async (cuaToi) => {
+    const goc = goc3Chieu.current;
+    if (!goc) { pullRemote(true); antMessage.warning(t.mergeFallback); return; }
+    let cuaHo = null;
+    try { const r = await window.storage.get(SHARED_KEY, true); if (r?.value) cuaHo = JSON.parse(r.value); } catch {}
+    if (!cuaHo) { pullRemote(true); antMessage.warning(t.mergeFallback); return; }
+
+    const gDA = gopBaChieu(goc.projects, cuaToi.projects, cuaHo.projects);
+    const gGD = gopBaChieu(goc.sections, cuaToi.sections, cuaHo.sections);
+    const gCV = gopBaChieu(goc.tasks, cuaToi.tasks, cuaHo.tasks);
+    const gBC = gopBaChieu(goc.dailyReports, cuaToi.dailyReports, cuaHo.dailyReports);
+    const gTR = gopBaChieu(goc.trash, cuaToi.trash, cuaHo.trash);
+    /* R5: lịch sử là danh sách CHỈ THÊM, mới nhất đứng trước. TUYỆT ĐỐI không sắp lại theo
+       thời gian: luật phía máy chủ đòi đúng khuôn [mục mới của tôi] + [nguyên văn lịch sử
+       máy chủ]. Sắp theo ts làm mục của tôi rơi xuống giữa khi tôi thao tác TRƯỚC nhưng lưu
+       SAU người kia — và cả lần gộp đó bị máy chủ từ chối, mất trắng thao tác. */
+    const idsHo = new Set((cuaHo.history || []).map((x) => x.id));
+    const cuaToiMoi = (cuaToi.history || []).filter((x) => x && !idsHo.has(x.id));
+    const lichSu = [...cuaToiMoi, ...(cuaHo.history || [])].slice(0, 500);
+
+    const gop = { projects: gDA.ket, sections: gGD.ket, tasks: gCV.ket, dailyReports: gBC.ket, trash: gTR.ket,
+                  history: lichSu, rev: (cuaHo.rev || 0) + 1, updatedBy: cuaToi.updatedBy, updatedAt: Date.now() };
+    if (!serverMode) { gop.members = cuaToi.members; gop.finance = cuaToi.finance; }
+
+    const res = await window.storage.set(SHARED_KEY, JSON.stringify(gop), true);
+    if (res !== true) { pullRemote(true); antMessage.warning(t.mergeFallback); return; }
+
+    suppressSave.current = true;
+    localRev.current = gop.rev;
+    setProjects(gop.projects); setSections(gop.sections);
+    setTasks(gop.tasks.map((x) => normalizeTask(x, members)));
+    setHistory(gop.history); setDailyReports(gop.dailyReports); setTrash(gop.trash);
+    goc3Chieu.current = { projects: gop.projects, sections: gop.sections, tasks: gop.tasks,
+                          history: gop.history, dailyReports: gop.dailyReports, trash: gop.trash };
+    lastSavedRef.current = buildCore({ ...gop, members, finance }, !serverMode);
+    setLastSync(Date.now()); clearPending();
+
+    const va = [...gCV.xungDot, ...gDA.xungDot, ...gGD.xungDot];
+    if (va.length) antMessage.warning(t.mergeConflict.replace("{n}", String(va.length)).replace("{ten}", va.slice(0, 3).map((x) => x.title || x.name || x.id).join(", ")), 8);
+    else antMessage.success(t.mergeOk);
+  };
+
   const pullRemote = async (force) => {
     if (!storageOK || !window.storage) return;
     try {
@@ -911,6 +1199,9 @@ function ProjectManagerInner() {
             setMembers(mem); setFinance(fin);
           }
           lastSavedRef.current = buildCore({ projects: remote.projects || [], sections: remote.sections || [], tasks: normTasks, history: remote.history || [], dailyReports: remote.dailyReports || [], trash: remote.trash || [], members: mem, finance: fin }, !serverMode);
+          /* U5: vừa kéo bản mới về -> đây là mốc gộp mới. */
+          goc3Chieu.current = { projects: remote.projects || [], sections: remote.sections || [], tasks: normTasks,
+                                history: remote.history || [], dailyReports: remote.dailyReports || [], trash: remote.trash || [] };
           setDailyReports(remote.dailyReports || []); setHistory(remote.history || []); setTrash(remote.trash || []); setLastSync(Date.now());
         }
       }
@@ -940,7 +1231,7 @@ function ProjectManagerInner() {
   const canViewHistory = (myRole === "owner" || !!me?.canViewHistory) && feat("history");
   const canFinance = (myRole === "owner" || !!me?.canViewFinance) && feat("finance");
   const canViewWorkload = (myRole === "owner" || !!me?.canViewWorkload) && feat("workload");
-  const viewAllowed = (v) => v === "board" ? feat("viewBoard") : v === "calendar" ? feat("viewCalendar") : v === "timeline" ? feat("viewTimeline") : v === "construction" ? (feat("sitelog") || feat("records")) : true;
+  const viewAllowed = (v) => v === "board" ? feat("viewBoard") : v === "calendar" ? feat("viewCalendar") : v === "timeline" ? feat("viewTimeline") : v === "construction" ? (feat("sitelog") || feat("records")) : v === "defects" ? feat("defects") : true;
   useEffect(() => { if (!viewAllowed(view)) setView("list"); }, [features, view]); // eslint-disable-line
   const canWorkdone = (task) => canEdit || (me && task.primaryAssigneeId === me.id);
   const workMembers = useMemo(() => members.filter((m) => effRole(m) !== "owner"), [members, ownerEmail]); // owner is admin, not a worker
@@ -986,6 +1277,8 @@ function ProjectManagerInner() {
       else if (k === "sectionId" && patch.sectionId !== before.sectionId) log({ ...base, action: "task_field", field: "section", from: secName(before.sectionId), to: secName(patch.sectionId) });
       else if (k === "priority" && patch.priority !== before.priority) log({ ...base, action: "task_field", field: "priority", fromKey: before.priority, toKey: patch.priority });
       else if (k === "dueDate" && patch.dueDate !== before.dueDate) log({ ...base, action: "task_field", field: "dueDate", from: before.dueDate, to: patch.dueDate });
+      else if (k === "startDate" && patch.startDate !== before.startDate) log({ ...base, action: "task_field", field: "startDate", from: before.startDate, to: patch.startDate });
+      else if (k === "duration" && patch.duration !== before.duration) log({ ...base, action: "task_field", field: "duration", from: String(before.duration || ""), to: String(patch.duration || "") });
       else if (k === "title" && patch.title !== before.title) log({ ...base, taskTitle: patch.title, action: "task_field", field: "title", from: before.title, to: patch.title });
       else if (k === "description" && patch.description !== before.description) log({ ...base, action: "task_field", field: "description" });
       else if (k === "tags") log({ ...base, action: "task_field", field: "tags" });
@@ -1041,6 +1334,8 @@ function ProjectManagerInner() {
   };
   const setStatus = (id, status) => {
     if (!canEdit || !STATUS_ORDER.includes(status)) return;
+    { const tk0 = tasks.find((x) => x.id === id);   // A9: đổi trạng thái trước đây không được ghi lịch sử
+      if (tk0 && tk0.status !== status) log({ action: "task_field", field: "status", projectId: tk0.projectId, projectName: projName(tk0.projectId), taskId: id, taskTitle: tk0.title, from: t.statuses[tk0.status] || tk0.status, to: t.statuses[status] || status }); }
     setTasks((p) => p.map((x) => x.id === id ? { ...x, status, completed: status === "done", completedAt: status === "done" ? (x.completedAt || Date.now()) : null, workdone: status === "done" ? 100 : x.workdone, approvedBy: status === "done" ? (x.approvedBy || (me ? me.name : "")) : "" } : x));
   };
   const setApprover = (id, approver) => { if (!canEdit) return; setTasks((p) => p.map((x) => x.id === id ? { ...x, approver: approver === "leader" ? "leader" : "teamlead" } : x)); };
@@ -1054,7 +1349,7 @@ function ProjectManagerInner() {
       const n = p.map((x) => {
         let nx = x;
         if ((nx.dependsOn || []).length && !nx.startDate) {
-          const deps = nx.dependsOn.map((id) => byId[id]).filter(Boolean);
+          const deps = idsPhuThuoc(nx).map((id) => byId[id]).filter(Boolean);
           if (deps.length && deps.every((d) => d.completed)) {
             const ends = deps.map((d) => d.dueDate || (d.completedAt ? fmt(new Date(d.completedAt)) : "")).filter(Boolean).sort();
             if (ends.length) { const st = addD(ends[ends.length - 1], 1); nx = { ...nx, startDate: st }; if (nx.duration && !nx.dueDate) nx = { ...nx, dueDate: addD(st, nx.duration) }; ch = true; }
@@ -1146,12 +1441,21 @@ function ProjectManagerInner() {
     return task;
   };
   const setProjectSiteLoggers = (pid, ids) => { if (!(myRole === "owner" || me?.isLeader)) return; setProjects((pp) => pp.map((x) => x.id === pid ? { ...x, siteLoggers: ids } : x)); };
+  /* A6: danh sách thành viên dự án. Rỗng = mở cho cả công ty. Máy chủ lọc dữ liệu theo đây. */
+  const setProjectMembers = (pid, ids) => {
+    if (!(myRole === "owner" || me?.isLeader)) return;
+    const p0 = projects.find((x) => x.id === pid);
+    setProjects((pp) => pp.map((x) => x.id === pid ? { ...x, members: ids } : x));
+    log({ action: "project_members", projectId: pid, projectName: p0 ? p0.name : pid,
+          from: String(((p0 && p0.members) || []).length), to: String(ids.length) });
+  };
   // Lưu lịch hiện tại của dự án làm KẾ HOẠCH GỐC (baseline) để Gantt so trễ/sớm. Chỉ Chủ sở hữu / Lãnh đạo.
   const saveBaseline = (pid) => {
     if (!(myRole === "owner" || me?.isLeader)) return;
     const map = {};
     tasks.filter((x) => x.projectId === pid).forEach((x) => { const s = x.startDate || x.dueDate, e = x.dueDate || x.startDate; if (s && e) map[x.id] = { s, e }; });
     setProjects((pp) => pp.map((p) => p.id === pid ? { ...p, baseline: { savedAt: Date.now(), by: me?.name || "", tasks: map } } : p));
+    log({ action: "baseline_save", projectId: pid, projectName: projName(pid), to: String(Object.keys(map).length) });
     antMessage.success(t.baselineSaved);
   };
   const setMemberPosition = async (id, pos) => {
@@ -1161,6 +1465,21 @@ function ProjectManagerInner() {
     if (preset.isTeamlead && tgt) { const other = members.find((m) => m.id !== id && m.isTeamlead && (m.dept || "") === (tgt.dept || "")); if (other && !(await askConfirm(antModal, t, (lang === "vi" ? "Bộ phận này đã có Teamlead: " : "This dept already has a teamlead: ") + other.name + (lang === "vi" ? ". Vẫn đặt người này?" : ". Still set this person?")))) return; }
     if (serverMode) { api("/api/accounts/update", { method: "POST", body: JSON.stringify({ id, ...preset }) }).then((r) => { if (r.ok) { refreshAccounts(); if (tgt) log({ action: "member_cap", to: tgt.name, capKey: "position", val: pos }); } }); return; }
     setMembers((pm) => pm.map((m) => m.id === id ? { ...m, ...preset } : m));
+  };
+  /* Khi đang gom theo giai đoạn, "Thêm việc" phải rơi vào giai đoạn đó chứ không phải cột trạng thái. */
+  const addTaskInSection = (sid, title) => {
+    const nt = addTask("todo", title);
+    if (nt && sid) patchTask(nt.id, { sectionId: sid });
+    return nt;
+  };
+  /* Tạo một lỗi tồn đọng. Dùng chung addTask nên thừa hưởng luật phân quyền + lưu vết. */
+  const addDefect = (thongTin) => {
+    if (!canEdit) return null;
+    const nt = addTask("todo", thongTin.title || "");
+    if (!nt) return null;
+    patchTask(nt.id, { kind: "defect", defect: { viTri: thongTin.viTri || "", mucDo: thongTin.mucDo || "med", nhaThau: thongTin.nhaThau || "" },
+                       description: thongTin.description || "", dueDate: thongTin.dueDate || "", priority: thongTin.mucDo === "high" ? "high" : thongTin.mucDo === "low" ? "low" : "medium" });
+    return nt;
   };
   const addSection = (name) => { if (!canEdit || !name?.trim()) return;
     const order = Math.max(0, ...projSections.map((s) => s.order)) + 1;
@@ -1229,7 +1548,12 @@ function ProjectManagerInner() {
     setTrash((tr) => tr.filter((e) => e.id !== pid));
     setUndoInfo((u) => (u && u.id === pid ? null : u));
     setActiveProject(pid); };
-  const purgeProject = (pid) => { if (myRole !== "owner") return; setTrash((tr) => tr.filter((e) => e.id !== pid)); };
+  const purgeProject = (pid) => {
+    if (myRole !== "owner") return;
+    const e0 = trash.find((e) => e.id === pid);
+    setTrash((tr) => tr.filter((e) => e.id !== pid));
+    log({ action: "trash_purge", projectName: e0 ? e0.name : pid, to: e0 && e0.kind === "task" ? t.taskKind : t.projects });
+  };
   const importFromCSV = (text) => {
     if (!canEdit || !project) return;
     const rows = parseCSV(text); if (!rows.length) return;
@@ -1341,6 +1665,16 @@ function ProjectManagerInner() {
   /* derived */
   const project = projects.find((p) => p.id === activeProject);
   const projSections = useMemo(() => sections.filter((s) => s.projectId === activeProject).sort((a, b) => a.order - b.order), [sections, activeProject]);
+  /* P1: gom việc theo trạng thái (mặc định, kiểu Asana) hay theo giai đoạn thi công (WBS).
+     Dữ liệu `sections` đã có sẵn từ mẫu dự án — trước đây chỉ dùng để ghi lịch sử. */
+  const [memberModal, setMemberModal] = useState(false);
+  const [groupBy, setGroupBy] = useState(() => { try { return localStorage.getItem("pm_groupby") || "status"; } catch { return "status"; } });
+  useEffect(() => { try { localStorage.setItem("pm_groupby", groupBy); } catch {} }, [groupBy]);
+  const groups = useMemo(() => groupBy === "section"
+    ? [...projSections.map((x, i) => ({ id: x.id, name: x.name, wbs: String(i + 1) })), { id: "", name: t.noSection, wbs: "" }]
+    : STATUS_ORDER.map((x) => ({ id: x, name: t.statuses[x], wbs: "" })), [groupBy, projSections, t]);
+  const groupOf = (task) => groupBy === "section" ? (projSections.some((x) => x.id === task.sectionId) ? task.sectionId : "") : task.status;
+
   const passesFilter = (x) => {
     if (search && !x.title.toLowerCase().includes(search.toLowerCase())) return false;
     if (filterPriority && x.priority !== filterPriority) return false;
@@ -1348,15 +1682,22 @@ function ProjectManagerInner() {
     if (!showCompleted && x.completed) return false;
     return true;
   };
-  const projectTasks = useMemo(() => tasks.filter((x) => x.projectId === activeProject && passesFilter(x)),
+  /* Lỗi tồn đọng là một loại việc riêng — không trộn vào Danh sách/Bảng/Gantt tiến độ. */
+  const projectTasksAll = useMemo(() => tasks.filter((x) => x.projectId === activeProject && x.kind !== "defect"), [tasks, activeProject]);
+  const projectDefects = useMemo(() => tasks.filter((x) => x.projectId === activeProject && x.kind === "defect"), [tasks, activeProject]);
+  const projectTasks = useMemo(() => tasks.filter((x) => x.projectId === activeProject && x.kind !== "defect" && passesFilter(x)),
     [tasks, activeProject, search, filterPriority, filterAssignee, showCompleted]);
+  /* A1: tập id đang hiển thị phải là cùng một Set giữa các lần render, nếu không mọi useMemo bên trong Gantt vô tác dụng. */
+  const visibleTaskIds = useMemo(() => new Set(projectTasks.map((x) => x.id)), [projectTasks]);
+  const openTaskCb = useCallback((id) => setDetailTask(id), []);
+  const rescheduleCb = useCallback((id, sd, dd) => patchTask(id, { startDate: sd, dueDate: dd }), [patchTask]);
   const hasFilters = filterPriority || filterAssignee || search;
   const taskById = useMemo(() => Object.fromEntries(tasks.map((x) => [x.id, x])), [tasks]);
   const blockedIds = useMemo(() => {
     const set = new Set();
     for (const x of tasks) {
       if (x.completed) continue;
-      const deps = x.dependsOn || [];
+      const deps = idsPhuThuoc(x);
       if (deps.some((id) => taskById[id] && !taskById[id].completed)) set.add(x.id);
     }
     return set;
@@ -1421,7 +1762,7 @@ function ProjectManagerInner() {
           </button>
           <button onClick={syncNow} className="w-full flex items-center justify-center gap-1.5 text-xs text-slate-500 hover:text-slate-700 transition">
             <RefreshCw size={12} className={syncing ? "animate-spin" : ""} />
-            {!storageOK ? t.offline : syncing ? t.syncing : `${t.synced}${lastSync ? " · " + new Date(lastSync).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}`}
+            {offlinePending ? t.unsaved : !storageOK ? t.offline : syncing ? t.syncing : `${t.synced}${lastSync ? " · " + new Date(lastSync).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}`}
           </button>
           <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
             <Globe size={15} className="text-slate-500 ml-1.5" />
@@ -1448,7 +1789,11 @@ function ProjectManagerInner() {
           ) : activeProject === "mywork" ? (
             <h1 className="text-lg font-semibold flex items-center gap-2"><Inbox size={20} className="text-orange-500" />{t.myWork}</h1>
           ) : project ? (
-            <h1 className="text-lg font-semibold flex items-center gap-2 min-w-0"><span className="w-3 h-3 rounded-full shrink-0" style={{ background: project.color }} /><span className="truncate">{project.name}</span></h1>
+            <h1 className="text-lg font-semibold flex items-center gap-2 min-w-0">
+              <span className="w-3 h-3 rounded-full shrink-0" style={{ background: project.color }} />
+              <span className="truncate">{project.name}</span>
+              {(project.members || []).length > 0 && <AntTag color="orange" style={{ margin: 0 }} title={t.projMembersLocked}><Lock size={11} style={{ verticalAlign: "-1px" }} /> {(project.members || []).length}</AntTag>}
+            </h1>
           ) : <h1 className="text-lg font-semibold text-slate-500">{t.welcome}</h1>}
           <div className="flex-1" />
           {feat("notifications") && (
@@ -1463,6 +1808,7 @@ function ProjectManagerInner() {
           {!isBoardlessView && project && (
             <>
               <AntInput allowClear value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t.searchPlaceholder} prefix={<Search size={15} className="text-slate-500" />} style={{ width: 180 }} />
+              {(myRole === "owner" || me?.isLeader) && <AntBtn icon={<UserCheck size={15} />} onClick={() => setMemberModal(true)} title={t.projMembers} />}
               <AntBadge dot={hasFilters}><AntBtn icon={<Filter size={15} />} onClick={() => setShowFilters((v) => !v)} type={hasFilters ? "primary" : "default"} ghost={hasFilters}>{t.filter}</AntBtn></AntBadge>
               {canEdit && <AntBtn type="primary" icon={<Plus size={16} />} onClick={() => { const nt = addTask("todo"); if (nt) setDetailTask(nt.id); }}>{t.addTask}</AntBtn>}
             </>
@@ -1474,6 +1820,10 @@ function ProjectManagerInner() {
             <AntSelect value={filterPriority} onChange={(v) => setFilterPriority(v)} style={{ minWidth: 150 }} options={[{ value: "", label: t.allPriorities }, ...PRIORITY_ORDER.map((p) => ({ value: p, label: t.priorities[p] }))]} />
             <AntSelect value={filterAssignee} onChange={(v) => setFilterAssignee(v)} style={{ minWidth: 160 }} showSearch optionFilterProp="label" options={[{ value: "", label: t.allAssignees }, ...members.map((m) => ({ value: m.id, label: m.name }))]} />
             <AntCheckbox checked={showCompleted} onChange={(e) => setShowCompleted(e.target.checked)}>{t.showCompleted}</AntCheckbox>
+            <span className="flex items-center gap-2 text-sm text-slate-600">{t.groupBy}
+              <Segmented value={groupBy} onChange={(v) => setGroupBy(v)} size="small"
+                options={[{ value: "status", label: t.groupStatus }, { value: "section", label: t.groupSection }]} />
+            </span>
             {hasFilters && <AntBtn type="link" size="small" onClick={() => { setFilterPriority(""); setFilterAssignee(""); setSearch(""); }}>{t.clearFilters}</AntBtn>}
           </div>
         )}
@@ -1482,42 +1832,48 @@ function ProjectManagerInner() {
           <div className="bg-white border-b border-slate-200 px-3 md:px-6">
             <AntTabs activeKey={view} onChange={setView} tabBarStyle={{ marginBottom: 0 }}
               tabBarExtraContent={canManage ? <button onClick={() => deleteProject(project.id)} className="text-slate-500 hover:text-red-500 transition p-2" title={t.deleteProject}><Trash2 size={15} /></button> : undefined}
-              items={[["list", LayoutList, t.list], ["board", LayoutGrid, t.board], ["calendar", CalendarDays, t.calendar], ["timeline", CalendarRange, t.timeline], ["construction", ScrollText, t.constructionSite]].filter(([v]) => viewAllowed(v)).map(([v, Icon, label]) => ({ key: v, label: <span className="flex items-center gap-1.5"><Icon size={16} />{label}</span> }))} />
+              items={[["list", LayoutList, t.list], ["board", LayoutGrid, t.board], ["calendar", CalendarDays, t.calendar], ["timeline", CalendarRange, t.timeline], ["defects", ClipboardCheck, t.defects], ["construction", ScrollText, t.constructionSite]].filter(([v]) => viewAllowed(v)).map(([v, Icon, label]) => ({ key: v, label: <span className="flex items-center gap-1.5"><Icon size={16} />{label}</span> }))} />
           </div>
         )}
 
         <div className="flex-1 overflow-auto">
           {activeProject === "dashboard" && <Dashboard t={t} lang={lang} projects={projects} tasks={tasks} members={workMembers} memberById={memberById} onOpenProject={(id) => { setActiveProject(id); setView("list"); }} onOpenTask={(id) => setDetailTask(id)} />}
           {activeProject === "history" && (canViewHistory
-            ? <HistoryView t={t} lang={lang} history={history} projects={projects} canDelete={myRole === "owner"} onDelete={deleteHistoryEntry} />
+            ? <HistoryView t={t} lang={lang} history={history} projects={projects} canDelete={myRole === "owner"} canAudit={myRole === "owner" || !!me?.isLeader} onDelete={deleteHistoryEntry} />
             : <div className="h-full flex flex-col items-center justify-center text-slate-500"><Lock size={44} className="mb-3 opacity-40" /><p className="text-lg font-medium text-slate-500">{t.historyLocked}</p></div>)}
           {activeProject === "mywork" && <MyWork t={t} lang={lang} me={me} tasks={tasks} projects={projects} memberById={memberById} onOpenTask={(id) => setDetailTask(id)} />}
           {activeProject === "search" && <SearchView t={t} tasks={tasks} projects={projects} memberById={memberById} onOpenTask={(id) => setDetailTask(id)} />}
           {activeProject === "dailyreport" && <DailyReportView t={t} lang={lang} me={me} myRole={myRole} currentUserId={currentUserId} members={members} memberById={memberById} tasks={tasks} projects={projects} dailyReports={dailyReports} onSave={saveDailyReport} onComment={addReportComment} reportDeadline={reportDeadline} onOpenTask={(id) => setDetailTask(id)} />}
           {activeProject === "finance" && (canFinance
-            ? <FinanceView t={t} lang={lang} finance={finance} projects={projects} tasks={tasks} onChange={setFinanceData} />
+            ? <FinanceView t={t} lang={lang} finance={finance} projects={projects} tasks={tasks} onChange={setFinanceData} canEditFin={myRole === "owner" || me?.canEditFinance !== false} />
             : <div className="h-full flex flex-col items-center justify-center text-slate-500"><Lock size={44} className="mb-3 opacity-40" /><p className="text-lg font-medium text-slate-500">{t.financeLocked}</p></div>)}
           {activeProject === "workload" && (canViewWorkload
             ? <WorkloadView t={t} lang={lang} members={workMembers} tasks={tasks} projects={projects} />
             : <div className="h-full flex flex-col items-center justify-center text-slate-500"><Lock size={44} className="mb-3 opacity-40" /><p className="text-lg font-medium text-slate-500">{t.workloadLocked}</p></div>)}
-          {project && view === "list" && <ListView t={t} lang={lang} canEdit={canEdit} memberById={memberById} sections={STATUS_ORDER.map((s) => ({ id: s, name: t.statuses[s] }))} tasks={projectTasks} blockedIds={blockedIds} onToggle={(id, c) => c ? setWorkdone(id, 100) : setWorkdone(id, 0)} onOpenTask={(id) => setDetailTask(id)} onQuickAdd={(sid, title) => addTask(sid, title)} onImport={importFromCSV} />}
-          {project && view === "board" && <BoardView t={t} lang={lang} canEdit={canEdit} memberById={memberById} sections={STATUS_ORDER.map((s) => ({ id: s, name: t.statuses[s] }))} tasks={projectTasks} blockedIds={blockedIds} onMove={(id, sid) => setStatus(id, sid)} onOpenTask={(id) => setDetailTask(id)} onQuickAdd={(sid, title) => addTask(sid, title)} />}
+          {project && view === "list" && <ListView t={t} lang={lang} canEdit={canEdit} memberById={memberById} sections={groups} groupBy={groupBy} groupOf={groupOf} tasks={projectTasks} blockedIds={blockedIds} onToggle={(id, c) => c ? setWorkdone(id, 100) : setWorkdone(id, 0)} onOpenTask={(id) => setDetailTask(id)} onQuickAdd={(sid, title) => groupBy === "section" ? addTaskInSection(sid, title) : addTask(sid, title)} onAddSection={groupBy === "section" && canEdit ? addSection : undefined} onImport={importFromCSV} />}
+          {project && view === "board" && <BoardView t={t} lang={lang} canEdit={canEdit} memberById={memberById} sections={groups} groupBy={groupBy} groupOf={groupOf} tasks={projectTasks} blockedIds={blockedIds} onMove={(id, sid) => groupBy === "section" ? patchTask(id, { sectionId: sid }) : setStatus(id, sid)} onOpenTask={(id) => setDetailTask(id)} onQuickAdd={(sid, title) => groupBy === "section" ? addTaskInSection(sid, title) : addTask(sid, title)} onAddSection={groupBy === "section" && canEdit ? addSection : undefined} />}
           {project && view === "calendar" && <CalendarView t={t} lang={lang} tasks={projectTasks} onOpenTask={(id) => setDetailTask(id)} />}
-          {project && view === "timeline" && <TimelineView t={t} lang={lang} canEdit={canEdit} tasks={projectTasks} memberById={memberById} project={project} canBaseline={myRole === "owner" || !!me?.isLeader} onSaveBaseline={async () => { if (!project.baseline || await askConfirm(antModal, t, t.baselineConfirm)) saveBaseline(project.id); }} onOpenTask={(id) => setDetailTask(id)} onReschedule={(id, sd, dd) => patchTask(id, { startDate: sd, dueDate: dd })} />}
-          {project && view === "construction" && <ConstructionSiteView t={t} lang={lang} project={project} me={me} myRole={myRole} members={members} features={features} canEdit={canEdit} onSetLoggers={(ids) => setProjectSiteLoggers(project.id, ids)} />}
+          {project && view === "defects" && <DefectView t={t} lang={lang} canEdit={canEdit} memberById={memberById} members={workMembers} defects={projectDefects} onAdd={addDefect} onOpenTask={(id) => setDetailTask(id)} />}
+          {project && view === "timeline" && <TimelineView t={t} lang={lang} canEdit={canEdit} tasks={projectTasksAll} visibleIds={visibleTaskIds} memberById={memberById} project={project} canBaseline={myRole === "owner" || !!me?.isLeader} onSaveBaseline={async () => { if (!project.baseline || await askConfirm(antModal, t, t.baselineConfirm)) saveBaseline(project.id); }} onSaveLich={(l) => setProjects((pp) => pp.map((p) => p.id === project.id ? { ...p, lich: l } : p))} onOpenTask={openTaskCb} onReschedule={rescheduleCb} />}
+          {project && view === "construction" && <ConstructionSiteView t={t} lang={lang} project={project} me={me} myRole={myRole} members={members} features={features} canEdit={canEdit} boqItems={((finance.boq || {})[project.id] || {}).items || []} onSetLoggers={(ids) => setProjectSiteLoggers(project.id, ids)} onDefects={(ds) => { ds.forEach(addDefect); antMessage.success(t.chkDefectsMade.replace("{n}", String(ds.length))); }} />}
           {!project && !isBoardlessView && (
             <div className="h-full flex flex-col items-center justify-center text-center text-slate-500"><Folder size={48} className="mb-3 opacity-40" /><p className="text-lg font-medium text-slate-500">{t.welcome}</p><p className="text-sm">{t.welcomeHint}</p></div>
           )}
         </div>
       </main>
 
+      {memberModal && project && (
+        <ProjectMembersModal t={t} lang={lang} project={project} members={workMembers}
+          onClose={() => setMemberModal(false)}
+          onSave={(ids) => { setProjectMembers(project.id, ids); setMemberModal(false); }} />
+      )}
       {detailTask && (() => {
         const task = tasks.find((x) => x.id === detailTask);
         if (!task) return null;
         return <TaskDetail t={t} lang={lang} task={task} members={workMembers} memberById={memberById} me={me}
           canEdit={canEdit} canWorkdone={canWorkdone(task)}
           sections={sections.filter((s) => s.projectId === task.projectId)}
-          projTasks={tasks.filter((x) => x.projectId === task.projectId)}
+          projTasks={tasks.filter((x) => x.projectId === task.projectId && x.kind !== "defect")}
           onClose={() => setDetailTask(null)} onPatch={(patch) => patchTask(detailTask, patch)}
           onAssign={(a, p) => setAssign(detailTask, a, p)} onWorkdone={(v) => setWorkdone(detailTask, v)}
           onDepends={(deps) => setDepends(detailTask, deps)}
@@ -1543,8 +1899,88 @@ function ProjectManagerInner() {
 }
 
 /* ============================ shared bits ============================ */
-function RecordsView({ t, lang, project, canEdit }) {
+/* H5: hộp xác nhận xóa hồ sơ — bắt ghi lý do, nói rõ giữ 90 ngày.
+   Trả về chuỗi lý do nếu đồng ý, null nếu hủy. */
+function hoiLyDoXoa(antModal, t) {
+  return new Promise((resolve) => {
+    let lyDo = "";
+    antModal.confirm({
+      title: t.confirmDeleteRecord,
+      okText: t.delete, cancelText: t.cancel, okButtonProps: { danger: true },
+      content: (
+        <div className="space-y-2 pt-1">
+          <p className="text-sm text-slate-600">{t.trashKept90}</p>
+          <AntInput autoFocus placeholder={t.trashReason} onChange={(e) => { lyDo = e.target.value; }} />
+        </div>
+      ),
+      onOk: () => resolve(lyDo),
+      onCancel: () => resolve(null),
+    });
+  });
+}
+
+/* R6: xem và khôi phục hồ sơ đã xóa (biên bản / nhật ký thi công) trong 90 ngày.
+   loai = records | sitelogs — hai đường API cùng khuôn. */
+function ThungRacHoSo({ t, lang, project, loai, onClose, onDoi }) {
   const { modal: antModal } = AntApp.useApp();
+  const [ds, setDs] = useState(null);
+  const [busy, setBusy] = useState("");
+  const duong = loai === "records" ? "/api/records" : "/api/sitelogs";
+  const khoa = loai === "records" ? "records" : "logs";
+  const nap = async () => {
+    const r = await api(duong + "?projectId=" + encodeURIComponent(project.id) + "&trash=1");
+    setDs(r.ok ? (r.body[khoa] || []) : []);
+  };
+  useEffect(() => { nap(); }, [project.id, loai]); // eslint-disable-line
+  const khoiPhuc = async (x) => {
+    setBusy(x.id);
+    const r = await api(duong + "/restore", { method: "POST", body: JSON.stringify({ id: x.id }) });
+    setBusy("");
+    if (!r.ok) { antModal.warning({ title: t.restore, content: (r.body && r.body.message) || t.saveFailed }); return; }
+    await nap(); onDoi && onDoi();
+  };
+  const xoaHan = async (x) => {
+    if (!(await askDanger(antModal, t, t.purgeConfirm))) return;
+    setBusy(x.id);
+    const r = await api(duong + "/delete", { method: "POST", body: JSON.stringify({ id: x.id, purge: true }) });
+    setBusy("");
+    if (!r.ok) { antModal.warning({ title: t.deleteForever, content: (r.body && r.body.message) || t.saveFailed }); return; }
+    nap();
+  };
+  const fmtD = (d) => d ? d.split("-").reverse().join("/") : "—";
+  const conLai = (x) => Math.max(0, 90 - Math.floor((Date.now() - (x.deletedAt || 0)) / 86400000));
+  return (
+    <AntModal open onCancel={onClose} width={560} footer={<AntBtn onClick={onClose}>{t.close || "Đóng"}</AntBtn>}
+      title={<span className="flex items-center gap-2"><Trash2 size={18} className="text-orange-500" />{t.recTrash}</span>}>
+      <p className="text-xs text-slate-500 mb-2">{t.recTrashHint}</p>
+      {ds === null ? <p className="text-sm text-slate-500">{t.loading}</p>
+        : ds.length === 0 ? <p className="text-sm text-slate-500">{t.trashEmpty}</p> : (
+        <div className="space-y-1.5" style={{ maxHeight: "55vh", overflowY: "auto" }}>
+          {ds.map((x) => (
+            <div key={x.id} className="rounded-lg border border-slate-200 px-3 py-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-medium text-slate-700">{fmtD(x.date)}</span>
+                {x.type && <span className="text-xs text-slate-500">{x.type}</span>}
+                <span className="text-sm text-slate-600 flex-1 min-w-[40%] truncate">{x.note || x.work || x.number || "—"}</span>
+                <AntBtn size="small" loading={busy === x.id} onClick={() => khoiPhuc(x)}>{t.restore}</AntBtn>
+                <AntBtn size="small" danger loading={busy === x.id} onClick={() => xoaHan(x)}>{t.deleteForever}</AntBtn>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {t.deletedBy}: {x.deletedBy || "—"}
+                {x.deleteReason ? " · " + t.trashReason.replace(" (ghi vào nhật ký)", "") + ": " + x.deleteReason : ""}
+                {" · " + t.purgeIn.replace("{n}", String(conLai(x)))}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+    </AntModal>
+  );
+}
+
+function RecordsView({ t, lang, project, canEdit, onDefects }) {
+  const { modal: antModal } = AntApp.useApp();
+  const [racMo, setRacMo] = useState(false);        // R6: hộp thùng rác hồ sơ
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(false);
@@ -1559,7 +1995,12 @@ function RecordsView({ t, lang, project, canEdit }) {
       window.open(url, "_blank"); setTimeout(() => URL.revokeObjectURL(url), 60000);
     } catch {}
   };
-  const del = async (rec) => { if (!(await askDanger(antModal, t, t.confirmDeleteRecord))) return; await api("/api/records/delete", { method: "POST", body: JSON.stringify({ id: rec.id }) }); load(); };
+  const del = async (rec) => {
+    const lyDo = await hoiLyDoXoa(antModal, t);            // H5: hồ sơ chất lượng — phải ghi lý do
+    if (lyDo === null) return;
+    await api("/api/records/delete", { method: "POST", body: JSON.stringify({ id: rec.id, reason: lyDo }) });
+    load();
+  };
   const types = Array.from(new Set(records.map((r) => r.type).filter(Boolean)));
   const shown = filter ? records.filter((r) => r.type === filter) : records;
   const fmt = (d) => d ? d.split("-").reverse().join("/") : "";
@@ -1569,6 +2010,7 @@ function RecordsView({ t, lang, project, canEdit }) {
         <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2"><ScrollText size={20} className="text-orange-500" />{t.records}</h2>
         <div className="flex items-center gap-2">
           {types.length > 0 && <AntSelect value={filter} onChange={(v) => setFilter(v)} size="small" style={{ minWidth: 150 }} options={[{ value: "", label: t.allTypes }, ...types.map((ty) => ({ value: ty, label: ty }))]} />}
+          {canEdit && <button onClick={() => setRacMo(true)} className="text-sm text-slate-500 hover:text-orange-600 flex items-center gap-1"><Trash2 size={15} />{t.recTrash}</button>}
           {canEdit && <AntBtn type="primary" icon={<Plus size={16} />} onClick={() => setModal(true)}>{t.addRecord}</AntBtn>}
         </div>
       </div>
@@ -1601,11 +2043,12 @@ function RecordsView({ t, lang, project, canEdit }) {
           ))}
         </div>
       )}
-      {modal && <RecordModal t={t} project={project} onClose={() => setModal(false)} onSaved={() => { setModal(false); load(); }} />}
+      {modal && <RecordModal t={t} lang={lang} project={project} onClose={() => setModal(false)} onSaved={() => { setModal(false); load(); }} onDefects={onDefects} />}
+      {racMo && <ThungRacHoSo t={t} lang={lang} project={project} loai="records" onClose={() => setRacMo(false)} onDoi={load} />}
     </div>
   );
 }
-function RecordModal({ t, project, onClose, onSaved }) {
+function RecordModal({ t, lang, project, onClose, onSaved, onDefects }) {
   const now = new Date();
   const iso = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
   const [date, setDate] = useState(iso);
@@ -1615,9 +2058,22 @@ function RecordModal({ t, project, onClose, onSaved }) {
   const [files, setFiles] = useState([]);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  /* H2: bảng kiểm nghiệm thu — chỉ hiện khi chọn loại "Nghiệm thu nội bộ" */
+  const [mauId, setMauId] = useState("");
+  const [bangKiem, setBangKiem] = useState([]);
+  const laNghiemThu = type === t.recAcceptType || type === t.recSafetyType || type === t.recPermitType;   // H3: an toàn cũng dùng bảng kiểm
+  const chonMau = (id) => {
+    setMauId(id);
+    const m = MAU_KIEM.find((x) => x.id === id);
+    setBangKiem(m ? m.items.map((x) => ({ text: x, ketQua: "", ghiChu: "" })) : []);
+  };
+  const datMuc = (i, k, v) => setBangKiem((bk) => bk.map((x, j) => j === i ? { ...x, [k]: v } : x));
+  const soKhongDat = bangKiem.filter((x) => x.ketQua === "khongdat").length;
+  const soChuaCham = bangKiem.filter((x) => !x.ketQua).length;
+  const ketQuaTong = !bangKiem.length ? "" : soChuaCham ? "chua" : soKhongDat ? "khongdat" : "dat";
   const submit = async () => {
     if (busy) return; setBusy(true); setErr("");
-    const r = await api("/api/records", { method: "POST", body: JSON.stringify({ projectId: project.id, projectName: project.name, date, type, number, note }) });
+    const r = await api("/api/records", { method: "POST", body: JSON.stringify({ projectId: project.id, projectName: project.name, date, type, number, note, checklist: laNghiemThu ? bangKiem : undefined }) });
     if (!r.ok) { setErr((r.body && r.body.message) || t.saveFailed); setBusy(false); return; }
     const rid = r.body.record.id;
     for (const f of files) {
@@ -1626,26 +2082,74 @@ function RecordModal({ t, project, onClose, onSaved }) {
         await fetch("/api/records/file?recordId=" + rid + "&filename=" + encodeURIComponent(f.name), { method: "POST", headers: { ...(tok ? { Authorization: "Bearer " + tok } : {}), "Content-Type": f.type || "application/octet-stream" }, body: f });
       } catch {}
     }
-    setBusy(false); onSaved();
+    setBusy(false);
+    /* Mục KHÔNG ĐẠT thành lỗi tồn đọng — đây là chỗ nối bảng kiểm với punch list. */
+    if (laNghiemThu && soKhongDat && onDefects) onDefects(bangKiem.filter((x) => x.ketQua === "khongdat").map((x) => ({ title: x.text + (x.ghiChu ? " — " + x.ghiChu : ""), viTri: number || "", mucDo: "med" })));
+    onSaved();
   };
   const inp = "w-full mt-0.5 text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400";
+  const nhanKQ = { dat: t.chkPass, khongdat: t.chkFail, na: "N/A" };
+  const mauKQ = { dat: "#16a34a", khongdat: "#dc2626", na: "#64748b" };
   return (
-    <AntModal open onCancel={onClose} width={480}
+    <AntModal open onCancel={onClose} width={laNghiemThu ? 640 : 480}
       title={<span className="flex items-center gap-2"><ScrollText size={19} className="text-orange-500" />{t.addRecord}</span>}
-      footer={<AntBtn type="primary" loading={busy} disabled={!note.trim()} onClick={submit}>{busy ? t.recSaving : t.save}</AntBtn>}>
+      footer={<AntBtn type="primary" loading={busy} disabled={!note.trim() && !bangKiem.length} onClick={submit}>{busy ? t.recSaving : t.save}</AntBtn>}>
       <div className="space-y-3" style={{ maxHeight: "68vh", overflowY: "auto" }}>
         <label className="block"><span className="text-xs text-slate-500">{t.recDate}</span><input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inp} /></label>
-        <label className="block"><span className="text-xs text-slate-500">{t.recType}</span><AntSelect value={type} onChange={(v) => setType(v)} style={{ width: "100%", marginTop: 2 }} options={[{ value: t.recFieldType, label: t.recFieldType }, { value: t.recMeetingType, label: t.recMeetingType }, { value: t.recDirectiveType, label: t.recDirectiveType }]} /></label>
+        <label className="block"><span className="text-xs text-slate-500">{t.recType}</span><AntSelect value={type} onChange={(v) => setType(v)} style={{ width: "100%", marginTop: 2 }} options={[{ value: t.recFieldType, label: t.recFieldType }, { value: t.recMeetingType, label: t.recMeetingType }, { value: t.recDirectiveType, label: t.recDirectiveType }, { value: t.recAcceptType, label: t.recAcceptType }, { value: t.recSafetyType, label: t.recSafetyType }, { value: t.recPermitType, label: t.recPermitType }]} /></label>
+        {laNghiemThu && (
+          <div className="rounded-xl border border-slate-200 p-3 space-y-2.5">
+            <label className="block"><span className="text-xs text-slate-500">{t.chkTemplate}</span>
+              <AntSelect value={mauId} onChange={chonMau} style={{ width: "100%", marginTop: 2 }}
+                options={[{ value: "", label: t.chkPickTemplate }, ...MAU_KIEM.map((m) => ({ value: m.id, label: lang === "vi" ? m.vi : m.en }))]} /></label>
+            {bangKiem.length > 0 && (
+              <>
+                <div className="space-y-2">
+                  {bangKiem.map((it, i) => (
+                    <div key={i} className="rounded-lg border border-slate-200 px-2.5 py-2">
+                      <div className="flex items-start gap-2">
+                        <span className="text-xs text-slate-500 tabular-nums pt-1 w-5 shrink-0">{i + 1}.</span>
+                        <AntInput.TextArea autoSize value={it.text} onChange={(e) => datMuc(i, "text", e.target.value)} style={{ flex: 1 }} />
+                        <button onClick={() => setBangKiem((bk) => bk.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 pt-1" aria-label={t.delete}><X size={13} /></button>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1.5 pl-7">
+                        {KET_QUA.map((k) => (
+                          <button key={k} onClick={() => datMuc(i, "ketQua", it.ketQua === k ? "" : k)}
+                            className="text-xs px-2.5 py-1 rounded-lg border transition"
+                            style={it.ketQua === k ? { borderColor: mauKQ[k], background: mauKQ[k] + "18", color: mauKQ[k], fontWeight: 600 } : { borderColor: "#e2e8f0", color: "#64748b" }}>{nhanKQ[k]}</button>
+                        ))}
+                        {it.ketQua === "khongdat" && (
+                          <AntInput size="small" value={it.ghiChu} onChange={(e) => datMuc(i, "ghiChu", e.target.value)} placeholder={t.chkNotePh} style={{ flex: 1, minWidth: 140 }} />
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={() => setBangKiem((bk) => [...bk, { text: "", ketQua: "", ghiChu: "" }])} className="text-sm text-orange-600 hover:underline flex items-center gap-1"><Plus size={14} />{t.chkAddItem}</button>
+                <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100">
+                  <span className="text-xs text-slate-500">{t.chkResult}:</span>
+                  <span className="text-sm font-semibold" style={{ color: ketQuaTong === "dat" ? "#16a34a" : ketQuaTong === "khongdat" ? "#dc2626" : "#64748b" }}>
+                    {ketQuaTong === "dat" ? t.chkPassAll : ketQuaTong === "khongdat" ? t.chkFailN.replace("{n}", String(soKhongDat)) : t.chkPending.replace("{n}", String(soChuaCham))}
+                  </span>
+                  {soKhongDat > 0 && <span className="text-xs text-slate-500">· {t.chkWillCreateDefects.replace("{n}", String(soKhongDat))}</span>}
+                </div>
+              </>
+            )}
+          </div>
+        )}
         <label className="block"><span className="text-xs text-slate-500">{t.recNumber}</span><AntInput value={number} onChange={(e) => setNumber(e.target.value)} placeholder={t.recNumberPh} /></label>
         <label className="block"><span className="text-xs text-slate-500">{t.recNote}</span><AntInput.TextArea value={note} onChange={(e) => setNote(e.target.value)} rows={2} /></label>
-        <div><span className="text-xs text-slate-500">{t.recFiles}</span><input type="file" multiple accept="image/*,application/pdf" onChange={(e) => setFiles(Array.from(e.target.files || []))} className="w-full mt-0.5 text-sm" />{files.length > 0 && <p className="text-xs text-slate-500 mt-1">{files.length} {t.recFilesChosen}</p>}</div>
+        <div><span className="text-xs text-slate-500">{t.recFiles}</span>
+          <input type="file" multiple accept="image/*,application/pdf" className="w-full mt-0.5 text-sm"
+            onChange={async (e) => { const arr = Array.from(e.target.files || []); const nen = []; for (const f of arr) nen.push(await nenAnh(f)); setFiles(nen); }} />
+          {files.length > 0 && <p className="text-xs text-slate-500 mt-1">{files.length} {t.recFilesChosen} · {kichCo(files.reduce((a, f) => a + f.size, 0))}</p>}</div>
       </div>
       {err && <p className="text-sm text-red-500 mt-2">{err}</p>}
     </AntModal>
   );
 }
 
-function ConstructionSiteView({ t, lang, project, me, myRole, members, features, canEdit, onSetLoggers }) {
+function ConstructionSiteView({ t, lang, project, me, myRole, members, features, canEdit, boqItems, onSetLoggers, onDefects }) {
   const cfeat = (k) => (features || {})[k] !== false;
   const [tab, setTab] = useState(cfeat("sitelog") ? "site" : "records");
   const loggers = project.siteLoggers || [];
@@ -1655,44 +2159,80 @@ function ConstructionSiteView({ t, lang, project, me, myRole, members, features,
   return (
     <div>
       <div className="max-w-4xl mx-auto px-3 md:px-6 pt-4">
-        <AntTabs activeKey={tab} onChange={setTab} tabBarStyle={{ marginBottom: 0 }} items={[{ key: "site", label: t.siteTab, show: cfeat("sitelog") }, { key: "records", label: t.recordsTab, show: cfeat("records") }].filter((x) => x.show).map(({ key, label }) => ({ key, label }))} />
+        <AntTabs activeKey={tab} onChange={setTab} tabBarStyle={{ marginBottom: 0 }} items={[{ key: "site", label: t.siteTab, show: cfeat("sitelog") }, { key: "records", label: t.recordsTab, show: cfeat("records") }, { key: "hse", label: t.hseTab, show: cfeat("sitelog") || cfeat("records") }].filter((x) => x.show).map(({ key, label }) => ({ key, label }))} />
       </div>
-      {(tab === "site" && cfeat("sitelog")) ? <SiteLogView t={t} lang={lang} project={project} me={me} myRole={myRole} members={members} onSetLoggers={onSetLoggers} /> : <RecordsView t={t} lang={lang} project={project} canEdit={canRecord} />}
+      {tab === "hse" ? <HSEView t={t} lang={lang} project={project} />
+        : (tab === "site" && cfeat("sitelog")) ? <SiteLogView t={t} lang={lang} project={project} me={me} myRole={myRole} members={members} boqItems={boqItems} onSetLoggers={onSetLoggers} />
+        : <RecordsView t={t} lang={lang} project={project} canEdit={canRecord} onDefects={onDefects} />}
     </div>
   );
 }
-function SiteLogView({ t, lang, project, me, myRole, members, onSetLoggers }) {
+function SiteLogView({ t, lang, project, me, myRole, members, boqItems, onSetLoggers }) {
   const { modal: antModal } = AntApp.useApp();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(null);
   const [assignOpen, setAssignOpen] = useState(false);
+  const [racMo, setRacMo] = useState(false);        // R6: hộp thùng rác hồ sơ
   const loggers = project.siteLoggers || [];
   const canManage = myRole === "owner" || !!(me && me.isLeader);
   const canLog = (canManage || !!(me && ((me.isTeamlead && (me.dept || "") === "Site") || loggers.includes(me.id))));
   const load = async () => { setLoading(true); const r = await api("/api/sitelogs?projectId=" + encodeURIComponent(project.id)); if (r.ok) setLogs(r.body.logs || []); setLoading(false); };
   useEffect(() => { load(); }, [project.id]); // eslint-disable-line
   const openPhoto = async (log, f) => { try { const tok = getToken(); const res = await fetch("/api/sitelogs/photo?logId=" + log.id + "&idx=" + f.idx, { headers: tok ? { Authorization: "Bearer " + tok } : {} }); const blob = await res.blob(); const url = URL.createObjectURL(blob); window.open(url, "_blank"); setTimeout(() => URL.revokeObjectURL(url), 60000); } catch {} };
-  const del = async (log) => { if (!(await askDanger(antModal, t, lang === "vi" ? "Xóa nhật ký ngày này?" : "Delete this log?"))) return; await api("/api/sitelogs/delete", { method: "POST", body: JSON.stringify({ id: log.id }) }); load(); };
+  const del = async (log) => {
+    const lyDo = await hoiLyDoXoa(antModal, t);
+    if (lyDo === null) return;
+    await api("/api/sitelogs/delete", { method: "POST", body: JSON.stringify({ id: log.id, reason: lyDo }) });
+    load();
+  };
+  /* P5: Chỉ huy trưởng ký duyệt (hoặc mở khóa cho người lập sửa tiếp). */
+  const duyet = async (log, co) => { await api("/api/sitelogs/approve", { method: "POST", body: JSON.stringify({ id: log.id, duyet: co }) }); load(); };
   const fmt = (d) => d ? d.split("-").reverse().join("/") : "";
   const printLog = (log) => {
     const w2 = window.open("", "_blank"); if (!w2) return;
     const esc = (x) => String(x == null ? "" : x).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     const row = (lb, val) => "<tr><td class=\"l\">" + esc(lb) + "</td><td>" + esc(val).replace(/\n/g, "<br>") + "</td></tr>";
     const html = "<!doctype html><html lang=\"vi\"><head><meta charset=\"utf-8\"><title>Nhat ky " + esc(fmt(log.date)) + "</title>" +
-      "<style>body{font-family:'Times New Roman',serif;font-size:13pt;color:#000;padding:24px;max-width:760px;margin:auto}h1{text-align:center;font-size:15pt;margin:6px 0}.c{text-align:center}.m{font-size:11pt}table{width:100%;border-collapse:collapse;margin-top:14px}td{border:1px solid #000;padding:6px 8px;vertical-align:top}td.l{width:34%;font-weight:bold;background:#f2f2f2}.sign{display:flex;justify-content:space-around;margin-top:40px;text-align:center}.sign div{width:45%}@media print{body{padding:0}}</style></head><body>" +
+      "<style>body{font-family:'Times New Roman',serif;font-size:13pt;color:#000;padding:24px;max-width:760px;margin:auto}h1{text-align:center;font-size:15pt;margin:6px 0}.c{text-align:center}.m{font-size:11pt}table{width:100%;border-collapse:collapse;margin-top:14px}td{border:1px solid #000;padding:6px 8px;vertical-align:top}td.l{width:34%;font-weight:bold;background:#f2f2f2}table.in{margin:0}table.in td,table.in th{border:1px solid #999;padding:3px 6px;font-size:11pt}table.in th{background:#fafafa;text-align:left}table.in td.n{text-align:right;width:70px}.sign{display:flex;justify-content:space-around;margin-top:40px;text-align:center}.sign div{width:45%}@media print{body{padding:0}}</style></head><body>" +
       "<div class=\"c m\">CÔNG TRÌNH: <b>" + esc(project.name) + "</b></div>" +
       "<h1>NHẬT KÝ THI CÔNG XÂY DỰNG</h1><div class=\"c m\">(Theo Nghị định 06/2021/NĐ-CP)</div><table>" +
       row("Ngày", fmt(log.date)) +
-      row("Thời tiết", t.siteAM + ": " + (log.weatherAM || "—") + " · " + t.sitePM + ": " + (log.weatherPM || "—")) +
-      row("Nhân lực", log.manpower || "") +
-      row("Công việc & khối lượng thực hiện", log.work || "") +
-      row("Thiết bị & vật tư", log.equipment || "") +
-      row("Vướng mắc / sự cố ảnh hưởng tiến độ", log.issues || "") +
+      row("Thời tiết", t.siteAM + ": " + (log.weatherAM || "—") + " · " + t.sitePM + ": " + (log.weatherPM || "—")
+        + (log.thoiTiet ? ((log.thoiTiet.nhietDo ? " · " + log.thoiTiet.nhietDo : "")
+            + (log.thoiTiet.gioMua ? " · mưa " + log.thoiTiet.gioMua + "h" : "")
+            + (log.thoiTiet.gioNgungViec ? " · ngừng việc " + log.thoiTiet.gioNgungViec + "h" : "")) : "")) +
+      /* P5: bảng nhân lực theo tổ đội, có dòng tổng */
+      (log.nhanLuc && log.nhanLuc.length
+        ? "<tr><td class=\"l\">Nhân lực</td><td><table class=\"in\"><tr><th>Tổ đội / nghề</th><th>Số người</th><th>Giờ</th></tr>"
+          + log.nhanLuc.map((r) => "<tr><td>" + esc(r.to) + "</td><td class=\"n\">" + (r.soNguoi || 0) + "</td><td class=\"n\">" + (r.gio || "") + "</td></tr>").join("")
+          + "<tr><td><b>Tổng</b></td><td class=\"n\"><b>" + log.nhanLuc.reduce((a2, r) => a2 + (Number(r.soNguoi) || 0), 0) + "</b></td><td></td></tr></table>"
+          + (log.manpower ? "<div>" + esc(log.manpower).replace(/\n/g, "<br>") + "</div>" : "") + "</td></tr>"
+        : row("Nhân lực", log.manpower || "")) +
+      /* P5: bảng máy móc thiết bị */
+      (log.thietBi && log.thietBi.length
+        ? "<tr><td class=\"l\">Máy móc – thiết bị</td><td><table class=\"in\"><tr><th>Loại máy</th><th>SL</th><th>Giờ</th></tr>"
+          + log.thietBi.map((r) => "<tr><td>" + esc(r.ten) + "</td><td class=\"n\">" + (r.soLuong || "") + "</td><td class=\"n\">" + (r.gio || "") + "</td></tr>").join("")
+          + "</table>" + (log.equipment ? "<div>" + esc(log.equipment).replace(/\n/g, "<br>") + "</div>" : "") + "</td></tr>"
+        : row("Thiết bị & vật tư", log.equipment || "")) +
+      /* P5: khối lượng thi công trong ngày theo hạng mục */
+      (log.khoiLuong && log.khoiLuong.length
+        ? "<tr><td class=\"l\">Khối lượng thực hiện</td><td><table class=\"in\"><tr><th>Hạng mục</th><th>ĐVT</th><th>KL</th></tr>"
+          + log.khoiLuong.map((r) => "<tr><td>" + esc(r.ten) + "</td><td class=\"n\">" + esc(r.donVi) + "</td><td class=\"n\">" + (r.kl || 0) + "</td></tr>").join("")
+          + "</table>" + (log.work ? "<div>" + esc(log.work).replace(/\n/g, "<br>") + "</div>" : "") + "</td></tr>"
+        : row("Công việc & khối lượng thực hiện", log.work || "")) +
+      row("Vướng mắc ảnh hưởng tiến độ", log.issues || "") +
+      /* P5: sự cố / mất an toàn tách riêng */
+      (log.suCo && log.suCo.co
+        ? row("SỰ CỐ / MẤT AN TOÀN (" + ({ nhe: "Nhẹ", trungbinh: "Trung bình", nghiemtrong: "Nghiêm trọng" }[log.suCo.mucDo] || "—") + ")",
+              (log.suCo.moTa || "") + (log.suCo.khacPhuc ? "\nKhắc phục: " + log.suCo.khacPhuc : "") + (log.suCo.nguoiLienQuan ? "\nNgười liên quan: " + log.suCo.nguoiLienQuan : ""))
+        : row("Sự cố / mất an toàn", "Không")) +
+      (log.ykienGiamSat ? row("Ý kiến TVGS / Chủ đầu tư", log.ykienGiamSat) : "") +
       row("Kế hoạch ngày tiếp theo", log.nextPlan || "") +
       row("Số ảnh hiện trường kèm theo", (log.photos ? log.photos.length : 0)) +
       row("Người lập", log.createdBy || "") +
-      "</table><div class=\"sign\"><div>NGƯỜI LẬP<br><span class=\"m\">(Ký, ghi rõ họ tên)</span><br><br><br>" + esc(log.createdBy || "") + "</div><div>CHỈ HUY TRƯỞNG CÔNG TRÌNH<br><span class=\"m\">(Ký, ghi rõ họ tên)</span></div></div>" +
+      row("Trạng thái", log.trangThai === "daduyet" ? ("Chỉ huy trưởng đã duyệt" + (log.duyetBoi ? " — " + log.duyetBoi : "") + (log.duyetLuc ? " (" + new Date(log.duyetLuc).toLocaleDateString("vi-VN") + ")" : "")) : log.trangThai === "danop" ? "Đã nộp, chờ duyệt" : "Nháp") +
+      "</table><div class=\"sign\"><div>NGƯỜI LẬP<br><span class=\"m\">(Ký, ghi rõ họ tên)</span><br><br><br>" + esc(log.createdBy || "") + "</div><div>CHỈ HUY TRƯỞNG CÔNG TRÌNH<br><span class=\"m\">(Ký, ghi rõ họ tên)</span><br><br><br>" + esc(log.trangThai === "daduyet" ? (log.duyetBoi || "") : "") + "</div></div>" +
       "<script>window.onload=function(){setTimeout(function(){window.print();},200);}</script></body></html>";
     w2.document.write(html); w2.document.close();
   };
@@ -1702,6 +2242,7 @@ function SiteLogView({ t, lang, project, me, myRole, members, onSetLoggers }) {
         <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2"><ScrollText size={20} className="text-orange-500" />{t.constructionSite}</h2>
         <div className="flex items-center gap-2">
           {canManage && <button onClick={() => setAssignOpen(true)} className="text-sm text-slate-500 hover:text-orange-600 flex items-center gap-1"><UserCheck size={15} />{t.siteAssign}</button>}
+          {canLog && <button onClick={() => setRacMo(true)} className="text-sm text-slate-500 hover:text-orange-600 flex items-center gap-1"><Trash2 size={15} />{t.recTrash}</button>}
           {canLog && <AntBtn type="primary" icon={<Plus size={16} />} onClick={() => setModal("new")}>{t.addSiteLog}</AntBtn>}
         </div>
       </div>
@@ -1715,6 +2256,14 @@ function SiteLogView({ t, lang, project, me, myRole, members, onSetLoggers }) {
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-semibold text-slate-800">{fmt(log.date)}</span>
+                    {/* P5: trạng thái ký duyệt */}
+                    <span className="text-[11px] px-1.5 py-0.5 rounded-full" style={
+                      log.trangThai === "daduyet" ? { color: "#166534", background: "#dcfce7" }
+                      : log.trangThai === "danop" ? { color: "#9a3412", background: "#ffedd5" }
+                      : { color: "#475569", background: "#f1f5f9" }}>
+                      {log.trangThai === "daduyet" ? t.siteApproved : log.trangThai === "danop" ? t.siteSubmitted : t.siteDraft}
+                    </span>
+                    {log.suCo && log.suCo.co && <span className="text-[11px] px-1.5 py-0.5 rounded-full" style={{ color: "#991b1b", background: "#fee2e2" }}>{t.incident}</span>}
                     {(log.weatherAM || log.weatherPM) && <span className="text-xs text-slate-500">{t.siteAM}: {log.weatherAM || "—"} · {t.sitePM}: {log.weatherPM || "—"}</span>}
                   </div>
                   {log.work && <p className="text-sm text-slate-700 mt-1 whitespace-pre-wrap break-words">{log.work}</p>}
@@ -1724,19 +2273,216 @@ function SiteLogView({ t, lang, project, me, myRole, members, onSetLoggers }) {
                   {log.nextPlan && <p className="text-xs text-slate-500 mt-0.5">{t.siteNext}: {log.nextPlan}</p>}
                   <p className="text-xs text-slate-500 mt-1">{log.createdBy}</p>
                 </div>
-                <div className="flex items-center gap-1 shrink-0"><button onClick={() => printLog(log)} className="text-xs font-semibold text-slate-500 hover:text-orange-500 px-1.5 py-1 rounded border border-slate-200" title="In PDF (NĐ 06/2021)">PDF</button>{canLog && <><button onClick={() => setModal(log)} className="text-slate-500 hover:text-orange-500 p-1"><Pencil size={15} /></button><button onClick={() => del(log)} className="text-slate-500 hover:text-red-500 p-1"><Trash2 size={15} /></button></>}</div>
+                <div className="flex items-center gap-1 shrink-0">
+                  {canManage && (log.trangThai === "daduyet"
+                    ? <button onClick={() => duyet(log, false)} className="text-xs text-slate-500 hover:text-orange-600 px-1.5 py-1 rounded border border-slate-200">{t.unlockLog}</button>
+                    : <button onClick={() => duyet(log, true)} className="text-xs font-medium text-green-700 hover:bg-green-50 px-1.5 py-1 rounded border border-green-200">{t.approveLog}</button>)}
+                  <button onClick={() => printLog(log)} className="text-xs font-semibold text-slate-500 hover:text-orange-500 px-1.5 py-1 rounded border border-slate-200" title="In PDF (NĐ 06/2021)">PDF</button>{canLog && <><button onClick={() => setModal(log)} className="text-slate-500 hover:text-orange-500 p-1"><Pencil size={15} /></button><button onClick={() => del(log)} className="text-slate-500 hover:text-red-500 p-1"><Trash2 size={15} /></button></>}</div>
               </div>
               {log.photos.length > 0 && <div className="flex flex-wrap gap-2 mt-3">{log.photos.map((f) => <button key={f.idx} onClick={() => openPhoto(log, f)} className="flex items-center gap-1.5 text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 hover:bg-slate-50 min-w-0" style={{ maxWidth: "100%" }}><Download size={14} className="text-slate-500 shrink-0" /><span className="truncate">{f.name}</span></button>)}</div>}
             </div>
           ))}
         </div>
       )}
-      {modal && <SiteLogModal t={t} lang={lang} project={project} log={modal === "new" ? null : modal} onClose={() => setModal(null)} onSaved={() => { setModal(null); load(); }} />}
+      {modal && <SiteLogModal t={t} lang={lang} project={project} log={modal === "new" ? null : modal} boqItems={boqItems} onClose={() => setModal(null)} onSaved={() => { setModal(null); load(); }} />}
       {assignOpen && <SiteAssignModal t={t} lang={lang} project={project} members={members} onClose={() => setAssignOpen(false)} onSave={(ids) => { onSetLoggers(ids); setAssignOpen(false); }} />}
+      {racMo && <ThungRacHoSo t={t} lang={lang} project={project} loai="sitelogs" onClose={() => setRacMo(false)} onDoi={load} />}
     </div>
   );
 }
-function SiteLogModal({ t, lang, project, log, onClose, onSaved }) {
+/* U2: nén ảnh ngay trên máy/điện thoại trước khi tải lên.
+   Ảnh máy ảnh điện thoại thường 3-8 MB; sau khi thu về cạnh dài ≤ 1600 px và JPEG chất
+   lượng 0,8 còn khoảng 200-400 KB — tải nhanh hơn cả chục lần qua sóng ngoài công trường,
+   vẫn đủ nét để đọc được biển báo / vết nứt. Tệp không phải ảnh (PDF...) giữ nguyên. */
+const ANH_CANH_TOI_DA = 1600, ANH_CHAT_LUONG = 0.8;
+async function nenAnh(file) {
+  try {
+    if (!file || !/^image\//.test(file.type) || /svg/.test(file.type)) return file;
+    if (file.size < 300 * 1024) return file;                       // đã nhỏ thì thôi
+    const bmp = await createImageBitmap(file);
+    const tyLe = Math.min(1, ANH_CANH_TOI_DA / Math.max(bmp.width, bmp.height));
+    if (tyLe === 1 && file.size < 1.5 * 1024 * 1024) { if (bmp.close) bmp.close(); return file; }
+    const w = Math.round(bmp.width * tyLe), h = Math.round(bmp.height * tyLe);
+    const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+    cv.getContext("2d").drawImage(bmp, 0, 0, w, h);
+    if (bmp.close) bmp.close();
+    const blob = await new Promise((res) => cv.toBlob(res, "image/jpeg", ANH_CHAT_LUONG));
+    if (!blob || blob.size >= file.size) return file;              // nén mà to hơn thì giữ bản gốc
+    return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".jpg", { type: "image/jpeg", lastModified: Date.now() });
+  } catch (e) { return file; }                                     // trình duyệt cũ -> gửi ảnh gốc
+}
+const kichCo = (b) => b < 1024 * 1024 ? Math.round(b / 1024) + " KB" : (b / 1024 / 1024).toFixed(1) + " MB";
+
+/* U2: nút micro — đọc thành chữ (Web Speech API: Chrome/Edge; trình duyệt khác thì ẩn nút). */
+function NutMicro({ lang, onText, title }) {
+  const [dangNghe, setDangNghe] = useState(false);
+  const refSR = useRef(null);
+  useEffect(() => () => { try { if (refSR.current) refSR.current.stop(); } catch (e) {} }, []);
+  const SR = typeof window !== "undefined" ? (window.SpeechRecognition || window.webkitSpeechRecognition) : null;
+  if (!SR) return null;
+  const bam = () => {
+    if (dangNghe) { try { if (refSR.current) refSR.current.stop(); } catch (e) {} return; }
+    const sr = new SR();
+    sr.lang = lang === "vi" ? "vi-VN" : "en-US";
+    sr.interimResults = false; sr.continuous = false;
+    sr.onresult = (ev) => { const txt = Array.from(ev.results).map((r) => r[0].transcript).join(" ").trim(); if (txt) onText(txt); };
+    sr.onend = () => setDangNghe(false);
+    sr.onerror = () => setDangNghe(false);
+    refSR.current = sr;
+    try { sr.start(); setDangNghe(true); } catch (e) { setDangNghe(false); }
+  };
+  return (
+    <button type="button" onClick={bam} title={title} aria-label={title}
+      className={`shrink-0 rounded-lg border px-2 py-2 transition ${dangNghe ? "border-red-300 bg-red-50 text-red-600 animate-pulse" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}>
+      <Mic size={15} />
+    </button>
+  );
+}
+
+/* P5: bảng nhập gọn cho hiện trường — thêm/xóa dòng, có dòng tổng.
+   cot = [{key, nhan, kieu, rong}] · kieu: text | so */
+function BangHienTruong({ t, cot, hang, onChange, themNhan, tong, readOnly }) {
+  const doi = (i, k, v) => onChange(hang.map((r, j) => j === i ? { ...r, [k]: v } : r));
+  const xoa = (i) => onChange(hang.filter((_, j) => j !== i));
+  const them = () => onChange([...hang, Object.fromEntries(cot.map((c) => [c.key, c.kieu === "so" ? 0 : ""]))]);
+  return (
+    <div className="space-y-1">
+      {hang.length > 0 && (
+        <div className="flex gap-1 text-[11px] text-slate-500 px-1">
+          {cot.map((c) => <span key={c.key} style={{ flex: c.rong || 1 }}>{c.nhan}</span>)}
+          {!readOnly && <span style={{ width: 22 }} />}
+        </div>
+      )}
+      {hang.map((r, i) => (
+        <div key={i} className="flex gap-1 items-center">
+          {cot.map((c) => (
+            <span key={c.key} style={{ flex: c.rong || 1 }}>
+              <AntInput size="small" type={c.kieu === "so" ? "number" : "text"} disabled={readOnly}
+                value={r[c.key] === 0 && c.kieu === "so" ? "" : r[c.key]}
+                placeholder={c.nhan}
+                onChange={(e) => doi(i, c.key, c.kieu === "so" ? (Number(e.target.value) || 0) : e.target.value)} />
+            </span>
+          ))}
+          {!readOnly && <button onClick={() => xoa(i)} className="text-slate-400 hover:text-red-500 shrink-0" style={{ width: 22 }} aria-label={t.delete}><X size={13} /></button>}
+        </div>
+      ))}
+      <div className="flex items-center gap-3">
+        {!readOnly && <button onClick={them} className="text-sm text-orange-600 hover:underline flex items-center gap-1"><Plus size={13} />{themNhan}</button>}
+        {tong != null && hang.length > 0 && <span className="text-xs text-slate-600 ml-auto">{t.total}: <b>{tong}</b></span>}
+      </div>
+    </div>
+  );
+}
+
+/* H3: bảng theo dõi an toàn của dự án. Không đẻ thêm thực thể mới — tổng hợp lại từ
+   nhật ký thi công (mục sự cố) và biên bản loại An toàn / Giấy phép làm việc. */
+function HSEView({ t, lang, project }) {
+  const [logs, setLogs] = useState(null);
+  const [recs, setRecs] = useState([]);
+  useEffect(() => {
+    let huy = false;
+    (async () => {
+      const [a, b] = await Promise.all([
+        api("/api/sitelogs?projectId=" + encodeURIComponent(project.id)),
+        api("/api/records?projectId=" + encodeURIComponent(project.id)),
+      ]);
+      if (huy) return;
+      setLogs(a.ok ? (a.body.logs || []) : []);
+      setRecs(b.ok ? (b.body.records || []) : []);
+    })();
+    return () => { huy = true; };
+  }, [project.id]);
+  if (logs === null) return <div className="text-center py-16 text-slate-500 text-sm">{t.loading}</div>;
+
+  const suCo = logs.filter((l) => l.suCo && l.suCo.co).sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+  const ngayGanNhat = suCo.length ? suCo[0].date : null;
+  const soNgayKhongTaiNan = (() => {
+    if (!logs.length) return null;
+    const moc = ngayGanNhat || logs.map((l) => l.date).sort()[0];
+    if (!moc) return null;
+    return Math.max(0, Math.round((today0() - new Date(moc + "T00:00:00")) / 86400000));
+  })();
+  const laAnToan = (r) => r.type === t.recSafetyType;
+  const laGiayPhep = (r) => r.type === t.recPermitType;
+  const tuanNay = (r) => { const d = new Date((r.date || "") + "T00:00:00"); return !isNaN(d) && (today0() - d) / 86400000 <= 7; };
+  const toolbox = recs.filter(laAnToan);
+  const giayPhep = recs.filter(laGiayPhep);
+  const khongDat = (r) => (r.checklist || []).filter((x) => x.ketQua === "khongdat").length;
+
+  const the = (nhan, so, mau, phu) => (
+    <div className="bg-white rounded-xl border border-slate-200 px-4 py-3 flex-1 min-w-[150px]">
+      <p className="text-2xl font-semibold" style={{ color: mau }}>{so}</p>
+      <p className="text-xs text-slate-500 mt-0.5">{nhan}</p>
+      {phu && <p className="text-xs text-slate-500">{phu}</p>}
+    </div>
+  );
+  const fmtD = (d) => d ? d.split("-").reverse().join("/") : "—";
+
+  return (
+    <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-5">
+      <div className="flex flex-wrap gap-3">
+        {the(t.hseDaysSafe, soNgayKhongTaiNan == null ? "—" : soNgayKhongTaiNan, soNgayKhongTaiNan > 30 ? "#16a34a" : "#ea580c",
+             ngayGanNhat ? t.hseLastIncident + " " + fmtD(ngayGanNhat) : t.hseNoIncidentYet)}
+        {the(t.hseIncidents, suCo.length, suCo.length ? "#dc2626" : "#64748b")}
+        {the(t.hseToolbox, toolbox.filter(tuanNay).length, "#0ea5e9", t.hseThisWeek)}
+        {the(t.hsePermits, giayPhep.length, "#f59e0b")}
+      </div>
+
+      <div>
+        <h3 className="text-sm font-semibold text-slate-700 mb-2">{t.hseIncidentLog}</h3>
+        {suCo.length === 0 ? <p className="text-sm text-slate-500">{t.hseNoIncident}</p> : (
+          <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100">
+            {suCo.map((l) => (
+              <div key={l.id} className="px-4 py-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-semibold text-slate-800">{fmtD(l.date)}</span>
+                  <span className="text-[11px] px-1.5 py-0.5 rounded-full" style={{
+                    color: l.suCo.mucDo === "nghiemtrong" ? "#991b1b" : l.suCo.mucDo === "trungbinh" ? "#9a3412" : "#475569",
+                    background: l.suCo.mucDo === "nghiemtrong" ? "#fee2e2" : l.suCo.mucDo === "trungbinh" ? "#ffedd5" : "#f1f5f9" }}>
+                    {l.suCo.mucDo === "nghiemtrong" ? t.incHigh : l.suCo.mucDo === "trungbinh" ? t.incMed : t.incLow}
+                  </span>
+                  <span className="text-xs text-slate-500">{l.createdBy}</span>
+                </div>
+                {l.suCo.moTa && <p className="text-sm text-slate-700 mt-1">{l.suCo.moTa}</p>}
+                {l.suCo.khacPhuc && <p className="text-xs text-slate-600 mt-0.5"><b>{t.incFix}:</b> {l.suCo.khacPhuc}</p>}
+                {l.suCo.nguoiLienQuan && <p className="text-xs text-slate-500 mt-0.5">{t.incWho}: {l.suCo.nguoiLienQuan}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div>
+        <h3 className="text-sm font-semibold text-slate-700 mb-2">{t.hseChecks}</h3>
+        {[...toolbox, ...giayPhep].length === 0 ? <p className="text-sm text-slate-500">{t.hseNoChecks}</p> : (
+          <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100">
+            {[...toolbox, ...giayPhep].sort((a, b) => (b.date || "").localeCompare(a.date || "")).map((r) => {
+              const kd = khongDat(r);
+              return (
+                <div key={r.id} className="px-4 py-2.5 flex flex-wrap items-center gap-2">
+                  <span className="text-sm text-slate-700 tabular-nums">{fmtD(r.date)}</span>
+                  <span className="text-xs text-slate-500">{r.type}</span>
+                  <span className="text-sm text-slate-700 flex-1 min-w-[40%] truncate">{r.note || r.number || "—"}</span>
+                  {(r.checklist || []).length > 0 && (
+                    <span className="text-xs px-2 py-0.5 rounded-full" style={kd
+                      ? { color: "#991b1b", background: "#fee2e2" }
+                      : { color: "#166534", background: "#dcfce7" }}>
+                      {kd ? t.chkFailN.replace("{n}", String(kd)) : t.chkPassAll}
+                    </span>
+                  )}
+                  <span className="text-xs text-slate-500">{r.createdBy}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+      <p className="text-xs text-slate-500">{t.hseHint}</p>
+    </div>
+  );
+}
+
+function SiteLogModal({ t, lang, project, log, boqItems, onClose, onSaved }) {
   const now = new Date(); const iso = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
   const [date, setDate] = useState(log ? log.date : iso);
   const [wAM, setWAM] = useState(log ? log.weatherAM : "");
@@ -1747,41 +2493,195 @@ function SiteLogModal({ t, lang, project, log, onClose, onSaved }) {
   const [issues, setIssues] = useState(log ? log.issues : "");
   const [nextPlan, setNextPlan] = useState(log ? log.nextPlan : "");
   const [files, setFiles] = useState([]);
+  const [dangNen, setDangNen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  /* P5: các mục có cấu trúc */
+  const [thoiTiet, setThoiTiet] = useState((log && log.thoiTiet) || { nhietDo: "", gioMua: 0, gioNgungViec: 0 });
+  const [nhanLuc, setNhanLuc] = useState((log && log.nhanLuc) || []);
+  const [thietBi, setThietBi] = useState((log && log.thietBi) || []);
+  const [khoiLuong, setKhoiLuong] = useState((log && log.khoiLuong) || []);
+  const [suCo, setSuCo] = useState((log && log.suCo) || { co: false, mucDo: "", moTa: "", khacPhuc: "", nguoiLienQuan: "" });
+  const [ykienGiamSat, setYkien] = useState((log && log.ykienGiamSat) || "");
+  const trangThai = (log && log.trangThai) || "nhap";
+  const daDuyet = trangThai === "daduyet";
+  const tongNguoi = nhanLuc.reduce((a, r) => a + (Number(r.soNguoi) || 0), 0);
+  const tongGioMay = thietBi.reduce((a, r) => a + (Number(r.gio) || 0), 0);
   const inp = "w-full mt-0.5 text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400";
   const hasPhotos = (log && log.photos && log.photos.length > 0) || files.length > 0;
+  /* U2: nén ngay khi chọn ảnh, để người dùng thấy dung lượng thật trước khi bấm Lưu. */
+  const themAnh = async (fl) => {
+    const arr = Array.from(fl || []); if (!arr.length) return;
+    setDangNen(true);
+    const nen = [];
+    for (const f of arr) nen.push(await nenAnh(f));
+    setFiles((cu) => [...cu, ...nen]);
+    setDangNen(false);
+  };
+  const goc = (fl) => Array.from(fl || []).reduce((a, f) => a + f.size, 0);
+  const tongAnh = files.reduce((a, f) => a + f.size, 0);
   const wBtn = (cur, set) => <div className="flex gap-1.5 mt-0.5">{[["", "—"], [t.wSun, t.wSun], [t.wRain, t.wRain]].map(([v, lbl]) => <button key={v} onClick={() => set(v)} className={`flex-1 text-xs py-1.5 rounded-lg border transition ${cur === v ? "border-orange-300 bg-orange-50 text-orange-600" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}>{lbl}</button>)}</div>;
-  const submit = async () => {
+  const submit = async (napLuon) => {
     if (busy) return;
     if (!work.trim() || !hasPhotos) { setErr(t.siteRequired); return; }
     setBusy(true); setErr("");
-    const body = { id: log ? log.id : undefined, projectId: project.id, projectName: project.name, date, weatherAM: wAM, weatherPM: wPM, manpower, work, equipment, issues, nextPlan };
+    const body = { id: log ? log.id : undefined, projectId: project.id, projectName: project.name, date,
+      weatherAM: wAM, weatherPM: wPM, manpower, work, equipment, issues, nextPlan,
+      thoiTiet, nhanLuc, thietBi, khoiLuong, suCo, ykienGiamSat, trangThai: napLuon ? "danop" : trangThai };
     const r = await api("/api/sitelogs", { method: "POST", body: JSON.stringify(body) });
-    if (!r.ok) { setErr((r.body && r.body.message) || t.siteRequired); setBusy(false); return; }
+    if (!r.ok) { setErr((r.body && r.body.message) || t.siteRequired); setBusy(false); return; }   // 409: ngày đã có nhật ký của người khác
     const lid = r.body.log.id;
-    for (const f of files) { try { const tok = getToken(); await fetch("/api/sitelogs/photo?logId=" + lid + "&filename=" + encodeURIComponent(f.name), { method: "POST", headers: { ...(tok ? { Authorization: "Bearer " + tok } : {}), "Content-Type": f.type || "application/octet-stream" }, body: f }); } catch {} }
+    let anhLoi = 0;   // trước đây lỗi tải ảnh bị nuốt -> nhật ký lưu KHÔNG kèm ảnh mà không ai biết
+    for (const f of files) {
+      try {
+        const tok = getToken();
+        const up = await fetch("/api/sitelogs/photo?logId=" + lid + "&filename=" + encodeURIComponent(f.name), { method: "POST", headers: { ...(tok ? { Authorization: "Bearer " + tok } : {}), "Content-Type": f.type || "application/octet-stream" }, body: f });
+        if (!up.ok) anhLoi++;
+      } catch { anhLoi++; }
+    }
+    if (anhLoi) { setErr(t.sitePhotoFail.replace("{n}", String(anhLoi))); setBusy(false); return; }
     setBusy(false); onSaved();
   };
   return (
     <AntModal open onCancel={onClose} width={480}
       title={<span className="flex items-center gap-2"><ScrollText size={19} className="text-orange-500" />{t.constructionSite}</span>}
-      footer={<AntBtn type="primary" loading={busy} onClick={submit}>{busy ? (lang === "vi" ? "Đang lưu..." : "Saving...") : t.siteSave}</AntBtn>}>
+      footer={daDuyet ? <span className="text-sm text-slate-500">{t.siteLockedHint}</span> : (
+        <span className="flex items-center gap-2 justify-end">
+          <AntBtn loading={busy} onClick={() => submit(false)}>{t.saveDraft}</AntBtn>
+          <AntBtn type="primary" loading={busy} onClick={() => submit(true)}>{t.submitLog}</AntBtn>
+        </span>
+      )}>
         <div className="space-y-3" style={{ maxHeight: "70vh", overflowY: "auto" }}>
           <label className="block"><span className="text-xs text-slate-500">{t.siteDate}</span><input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inp} /></label>
           <div><span className="text-xs text-slate-500">{t.siteWeather} — {t.siteAM}</span>{wBtn(wAM, setWAM)}</div>
           <div><span className="text-xs text-slate-500">{t.siteWeather} — {t.sitePM}</span>{wBtn(wPM, setWPM)}</div>
-          <label className="block"><span className="text-xs text-slate-500">{t.siteManpower}</span><AntInput.TextArea value={manpower} onChange={(e) => setManpower(e.target.value)} rows={2} /></label>
-          <label className="block"><span className="text-xs text-slate-500">{t.siteWork} *</span><AntInput.TextArea value={work} onChange={(e) => setWork(e.target.value)} rows={2} /></label>
-          <label className="block"><span className="text-xs text-slate-500">{t.siteEquip}</span><AntInput.TextArea value={equipment} onChange={(e) => setEquipment(e.target.value)} rows={2} /></label>
-          <label className="block"><span className="text-xs text-slate-500">{t.siteIssues}</span><AntInput.TextArea value={issues} onChange={(e) => setIssues(e.target.value)} rows={2} /></label>
-          <label className="block"><span className="text-xs text-slate-500">{t.siteNext}</span><AntInput.TextArea value={nextPlan} onChange={(e) => setNextPlan(e.target.value)} rows={2} /></label>
-          <div><span className="text-xs text-slate-500">{t.sitePhotos} *</span><input type="file" multiple accept="image/*" onChange={(e) => setFiles(Array.from(e.target.files || []))} className="w-full mt-0.5 text-sm" />{files.length > 0 && <p className="text-xs text-slate-500 mt-1">{files.length} {lang === "vi" ? "ảnh mới" : "new photos"}</p>}{log && log.photos && log.photos.length > 0 && <p className="text-xs text-slate-500 mt-1">{log.photos.length} {lang === "vi" ? "ảnh đã có" : "existing"}</p>}</div>
+          <div className="flex flex-wrap items-center gap-2 rounded-lg bg-slate-50 px-2.5 py-2">
+            <span className="text-xs text-slate-500">{t.siteStatus}:</span>
+            <span className="text-sm font-medium" style={{ color: daDuyet ? "#16a34a" : trangThai === "danop" ? "#ea580c" : "#64748b" }}>
+              {daDuyet ? t.siteApproved : trangThai === "danop" ? t.siteSubmitted : t.siteDraft}
+            </span>
+            {daDuyet && log.duyetBoi && <span className="text-xs text-slate-500">· {log.duyetBoi}{log.duyetLuc ? " · " + new Date(log.duyetLuc).toLocaleDateString(lang === "vi" ? "vi-VN" : "en-US") : ""}</span>}
+            {daDuyet && <span className="text-xs text-amber-600 flex items-center gap-1"><Lock size={11} />{t.siteLockedHint}</span>}
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <label className="block"><span className="text-xs text-slate-500">{t.temp}</span><AntInput disabled={daDuyet} value={thoiTiet.nhietDo} onChange={(e) => setThoiTiet({ ...thoiTiet, nhietDo: e.target.value })} placeholder="28–34°C" /></label>
+            <label className="block"><span className="text-xs text-slate-500">{t.rainHours}</span><AntInput type="number" disabled={daDuyet} value={thoiTiet.gioMua || ""} onChange={(e) => setThoiTiet({ ...thoiTiet, gioMua: Number(e.target.value) || 0 })} /></label>
+            <label className="block"><span className="text-xs text-slate-500">{t.stopHours}</span><AntInput type="number" disabled={daDuyet} value={thoiTiet.gioNgungViec || ""} onChange={(e) => setThoiTiet({ ...thoiTiet, gioNgungViec: Number(e.target.value) || 0 })} /></label>
+          </div>
+          <div><span className="text-xs text-slate-500">{t.manpowerTable}</span>
+            <BangHienTruong t={t} readOnly={daDuyet} hang={nhanLuc} onChange={setNhanLuc} themNhan={t.addCrew} tong={tongNguoi ? tongNguoi + " " + t.people : null}
+              cot={[{ key: "to", nhan: t.crewName, kieu: "text", rong: 3 }, { key: "soNguoi", nhan: t.people, kieu: "so", rong: 1 }, { key: "gio", nhan: t.hours, kieu: "so", rong: 1 }]} />
+          </div>
+          <div><span className="text-xs text-slate-500">{t.equipTable}</span>
+            <BangHienTruong t={t} readOnly={daDuyet} hang={thietBi} onChange={setThietBi} themNhan={t.addEquip} tong={tongGioMay ? tongGioMay + " " + t.hours : null}
+              cot={[{ key: "ten", nhan: t.equipName, kieu: "text", rong: 3 }, { key: "soLuong", nhan: t.qty, kieu: "so", rong: 1 }, { key: "gio", nhan: t.hours, kieu: "so", rong: 1 }]} />
+          </div>
+          <div>
+            <span className="text-xs text-slate-500">{t.qtyTable}</span>
+            {boqItems && boqItems.length > 0 && !daDuyet && (
+              <AntSelect size="small" style={{ width: "100%", marginTop: 2 }} value="" onChange={(v) => { const it = boqItems.find((x) => x.id === v); if (it) setKhoiLuong([...khoiLuong, { boqId: it.id, ten: it.ten, donVi: it.donVi, kl: 0 }]); }}
+                options={[{ value: "", label: t.pickBoq }, ...boqItems.filter((x) => !khoiLuong.some((k) => k.boqId === x.id)).map((x) => ({ value: x.id, label: (x.stt ? x.stt + ". " : "") + x.ten }))]} />
+            )}
+            <BangHienTruong t={t} readOnly={daDuyet} hang={khoiLuong} onChange={setKhoiLuong} themNhan={t.addQty} tong={null}
+              cot={[{ key: "ten", nhan: t.qtyItem, kieu: "text", rong: 3 }, { key: "donVi", nhan: t.unit, kieu: "text", rong: 1 }, { key: "kl", nhan: t.qtyToday, kieu: "so", rong: 1 }]} />
+            <p className="text-xs text-slate-500 mt-0.5">{t.qtyHint}</p>
+          </div>
+          {[[t.siteManpower, manpower, setManpower, false], [t.siteWork + " *", work, setWork, true],
+            [t.siteEquip, equipment, setEquipment, false], [t.siteIssues, issues, setIssues, false],
+            [t.siteNext, nextPlan, setNextPlan, false]].map(([nhan, giaTri, dat]) => (
+            <div key={nhan} className="block">
+              <span className="text-xs text-slate-500">{nhan}</span>
+              <div className="flex items-start gap-1.5 mt-0.5">
+                <AntInput.TextArea value={giaTri} onChange={(e) => dat(e.target.value)} rows={2} style={{ flex: 1 }} />
+                <NutMicro lang={lang} title={t.micHint} onText={(txt) => dat(giaTri ? giaTri + " " + txt : txt)} />
+              </div>
+            </div>
+          ))}
+          <div className="rounded-xl border border-red-200 bg-red-50/40 p-3 space-y-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={!!suCo.co} disabled={daDuyet} onChange={(e) => setSuCo({ ...suCo, co: e.target.checked })} className="accent-red-600" />
+              <span className="text-sm font-medium text-red-700">{t.incident}</span>
+            </label>
+            {suCo.co && (
+              <>
+                <div className="flex gap-1.5">
+                  {[["nhe", t.incLow], ["trungbinh", t.incMed], ["nghiemtrong", t.incHigh]].map(([k, nhan]) => (
+                    <button key={k} disabled={daDuyet} onClick={() => setSuCo({ ...suCo, mucDo: k })}
+                      className={`flex-1 text-xs py-1.5 rounded-lg border transition ${suCo.mucDo === k ? "border-red-300 bg-red-100 text-red-700 font-medium" : "border-slate-200 text-slate-500 bg-white hover:bg-slate-50"}`}>{nhan}</button>
+                  ))}
+                </div>
+                <label className="block"><span className="text-xs text-slate-500">{t.incWhat}</span><AntInput.TextArea disabled={daDuyet} value={suCo.moTa} onChange={(e) => setSuCo({ ...suCo, moTa: e.target.value })} rows={2} /></label>
+                <label className="block"><span className="text-xs text-slate-500">{t.incFix}</span><AntInput.TextArea disabled={daDuyet} value={suCo.khacPhuc} onChange={(e) => setSuCo({ ...suCo, khacPhuc: e.target.value })} rows={2} /></label>
+                <label className="block"><span className="text-xs text-slate-500">{t.incWho}</span><AntInput disabled={daDuyet} value={suCo.nguoiLienQuan} onChange={(e) => setSuCo({ ...suCo, nguoiLienQuan: e.target.value })} /></label>
+              </>
+            )}
+          </div>
+          <label className="block"><span className="text-xs text-slate-500">{t.supervisorNote}</span>
+            <AntInput.TextArea disabled={daDuyet} value={ykienGiamSat} onChange={(e) => setYkien(e.target.value)} rows={2} placeholder={t.supervisorNoteHint} /></label>
+          <div>
+            <span className="text-xs text-slate-500">{t.sitePhotos} *</span>
+            <div className="flex flex-wrap gap-2 mt-1">
+              {/* U2: nút này mở THẲNG camera sau trên điện thoại (capture="environment") */}
+              <label className="inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg border border-orange-200 bg-orange-50 text-orange-700 cursor-pointer hover:bg-orange-100 transition">
+                <Camera size={16} />{t.takePhoto}
+                <input type="file" accept="image/*" capture="environment" multiple className="hidden"
+                  onChange={(e) => { themAnh(e.target.files); e.target.value = ""; }} />
+              </label>
+              <label className="inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg border border-slate-200 text-slate-600 cursor-pointer hover:bg-slate-50 transition">
+                <Plus size={16} />{t.pickPhoto}
+                <input type="file" accept="image/*" multiple className="hidden"
+                  onChange={(e) => { themAnh(e.target.files); e.target.value = ""; }} />
+              </label>
+            </div>
+            {dangNen && <p className="text-xs text-orange-600 mt-1">{t.compressing}</p>}
+            {files.length > 0 && (
+              <div className="mt-1.5 space-y-1">
+                {files.map((f, i) => (
+                  <div key={i} className="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 rounded-lg px-2 py-1">
+                    <span className="flex-1 truncate">{f.name}</span>
+                    <span className="tabular-nums shrink-0">{kichCo(f.size)}</span>
+                    <button type="button" onClick={() => setFiles((c) => c.filter((_, k) => k !== i))} className="text-slate-500 hover:text-red-500" aria-label={t.delete}><X size={13} /></button>
+                  </div>
+                ))}
+                <p className="text-xs text-slate-500">{files.length} {lang === "vi" ? "ảnh mới" : "new photos"} · {kichCo(tongAnh)}</p>
+              </div>
+            )}
+            {log && log.photos && log.photos.length > 0 && <p className="text-xs text-slate-500 mt-1">{log.photos.length} {lang === "vi" ? "ảnh đã có" : "existing"}</p>}
+          </div>
         </div>
         {err && <p className="text-sm text-red-500 mt-2">{err}</p>}
     </AntModal>
   );
 }
+/* A6: chọn ai được vào dự án này. Bỏ trống = cả công ty (như trước khi có tính năng). */
+function ProjectMembersModal({ t, lang, project, members, onClose, onSave }) {
+  const [sel, setSel] = useState(project.members || []);
+  const toggle = (id) => setSel((pp) => pp.includes(id) ? pp.filter((x) => x !== id) : [...pp, id]);
+  return (
+    <AntModal open onCancel={onClose} width={420}
+      title={<span className="flex items-center gap-2"><UserCheck size={18} className="text-orange-500" />{t.projMembers}</span>}
+      footer={
+        <span className="flex items-center gap-2 justify-end">
+          {sel.length > 0 && <AntBtn onClick={() => setSel([])}>{t.projMembersOpen}</AntBtn>}
+          <AntBtn type="primary" onClick={() => onSave(sel)}>{t.save}</AntBtn>
+        </span>
+      }>
+      <p className="text-xs text-slate-500 mb-2">{sel.length === 0 ? t.projMembersHintOpen : t.projMembersHintLocked}</p>
+      <div style={{ maxHeight: "50vh", overflowY: "auto" }} className="space-y-1">
+        {members.map((m) => (
+          <label key={m.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer">
+            <AntCheckbox checked={sel.includes(m.id)} onChange={() => toggle(m.id)} />
+            <Avatar name={m.name} size={24} />
+            <span className="text-sm text-slate-700 flex-1">{m.name}</span>
+            {m.role === "owner" && <span className="text-xs text-slate-500">{t.roles.owner}</span>}
+          </label>
+        ))}
+      </div>
+      <p className="text-xs text-slate-500 mt-2">{t.projMembersNote}</p>
+    </AntModal>
+  );
+}
+
 function SiteAssignModal({ t, lang, project, members, onClose, onSave }) {
   const [sel, setSel] = useState(project.siteLoggers || []);
   const toggle = (id) => setSel((pp) => pp.includes(id) ? pp.filter((x) => x !== id) : [...pp, id]);
@@ -1868,7 +2768,35 @@ function WorkBar({ v, w = 56 }) {
 }
 
 /* ============================ LIST VIEW ============================ */
-function ListView({ t, lang, canEdit, memberById, sections, tasks, blockedIds, onToggle, onOpenTask, onQuickAdd, onAddSection, onImport }) {
+/* % của một nhóm việc, có trọng số theo thời lượng (việc 20 ngày nặng gấp 10 lần việc 2 ngày).
+   Trước đây tiến độ chỉ là "số việc xong / tổng số việc" nên một giai đoạn dài coi như một việc nhỏ. */
+function tienDoNhom(items) {
+  let tong = 0, dat = 0;
+  for (const x of items) {
+    if (x.milestone) continue;   // mốc không có khối lượng công việc -> không tính trọng số
+    const w = Math.max(1, Number(x.duration) || 1);
+    tong += w;
+    dat += w * (x.completed ? 100 : Math.max(0, Math.min(100, Number(x.workdone) || 0))) / 100;
+  }
+  return tong ? Math.round((dat / tong) * 100) : 0;
+}
+function NhanNhom({ t, name, wbs, items }) {
+  const pct = tienDoNhom(items);
+  return (
+    <div className="flex items-center gap-2 mb-2 flex-wrap">
+      {wbs && <span className="text-xs font-mono text-slate-500 bg-slate-100 rounded px-1.5 py-0.5">{wbs}</span>}
+      <h3 className="font-semibold text-slate-700">{name}</h3>
+      <span className="text-xs text-slate-500">{items.length}</span>
+      {items.length > 0 && (
+        <span className="flex items-center gap-1.5" title={t.groupPctHint}>
+          <span className="h-1.5 w-20 rounded-full bg-slate-200 overflow-hidden"><span className="block h-full bg-orange-500" style={{ width: pct + "%" }} /></span>
+          <span className="text-xs text-slate-600 tabular-nums">{pct}%</span>
+        </span>
+      )}
+    </div>
+  );
+}
+function ListView({ t, lang, canEdit, memberById, sections, groupBy, groupOf, tasks, blockedIds, onToggle, onOpenTask, onQuickAdd, onAddSection, onImport }) {
   const [adding, setAdding] = useState({});
   const [newSection, setNewSection] = useState(false);
   const [sectionName, setSectionName] = useState("");
@@ -1876,10 +2804,11 @@ function ListView({ t, lang, canEdit, memberById, sections, tasks, blockedIds, o
   return (
     <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-6">
       {sections.map((sec) => {
-        const items = tasks.filter((x) => x.status === sec.id).sort((a, b) => (a.completed - b.completed) || (a.order - b.order));
+        const items = tasks.filter((x) => (groupOf ? groupOf(x) : x.status) === sec.id).sort((a, b) => (a.completed - b.completed) || (a.order - b.order));
+        if (groupBy === "section" && sec.id === "" && items.length === 0) return null;   // ẩn nhóm "Chưa xếp giai đoạn" khi rỗng
         return (
-          <section key={sec.id}>
-            <div className="flex items-center gap-2 mb-2"><h3 className="font-semibold text-slate-700">{sec.name}</h3><span className="text-xs text-slate-500">{items.length}</span></div>
+          <section key={sec.id || "_none"}>
+            <NhanNhom t={t} name={sec.name} wbs={sec.wbs} items={items} />
             <div className="bg-white rounded-xl border border-slate-200 overflow-hidden divide-y divide-slate-100">
               {items.map((task) => <TaskRow key={task.id} task={task} t={t} lang={lang} canEdit={canEdit} memberById={memberById} blocked={blockedIds && blockedIds.has(task.id)} onToggle={onToggle} onOpen={() => onOpenTask(task.id)} />)}
               {items.length === 0 && <div className="px-4 py-3 text-sm text-slate-500">{t.allTasksDone}</div>}
@@ -1909,12 +2838,12 @@ function ListView({ t, lang, canEdit, memberById, sections, tasks, blockedIds, o
 }
 function TaskRow({ task, t, lang, canEdit, memberById, blocked, onToggle, onOpen }) {
   return (
-    <div className="group flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 cursor-pointer transition" onClick={onOpen}>
+    <div className="group flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-1.5 px-4 py-2.5 hover:bg-slate-50 cursor-pointer transition" onClick={onOpen}>
       <button onClick={(e) => { e.stopPropagation(); if (canEdit) onToggle(task.id, !task.completed); }} className="shrink-0" disabled={!canEdit}>
         {task.completed ? <CheckCircle2 size={19} className="text-green-500" /> : <Circle size={19} className={`text-slate-400 ${canEdit ? "group-hover:text-orange-400" : ""} transition`} />}
       </button>
-      <span className={`flex-1 text-sm truncate ${task.completed ? "line-through text-slate-500" : "text-slate-700"}`}>{task.title || <span className="italic text-slate-500">{t.untitled}</span>}</span>
-      <div className="flex items-center gap-2 shrink-0">
+      <span className={`flex-1 min-w-[55%] sm:min-w-0 text-sm truncate ${task.completed ? "line-through text-slate-500" : "text-slate-700"}`}>{task.title || <span className="italic text-slate-500">{t.untitled}</span>}</span>
+      <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto pl-8 sm:pl-0">
         <WorkBar v={task.workdone || 0} />
         <SubtaskBadge subtasks={task.subtasks} />
         <DepBadge blocked={blocked} />
@@ -1929,7 +2858,7 @@ function TaskRow({ task, t, lang, canEdit, memberById, blocked, onToggle, onOpen
 }
 
 /* ============================ BOARD VIEW ============================ */
-function BoardView({ t, lang, canEdit, memberById, sections, tasks, blockedIds, onMove, onOpenTask, onQuickAdd, onAddSection }) {
+function BoardView({ t, lang, canEdit, memberById, sections, groupBy, groupOf, tasks, blockedIds, onMove, onOpenTask, onQuickAdd, onAddSection }) {
   const [dragId, setDragId] = useState(null);
   const [overSec, setOverSec] = useState(null);
   const [adding, setAdding] = useState({});
@@ -1940,14 +2869,15 @@ function BoardView({ t, lang, canEdit, memberById, sections, tasks, blockedIds, 
     <div className="p-4 md:p-6 h-full">
       <div className="flex gap-4 h-full items-start overflow-x-auto pb-4">
         {sections.map((sec) => {
-          const items = tasks.filter((x) => x.status === sec.id).sort((a, b) => (a.completed - b.completed) || (a.order - b.order));
+          const items = tasks.filter((x) => (groupOf ? groupOf(x) : x.status) === sec.id).sort((a, b) => (a.completed - b.completed) || (a.order - b.order));
+          if (groupBy === "section" && sec.id === "" && items.length === 0) return null;   // ẩn cột "Chưa xếp giai đoạn" khi rỗng
           return (
-            <div key={sec.id}
+            <div key={sec.id || "_none"}
               onDragOver={(e) => { if (canEdit) { e.preventDefault(); setOverSec(sec.id); } }}
               onDragLeave={() => setOverSec((s) => (s === sec.id ? null : s))}
               onDrop={() => { if (dragId && canEdit) onMove(dragId, sec.id); setDragId(null); setOverSec(null); }}
               className={`w-72 shrink-0 bg-slate-100 rounded-xl flex flex-col max-h-full transition ${overSec === sec.id ? "ring-2 ring-orange-400 bg-orange-50/50" : ""}`}>
-              <div className="px-3 py-2.5 flex items-center gap-2"><h3 className="font-semibold text-sm text-slate-700">{sec.name}</h3><span className="text-xs text-slate-500">{items.length}</span></div>
+              <div className="px-3 pt-2.5 pb-0.5"><NhanNhom t={t} name={sec.name} wbs={sec.wbs} items={items} /></div>
               <div className="px-2 flex-1 overflow-y-auto space-y-2" style={{ minHeight: 40 }}>
                 {items.map((task) => { const overdue = task.dueDate && !task.completed && new Date(task.dueDate + "T00:00:00") < today0(); return (
                   <div key={task.id} draggable={canEdit} onDragStart={() => setDragId(task.id)} onDragEnd={() => { setDragId(null); setOverSec(null); }}
@@ -1995,6 +2925,207 @@ function BoardView({ t, lang, canEdit, memberById, sections, tasks, blockedIds, 
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/* H2: mẫu bảng kiểm nghiệm thu nội bộ theo công tác.
+   Nội dung bám các mục kiểm tra thường gặp trên công trường dân dụng Việt Nam;
+   người dùng sửa/thêm dòng thoải mái trước khi lưu. */
+const MAU_KIEM = [
+  { id: "copha", vi: "Nghiệm thu cốp pha", en: "Formwork check", items: [
+    "Tim, cốt, kích thước hình học đúng bản vẽ",
+    "Cốp pha kín khít, không hở chân, không mất nước xi măng",
+    "Cây chống, giằng đủ số lượng, chân chống trên nền cứng",
+    "Bề mặt cốp pha sạch, đã quét chống dính",
+    "Sai lệch cho phép: tim ≤ 10 mm, cao độ ≤ 10 mm, độ thẳng đứng ≤ h/500",
+    "Có lỗ chờ kỹ thuật (điện, nước) đúng vị trí"] },
+  { id: "cotthep", vi: "Nghiệm thu cốt thép", en: "Rebar check", items: [
+    "Chủng loại, đường kính, số lượng thanh đúng bản vẽ",
+    "Khoảng cách cốt đai, vị trí nối chồng đúng quy định",
+    "Chiều dài neo, chiều dài nối đủ theo thiết kế",
+    "Con kê bảo vệ đủ, đúng chiều dày lớp bê tông bảo vệ",
+    "Thép sạch, không gỉ nặng, không dính dầu mỡ",
+    "Có chứng chỉ vật liệu / kết quả thí nghiệm thép"] },
+  { id: "betong", vi: "Nghiệm thu bê tông", en: "Concrete check", items: [
+    "Cấp phối / mác bê tông đúng thiết kế, có phiếu giao hàng",
+    "Độ sụt kiểm tra tại hiện trường trong giới hạn cho phép",
+    "Đã lấy mẫu thí nghiệm đúng số tổ mẫu quy định",
+    "Đầm kỹ, không rỗ tổ ong, không phân tầng",
+    "Mạch ngừng đúng vị trí thiết kế, đã xử lý bề mặt",
+    "Có kế hoạch bảo dưỡng (tưới nước / phủ giữ ẩm) sau khi đổ"] },
+  { id: "hoanthien", vi: "Nghiệm thu hoàn thiện", en: "Finishes check", items: [
+    "Tường phẳng, không nứt chân chim, không rỗ",
+    "Ốp lát đúng cao độ, mạch đều, không bộp",
+    "Sơn đủ lớp, màu đồng đều, không loang",
+    "Cửa đóng mở êm, khóa và phụ kiện đủ",
+    "Chống thấm khu vệ sinh đã ngâm thử đạt",
+    "Vệ sinh sạch, không còn vật liệu thừa"] },
+  { id: "antoan", vi: "An toàn đầu giờ (toolbox talk)", en: "Toolbox talk", items: [
+    "Đã họp an toàn đầu giờ, phổ biến công việc trong ngày",
+    "Toàn bộ công nhân đội mũ, đeo dây an toàn khi làm trên cao",
+    "Giày bảo hộ, găng tay, kính/mặt nạ đúng công việc",
+    "Giàn giáo có lan can, sàn thao tác chắc chắn, chân đế ổn định",
+    "Lỗ mở, hố sâu có che chắn và biển cảnh báo",
+    "Dây điện thi công không ngâm nước, có aptomat chống giật",
+    "Lối thoát hiểm, bình chữa cháy sẵn sàng",
+    "Công nhân mới đã được huấn luyện an toàn trước khi vào ca"] },
+  { id: "gianngiao", vi: "Kiểm tra giàn giáo / cốp pha treo", en: "Scaffold check", items: [
+    "Chân giàn giáo đặt trên nền cứng, có đế kê",
+    "Đủ giằng ngang, giằng chéo theo thiết kế",
+    "Sàn thao tác kín, không kênh, không thiếu tấm",
+    "Lan can bảo vệ đủ 2 thanh + tấm chặn chân",
+    "Thang lên xuống cố định, không leo trèo tay",
+    "Có thẻ kiểm tra ghi ngày và người kiểm tra"] },
+  { id: "giayphep", vi: "Giấy phép làm việc nguy hiểm", en: "Permit to work", items: [
+    "Đã xác định rõ vị trí, thời gian và phạm vi công việc",
+    "Người thực hiện có chứng chỉ phù hợp (hàn, điện, trên cao…)",
+    "Đã cắt điện / khóa van / treo biển cảnh báo (LOTO)",
+    "Có người cảnh giới trong suốt thời gian làm việc",
+    "Có bình chữa cháy và bạt chống văng xỉ tại chỗ (hàn cắt)",
+    "Khu vực bên dưới đã rào chắn, cấm người qua lại",
+    "Đã bàn giao hiện trường sạch sau khi kết thúc"] },
+  { id: "mep", vi: "Nghiệm thu điện nước (MEP)", en: "MEP check", items: [
+    "Đường ống nước đã thử áp, không rò rỉ",
+    "Dây dẫn đúng tiết diện thiết kế, đúng màu quy ước",
+    "Đã đo cách điện, tiếp địa đạt yêu cầu",
+    "Thiết bị đúng chủng loại, đúng vị trí bản vẽ",
+    "Ống luồn dây đầy đủ, có dây mồi",
+    "Bản vẽ hoàn công cập nhật đúng thực tế"] },
+];
+const KET_QUA = ["dat", "khongdat", "na"];
+
+/* ---- P2: phụ thuộc có LOẠI và ĐỘ TRỄ ----
+   FS (Finish→Start, mặc định): việc sau bắt đầu sau khi việc trước xong.
+   SS (Start→Start): hai việc chạy song song, cách nhau lag ngày.
+   FF (Finish→Finish): việc sau phải xong sau việc trước lag ngày.
+   SF (Start→Finish): hiếm, việc sau phải xong sau khi việc trước bắt đầu lag ngày.
+   lag > 0 là chờ thêm; lag < 0 (lead) là chồng lấn.
+   Dữ liệu cũ lưu chuỗi id -> hiểu là FS lag 0; ghi lại vẫn dùng chuỗi nếu vẫn là FS lag 0. */
+const LOAI_PT = ["FS", "SS", "FF", "SF"];
+const chuanDep = (d) => typeof d === "string"
+  ? { id: d, type: "FS", lag: 0 }
+  : { id: String((d && d.id) || ""), type: LOAI_PT.includes(d && d.type) ? d.type : "FS", lag: Math.round(Number(d && d.lag) || 0) };
+const depsCua = (tk) => ((tk && tk.dependsOn) || []).map(chuanDep).filter((d) => d.id);
+const idsPhuThuoc = (tk) => depsCua(tk).map((d) => d.id);
+const nenDep = (d) => (d.type === "FS" && !d.lag) ? d.id : { id: d.id, type: d.type, lag: d.lag };
+
+/* ---- P2: lịch làm việc của dự án ----
+   ngayNghi: các thứ nghỉ hằng tuần (0 = Chủ nhật … 6 = Thứ Bảy). Mặc định nghỉ Chủ nhật.
+   ngayLe:   danh sách ngày nghỉ cụ thể ("YYYY-MM-DD"), dùng cho lễ tết / ngày mưa nghỉ việc. */
+const LICH_MAC_DINH = { ngayNghi: [0], ngayLe: [] };
+const lichCua = (project) => {
+  const L = (project && project.lich) || null;
+  if (!L) return LICH_MAC_DINH;
+  return { ngayNghi: Array.isArray(L.ngayNghi) ? L.ngayNghi.map(Number).filter((x) => x >= 0 && x <= 6) : [0],
+           ngayLe: Array.isArray(L.ngayLe) ? L.ngayLe.filter((x) => /^\d{4}-\d{2}-\d{2}$/.test(x)) : [] };
+};
+
+/* ============================ PUNCH LIST (lỗi tồn đọng) ============================ */
+const MUC_DO = ["high", "med", "low"];
+const MUC_DO_MAU = { high: "#dc2626", med: "#f59e0b", low: "#64748b" };
+/* Vòng đời lỗi bám đúng luồng duyệt sẵn có của công việc, không đẻ thêm trạng thái mới. */
+const trangThaiLoi = (tk) => tk.completed || tk.status === "done" ? "verified" : tk.status === "review" ? "fixed" : "open";
+
+function DefectView({ t, lang, canEdit, memberById, members, defects, onAdd, onOpenTask }) {
+  const [mo, setMo] = useState(false);
+  const [locViTri, setLocViTri] = useState("");
+  const [locNhaThau, setLocNhaThau] = useState("");
+  const [locTrangThai, setLocTrangThai] = useState("");
+  const [f, setF] = useState({ title: "", viTri: "", mucDo: "med", nhaThau: "", dueDate: "", description: "" });
+
+  const viTris = [...new Set(defects.map((x) => (x.defect && x.defect.viTri) || "").filter(Boolean))].sort();
+  const nhaThaus = [...new Set(defects.map((x) => (x.defect && x.defect.nhaThau) || "").filter(Boolean))].sort();
+  const rows = defects.filter((x) => (!locViTri || (x.defect && x.defect.viTri) === locViTri)
+    && (!locNhaThau || (x.defect && x.defect.nhaThau) === locNhaThau)
+    && (!locTrangThai || trangThaiLoi(x) === locTrangThai));
+  const dem = (tt) => defects.filter((x) => trangThaiLoi(x) === tt).length;
+  const quaHan = defects.filter((x) => x.dueDate && trangThaiLoi(x) !== "verified" && new Date(x.dueDate + "T00:00:00") < today0()).length;
+
+  const luu = () => { if (!f.title.trim()) return; onAdd(f); setMo(false); setF({ title: "", viTri: "", mucDo: "med", nhaThau: "", dueDate: "", description: "" }); };
+  const the = (nhan, so, mau) => (
+    <div className="bg-white rounded-xl border border-slate-200 px-4 py-3 flex-1 min-w-[130px]">
+      <p className="text-2xl font-semibold" style={{ color: mau }}>{so}</p>
+      <p className="text-xs text-slate-500 mt-0.5">{nhan}</p>
+    </div>
+  );
+
+  return (
+    <div className="p-4 md:p-6 max-w-6xl mx-auto">
+      <div className="flex flex-wrap gap-3 mb-4">
+        {the(t.defectOpen, dem("open"), "#dc2626")}
+        {the(t.defectFixed, dem("fixed"), "#f59e0b")}
+        {the(t.defectVerified, dem("verified"), "#16a34a")}
+        {the(t.defectOverdue, quaHan, quaHan ? "#dc2626" : "#64748b")}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 mb-3">
+        <AntSelect value={locViTri} onChange={setLocViTri} style={{ minWidth: 150 }} options={[{ value: "", label: t.defectAllAreas }, ...viTris.map((v) => ({ value: v, label: v }))]} />
+        <AntSelect value={locNhaThau} onChange={setLocNhaThau} style={{ minWidth: 160 }} options={[{ value: "", label: t.defectAllContractors }, ...nhaThaus.map((v) => ({ value: v, label: v }))]} />
+        <AntSelect value={locTrangThai} onChange={setLocTrangThai} style={{ minWidth: 150 }} options={[{ value: "", label: t.defectAllStates }, { value: "open", label: t.defectOpen }, { value: "fixed", label: t.defectFixed }, { value: "verified", label: t.defectVerified }]} />
+        <div className="flex-1" />
+        {canEdit && <AntBtn type="primary" icon={<Plus size={16} />} onClick={() => setMo(true)}>{t.defectAdd}</AntBtn>}
+      </div>
+
+      {rows.length === 0 ? (
+        <Empty2 icon={<ClipboardCheck size={44} />} text={t.defectNone} />
+      ) : (
+        <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+          <table className="w-full text-sm" style={{ minWidth: 760 }}>
+            <thead><tr className="bg-slate-50 text-left text-slate-600">
+              <th className="px-3 py-2 font-medium">{t.defectArea}</th>
+              <th className="px-3 py-2 font-medium">{t.defectDesc}</th>
+              <th className="px-3 py-2 font-medium">{t.defectSeverity}</th>
+              <th className="px-3 py-2 font-medium">{t.defectContractor}</th>
+              <th className="px-3 py-2 font-medium">{t.dueDate}</th>
+              <th className="px-3 py-2 font-medium">{t.statusLabel}</th>
+            </tr></thead>
+            <tbody className="divide-y divide-slate-100">
+              {rows.map((x) => {
+                const tt = trangThaiLoi(x);
+                const tre = x.dueDate && tt !== "verified" && new Date(x.dueDate + "T00:00:00") < today0();
+                return (
+                  <tr key={x.id} onClick={() => onOpenTask(x.id)} className="cursor-pointer hover:bg-slate-50">
+                    <td className="px-3 py-2 text-slate-600">{(x.defect && x.defect.viTri) || "—"}</td>
+                    <td className="px-3 py-2 text-slate-700">{x.title || t.untitled}</td>
+                    <td className="px-3 py-2"><span className="text-xs font-medium px-1.5 py-0.5 rounded" style={{ color: MUC_DO_MAU[(x.defect && x.defect.mucDo) || "med"], background: MUC_DO_MAU[(x.defect && x.defect.mucDo) || "med"] + "18" }}>{t.defectSev[(x.defect && x.defect.mucDo) || "med"]}</span></td>
+                    <td className="px-3 py-2 text-slate-600">{(x.defect && x.defect.nhaThau) || "—"}</td>
+                    <td className={`px-3 py-2 tabular-nums ${tre ? "text-red-600 font-medium" : "text-slate-600"}`}>{x.dueDate ? x.dueDate.split("-").reverse().join("/") : "—"}</td>
+                    <td className="px-3 py-2">
+                      <span className="text-xs px-2 py-0.5 rounded-full" style={{
+                        color: tt === "verified" ? "#166534" : tt === "fixed" ? "#92400e" : "#991b1b",
+                        background: tt === "verified" ? "#dcfce7" : tt === "fixed" ? "#fef3c7" : "#fee2e2" }}>
+                        {tt === "verified" ? t.defectVerified : tt === "fixed" ? t.defectFixed : t.defectOpen}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <p className="text-xs text-slate-500 mt-3">{t.defectFlowHint}</p>
+
+      {mo && (
+        <AntModal open onCancel={() => setMo(false)} width={460} title={t.defectAdd}
+          footer={<AntBtn type="primary" onClick={luu} disabled={!f.title.trim()}>{t.create}</AntBtn>}>
+          <div className="space-y-3">
+            <label className="block"><span className="text-xs text-slate-500">{t.defectDesc} *</span><AntInput autoFocus value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder={t.defectDescHint} /></label>
+            <label className="block"><span className="text-xs text-slate-500">{t.defectArea}</span><AntInput value={f.viTri} onChange={(e) => setF({ ...f, viTri: e.target.value })} placeholder={t.defectAreaHint} list="pm-vitri" /></label>
+            <datalist id="pm-vitri">{viTris.map((v) => <option key={v} value={v} />)}</datalist>
+            <div><span className="text-xs text-slate-500">{t.defectSeverity}</span>
+              <div className="flex gap-1.5 mt-0.5">{MUC_DO.map((m) => (
+                <button key={m} onClick={() => setF({ ...f, mucDo: m })} className={`flex-1 text-xs py-1.5 rounded-lg border transition ${f.mucDo === m ? "border-orange-300 bg-orange-50 text-orange-600" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}>{t.defectSev[m]}</button>
+              ))}</div>
+            </div>
+            <label className="block"><span className="text-xs text-slate-500">{t.defectContractor}</span><AntInput value={f.nhaThau} onChange={(e) => setF({ ...f, nhaThau: e.target.value })} list="pm-nhathau" /></label>
+            <datalist id="pm-nhathau">{nhaThaus.map((v) => <option key={v} value={v} />)}</datalist>
+            <label className="block"><span className="text-xs text-slate-500">{t.defectDue}</span><input type="date" value={f.dueDate} onChange={(e) => setF({ ...f, dueDate: e.target.value })} className="w-full mt-0.5 text-sm border border-slate-200 rounded-lg px-3 py-2" /></label>
+            <label className="block"><span className="text-xs text-slate-500">{t.description}</span><AntInput.TextArea value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} rows={2} /></label>
+          </div>
+        </AntModal>
+      )}
     </div>
   );
 }
@@ -2509,7 +3640,7 @@ function ContractCard({ side, c, investorContracts, projects, projName, t, lang,
   );
 }
 
-function FinanceView({ t, lang, finance, projects, tasks, onChange }) {
+function FinanceView({ t, lang, finance, projects, tasks, onChange, canEditFin = true }) {
   const [tab, setTab] = useState("investor");
   const [adding, setAdding] = useState(false);
   const [proj, setProj] = useState("");
@@ -2610,12 +3741,14 @@ function FinanceView({ t, lang, finance, projects, tasks, onChange }) {
         </div>
       )}
 
+      {!canEditFin && <div className="text-xs rounded-lg bg-slate-100 border border-slate-200 px-2.5 py-1.5 text-slate-600 flex items-center gap-1.5"><Lock size={12} />{t.finReadOnly}</div>}
       <AntTabs activeKey={tab} onChange={(k) => { setTab(k); setAdding(false); }} tabBarStyle={{ marginBottom: 0 }}
-        items={[{ key: "investor", label: t.finTabInvestor }, { key: "sub", label: t.finTabSub }, { key: "boq", label: t.finTabBoq }, { key: "cashflow", label: t.finTabCashflow }]}
+        items={[{ key: "investor", label: t.finTabInvestor }, { key: "sub", label: t.finTabSub }, { key: "boq", label: t.finTabBoq }, { key: "cost", label: t.finTabCost }, { key: "cashflow", label: t.finTabCashflow }]}
         tabBarExtraContent={(tab === "investor" || tab === "sub") ? <AntBtn type="primary" icon={<Plus size={15} />} onClick={() => setAdding((v) => !v)}>{tab === "investor" ? t.addContract : t.addSubContract}</AntBtn> : undefined} />
 
       {tab === "cashflow" && <CashflowTab inv={fInv} sub={fSub} t={t} lang={lang} />}
-      {tab === "boq" && <BOQTab t={t} lang={lang} finance={finance} onChange={onChange} projects={projects} proj={proj} tasks={tasks || []} inv={inv} />}
+      {tab === "boq" && <BOQTab t={t} lang={lang} finance={finance} onChange={onChange} projects={projects} proj={proj} tasks={tasks || []} inv={inv} canEdit={canEditFin} />}
+      {tab === "cost" && <CostTab t={t} lang={lang} finance={finance} onChange={onChange} projects={projects} proj={proj} canEdit={canEditFin} />}
 
       {(tab === "investor" || tab === "sub") && adding && (
         <ContractForm side={tab} investorContracts={inv} projects={projects} initial={proj ? { projectId: proj } : null} t={t}
@@ -2731,7 +3864,282 @@ function BoqSCurve({ t, lang, items, kys, projTasks, totVal }) {
   );
 }
 
-function BOQTab({ t, lang, finance, onChange, projects, proj, tasks, inv }) {
+/* Q2: nhóm chi phí chuẩn cho công trình dân dụng. Người dùng thêm nhóm riêng thoải mái. */
+const NHOM_CHI_PHI = [
+  { id: "vattu", vi: "Vật tư", en: "Materials" },
+  { id: "nhancong", vi: "Nhân công", en: "Labour" },
+  { id: "may", vi: "Máy thi công", en: "Plant" },
+  { id: "thauphu", vi: "Thầu phụ", en: "Subcontractors" },
+  { id: "chung", vi: "Chi phí chung / quản lý", en: "Overheads" },
+  { id: "khac", vi: "Khác", en: "Other" },
+];
+
+/* Q2: Ngân sách – Cam kết – Thực tế cho một dự án.
+   Cam kết = tổng giá trị hợp đồng thầu phụ đã ký (tiền đã hứa chi, dù chưa trả).
+   Thực tế = sổ chi phí nhập tay (ngày, nhóm, số tiền, chứng từ, nhà cung cấp). */
+function CostTab({ t, lang, finance, onChange, projects, proj, canEdit }) {
+  const [themMo, setThemMo] = useState(false);
+  const [f, setF] = useState({ ngay: "", nhom: "vattu", moTa: "", soTien: "", chungTu: "", ncc: "" });
+  const pid = proj || (projects[0] && projects[0].id) || "";
+  const nganSach = ((finance.nganSach || {})[pid]) || {};
+  const chiPhi = ((finance.chiPhi || {})[pid]) || [];
+  const tenNhom = (id) => { const g = NHOM_CHI_PHI.find((x) => x.id === id); return g ? (lang === "vi" ? g.vi : g.en) : id; };
+
+  const datNganSach = (nhom, v) => onChange({ ...finance, nganSach: { ...(finance.nganSach || {}), [pid]: { ...nganSach, [nhom]: Number(v) || 0 } } });
+  const themChiPhi = () => {
+    if (!f.ngay || !(Number(f.soTien) > 0)) return;
+    onChange({ ...finance, chiPhi: { ...(finance.chiPhi || {}), [pid]: [...chiPhi, { id: uid(), ...f, soTien: Number(f.soTien) || 0 }] } });
+    setF({ ngay: "", nhom: "vattu", moTa: "", soTien: "", chungTu: "", ncc: "" }); setThemMo(false);
+  };
+  const xoaChiPhi = (id) => onChange({ ...finance, chiPhi: { ...(finance.chiPhi || {}), [pid]: chiPhi.filter((x) => x.id !== id) } });
+
+  /* Cam kết lấy từ hợp đồng thầu phụ của chính dự án này. */
+  const camKetThauPhu = (finance.subContracts || []).filter((c) => c.projectId === pid).reduce((a, c) => a + (Number(c.value) || 0), 0);
+  const thucTe = (nhom) => chiPhi.filter((x) => x.nhom === nhom).reduce((a, x) => a + (Number(x.soTien) || 0), 0);
+
+  const tongNS = NHOM_CHI_PHI.reduce((a, g) => a + (Number(nganSach[g.id]) || 0), 0);
+  const tongTT = chiPhi.reduce((a, x) => a + (Number(x.soTien) || 0), 0);
+  /* Doanh thu ghi nhận = giá trị lũy kế đã nghiệm thu của BOQ dự án này. */
+  const bq = ((finance.boq || {})[pid]) || { items: [], kys: [] };
+  /* R11: chỉ tính dòng gốc và phát sinh ĐÃ DUYỆT — giống hệt cách tab BOQ tính, nếu không
+     thì lãi gộp bị thổi lên bằng giá trị các VO còn đang chờ Chủ đầu tư duyệt.
+     Kỳ đã khóa dùng đơn giá đã chốt (dgKhoa) theo R3. */
+  const doanhThu = (bq.items || []).filter(voTinhTien).reduce((a, it) =>
+    a + (bq.kys || []).reduce((s, k) => s + (Number((k.kl || {})[it.id]) || 0) * giaTrongKy(k, it), 0), 0);
+  const laiGop = doanhThu - tongTT;
+
+  if (!pid) return <Empty2 icon={<Wallet size={44} />} text={t.costPickProject} />;
+  const the = (nhan, val, mau) => (
+    <div className="bg-white rounded-xl border border-slate-200 px-4 py-3 flex-1 min-w-[150px]">
+      <p className="text-lg font-semibold tabular-nums" style={{ color: mau }}>{fmtMoney(val, lang)}</p>
+      <p className="text-xs text-slate-500 mt-0.5">{nhan}</p>
+    </div>
+  );
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-3">
+        {the(t.costRevenue, doanhThu, "#0ea5e9")}
+        {the(t.costBudget, tongNS, "#ea580c")}
+        {the(t.costCommitted, camKetThauPhu, "#f59e0b")}
+        {the(t.costActual, tongTT, "#dc2626")}
+        {the(t.costGross, laiGop, laiGop >= 0 ? "#16a34a" : "#dc2626")}
+      </div>
+
+      <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+        <table className="w-full text-sm" style={{ minWidth: 620 }}>
+          <thead><tr className="bg-slate-50 text-left text-slate-600">
+            <th className="px-3 py-2 font-medium">{t.costGroup}</th>
+            <th className="px-3 py-2 font-medium text-right">{t.costBudget}</th>
+            <th className="px-3 py-2 font-medium text-right">{t.costActual}</th>
+            <th className="px-3 py-2 font-medium text-right">{t.costLeft}</th>
+            <th className="px-3 py-2 font-medium text-right">%</th>
+          </tr></thead>
+          <tbody className="divide-y divide-slate-100">
+            {NHOM_CHI_PHI.map((g) => {
+              const ns = Number(nganSach[g.id]) || 0, tt = thucTe(g.id);
+              const pct = ns > 0 ? Math.round(tt / ns * 100) : 0;
+              return (
+                <tr key={g.id}>
+                  <td className="px-3 py-2 text-slate-700">{tenNhom(g.id)}</td>
+                  <td className="px-3 py-1.5 text-right">
+                    {canEdit
+                      ? <AntInput size="small" type="number" value={ns || ""} onChange={(e) => datNganSach(g.id, e.target.value)} style={{ width: 130, textAlign: "right" }} />
+                      : <span className="tabular-nums">{fmtMoney(ns, lang)}</span>}
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums">{fmtMoney(tt, lang)}</td>
+                  <td className="px-3 py-2 text-right tabular-nums" style={{ color: ns - tt < 0 ? "#dc2626" : undefined }}>{fmtMoney(ns - tt, lang)}</td>
+                  <td className="px-3 py-2 text-right tabular-nums" style={{ color: pct > 100 ? "#dc2626" : undefined }}>{ns > 0 ? pct + "%" : "—"}</td>
+                </tr>
+              );
+            })}
+            <tr className="font-semibold bg-slate-50">
+              <td className="px-3 py-2">{t.total}</td>
+              <td className="px-3 py-2 text-right tabular-nums">{fmtMoney(tongNS, lang)}</td>
+              <td className="px-3 py-2 text-right tabular-nums">{fmtMoney(tongTT, lang)}</td>
+              <td className="px-3 py-2 text-right tabular-nums" style={{ color: tongNS - tongTT < 0 ? "#dc2626" : undefined }}>{fmtMoney(tongNS - tongTT, lang)}</td>
+              <td className="px-3 py-2 text-right tabular-nums">{tongNS > 0 ? Math.round(tongTT / tongNS * 100) + "%" : "—"}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div>
+        <div className="flex items-center gap-2 mb-2">
+          <h3 className="text-sm font-semibold text-slate-700">{t.costLedger}</h3>
+          <span className="text-xs text-slate-500">{chiPhi.length}</span>
+          <div className="flex-1" />
+          {canEdit && <AntBtn size="small" type="primary" icon={<Plus size={14} />} onClick={() => setThemMo(true)}>{t.costAdd}</AntBtn>}
+        </div>
+        {chiPhi.length === 0 ? <p className="text-sm text-slate-500">{t.costNone}</p> : (
+          <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+            <table className="w-full text-sm" style={{ minWidth: 700 }}>
+              <thead><tr className="bg-slate-50 text-left text-slate-600">
+                <th className="px-3 py-2 font-medium">{t.recDate}</th>
+                <th className="px-3 py-2 font-medium">{t.costGroup}</th>
+                <th className="px-3 py-2 font-medium">{t.description}</th>
+                <th className="px-3 py-2 font-medium">{t.costSupplier}</th>
+                <th className="px-3 py-2 font-medium">{t.costDoc}</th>
+                <th className="px-3 py-2 font-medium text-right">{t.costAmount}</th>
+                {canEdit && <th />}
+              </tr></thead>
+              <tbody className="divide-y divide-slate-100">
+                {[...chiPhi].sort((a, b) => (b.ngay || "").localeCompare(a.ngay || "")).map((x) => (
+                  <tr key={x.id}>
+                    <td className="px-3 py-2 tabular-nums text-slate-600">{x.ngay ? x.ngay.split("-").reverse().join("/") : "—"}</td>
+                    <td className="px-3 py-2 text-slate-600">{tenNhom(x.nhom)}</td>
+                    <td className="px-3 py-2 text-slate-700">{x.moTa || "—"}</td>
+                    <td className="px-3 py-2 text-slate-600">{x.ncc || "—"}</td>
+                    <td className="px-3 py-2 text-slate-600">{x.chungTu || "—"}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{fmtMoney(x.soTien, lang)}</td>
+                    {canEdit && <td className="px-2"><button onClick={() => xoaChiPhi(x.id)} className="text-slate-400 hover:text-red-500" aria-label={t.delete}><X size={14} /></button></td>}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {themMo && (
+        <AntModal open onCancel={() => setThemMo(false)} width={440} title={t.costAdd}
+          footer={<AntBtn type="primary" onClick={themChiPhi} disabled={!f.ngay || !(Number(f.soTien) > 0)}>{t.save}</AntBtn>}>
+          <div className="space-y-3">
+            <label className="block"><span className="text-xs text-slate-500">{t.recDate} *</span><input type="date" value={f.ngay} onChange={(e) => setF({ ...f, ngay: e.target.value })} className="w-full mt-0.5 text-sm border border-slate-200 rounded-lg px-3 py-2" /></label>
+            <label className="block"><span className="text-xs text-slate-500">{t.costGroup}</span><AntSelect value={f.nhom} onChange={(v) => setF({ ...f, nhom: v })} style={{ width: "100%", marginTop: 2 }} options={NHOM_CHI_PHI.map((g) => ({ value: g.id, label: lang === "vi" ? g.vi : g.en }))} /></label>
+            <label className="block"><span className="text-xs text-slate-500">{t.description}</span><AntInput value={f.moTa} onChange={(e) => setF({ ...f, moTa: e.target.value })} /></label>
+            <label className="block"><span className="text-xs text-slate-500">{t.costSupplier}</span><AntInput value={f.ncc} onChange={(e) => setF({ ...f, ncc: e.target.value })} /></label>
+            <label className="block"><span className="text-xs text-slate-500">{t.costDoc}</span><AntInput value={f.chungTu} onChange={(e) => setF({ ...f, chungTu: e.target.value })} placeholder="HĐ 0001234 / PC 05" /></label>
+            <label className="block"><span className="text-xs text-slate-500">{t.costAmount} *</span><AntInput type="number" value={f.soTien} onChange={(e) => setF({ ...f, soTien: e.target.value })} /></label>
+          </div>
+        </AntModal>
+      )}
+      <p className="text-xs text-slate-500">{t.costHint}</p>
+    </div>
+  );
+}
+
+/* U5: gộp ba chiều theo id.
+   goc    = bản đồng bộ gần nhất (điểm chung của hai bên)
+   cuaToi = bản đang có trên máy tôi
+   cuaHo  = bản mới nhất trên máy chủ
+   Quy tắc: ai đổi thì lấy của người đó; cả hai cùng đổi một bản ghi thì NHƯỜNG MÁY CHỦ và
+   trả bản ghi đó về trong xungDot để báo cho người dùng biết đúng chỗ nào cần nhập lại. */
+function gopBaChieu(goc, cuaToi, cuaHo, keyOf) {
+  const K = keyOf || ((x) => x.id);
+  const bang = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const mGoc = new Map((goc || []).map((x) => [K(x), x]));
+  const mToi = new Map((cuaToi || []).map((x) => [K(x), x]));
+  const mHo = new Map((cuaHo || []).map((x) => [K(x), x]));
+  const ra = new Map(mHo);                       // xuất phát từ sự thật của máy chủ
+  const xungDot = [];
+  for (const [id, toi] of mToi) {
+    const g = mGoc.get(id), ho = mHo.get(id);
+    if (g && bang(g, toi)) continue;             // tôi không đổi gì -> giữ bản máy chủ
+    if (!ho) { if (!g) ra.set(id, toi); continue; }   // tôi tạo mới -> thêm; họ xóa mà tôi sửa -> tôn trọng việc xóa
+    if (!g || bang(g, ho)) ra.set(id, toi);      // chỉ mình tôi đổi -> lấy bản của tôi
+    else xungDot.push(toi);                      // cả hai cùng đổi -> nhường máy chủ
+  }
+  for (const [id, g] of mGoc) {                  // tôi xóa: chỉ xóa nếu họ không đụng vào
+    if (mToi.has(id)) continue;
+    const ho = mHo.get(id);
+    if (ho && bang(ho, g)) ra.delete(id);
+  }
+  return { ket: [...ra.values()], xungDot };
+}
+
+/* Q5: công thức đề nghị thanh toán từ một kỳ nghiệm thu.
+   Thứ tự đúng theo thông lệ hợp đồng xây dựng Việt Nam:
+     1) giá trị thực hiện trong kỳ (chưa VAT)
+     2) trừ giữ lại bảo hành (thường 5%)
+     3) trừ khấu trừ tạm ứng (theo tỷ lệ tạm ứng đã nhận)
+     4) cộng VAT tính trên phần còn lại sau khấu trừ  */
+function tinhDeNghi({ giaTriKy, tlGiuLai, tlKhauTru, tlVAT }) {
+  const gt = Number(giaTriKy) || 0;
+  const giuLai = gt * (Number(tlGiuLai) || 0) / 100;
+  const khauTru = gt * (Number(tlKhauTru) || 0) / 100;
+  const truocVAT = gt - giuLai - khauTru;
+  const vat = truocVAT * (Number(tlVAT) || 0) / 100;
+  return { giaTriKy: gt, giuLai, khauTru, truocVAT, vat, tong: truocVAT + vat };
+}
+
+/* Q1: dòng BOQ phát sinh. voTrangThai: "" (gốc) | "dexuat" | "duyet" | "tuchoi".
+   Chỉ dòng gốc và dòng phát sinh ĐÃ DUYỆT mới được tính vào giá trị hợp đồng. */
+const VO_TT = { dexuat: { vi: "Đề xuất", en: "Proposed", mau: "#f59e0b" },
+                duyet: { vi: "Đã duyệt", en: "Approved", mau: "#16a34a" },
+                tuchoi: { vi: "Từ chối", en: "Rejected", mau: "#dc2626" } };
+const laVO = (it) => !!it.voSo || !!it.voTrangThai;
+const voTinhTien = (it) => !laVO(it) || it.voTrangThai === "duyet";
+/* R3: kỳ đã khóa được máy chủ chụp lại đơn giá tại thời điểm khóa (dgKhoa). Giá trị kỳ đó
+   phải tính theo bản chụp, để sửa đơn giá về sau không làm đổi con số đã nộp Chủ đầu tư. */
+const giaTrongKy = (ky, it) => (ky && ky.khoa && ky.dgKhoa && ky.dgKhoa[it.id] != null)
+  ? Number(ky.dgKhoa[it.id]) || 0
+  : Number(it.donGia) || 0;
+
+/* Q3: mở khóa một kỳ đã nộp phải ghi lý do — số liệu thanh toán không được sửa lặng lẽ. */
+function hoiLyDoMoKhoa(antModal, t) {
+  return new Promise((resolve) => {
+    let lyDo = "";
+    antModal.confirm({
+      title: t.periodUnlock, okText: t.periodUnlock, cancelText: t.cancel, okButtonProps: { danger: true },
+      content: (
+        <div className="space-y-2 pt-1">
+          <p className="text-sm text-slate-600">{t.periodUnlockWarn}</p>
+          <AntInput autoFocus placeholder={t.periodUnlockReason} onChange={(e) => { lyDo = e.target.value; }} />
+        </div>
+      ),
+      onOk: () => resolve(lyDo), onCancel: () => resolve(null),
+    });
+  });
+}
+
+/* Q5: Đề nghị thanh toán của một kỳ nghiệm thu. Lưu trong finance.deNghi[projectId][kyId]. */
+function DeNghiThanhToan({ t, lang, finance, onChange, proj, ky, giaTriKy, canEdit }) {
+  const tatCa = finance.deNghi || {};
+  const cuaDA = tatCa[proj] || {};
+  const dn = cuaDA[ky.id] || { tlGiuLai: 5, tlKhauTru: 0, tlVAT: 8, soHieu: "", ngay: "", ghiChu: "" };
+  const dat = (patch) => onChange({ ...finance, deNghi: { ...tatCa, [proj]: { ...cuaDA, [ky.id]: { ...dn, ...patch } } } });
+  const kq = tinhDeNghi({ giaTriKy, tlGiuLai: dn.tlGiuLai, tlKhauTru: dn.tlKhauTru, tlVAT: dn.tlVAT });
+  const oSo = (nhan, key, hau) => (
+    <label className="flex items-center gap-1.5">
+      <span className="text-xs text-slate-500 whitespace-nowrap">{nhan}</span>
+      <AntInput size="small" type="number" disabled={!canEdit} value={dn[key] === 0 ? 0 : (dn[key] || "")}
+        onChange={(e) => dat({ [key]: Number(e.target.value) || 0 })} style={{ width: 66 }} suffix={hau} />
+    </label>
+  );
+  const dong = (nhan, val, mau, dam) => (
+    <div className="flex items-center justify-between gap-3 py-1">
+      <span className={"text-sm " + (dam ? "font-semibold text-slate-700" : "text-slate-600")}>{nhan}</span>
+      <span className={"tabular-nums " + (dam ? "text-base font-semibold" : "text-sm")} style={{ color: mau }}>{fmtMoney(val, lang)}</span>
+    </div>
+  );
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 p-3.5">
+      <div className="flex flex-wrap items-center gap-3 mb-2">
+        <h3 className="text-sm font-semibold text-slate-700">{t.payReq} — {(lang === "vi" ? "Kỳ " : "IPC ") + ky.soKy}</h3>
+        <label className="flex items-center gap-1.5"><span className="text-xs text-slate-500">{t.payReqNo}</span>
+          <AntInput size="small" disabled={!canEdit} value={dn.soHieu || ""} onChange={(e) => dat({ soHieu: e.target.value })} style={{ width: 120 }} /></label>
+        <label className="flex items-center gap-1.5"><span className="text-xs text-slate-500">{t.recDate}</span>
+          <input type="date" disabled={!canEdit} value={dn.ngay || ""} onChange={(e) => dat({ ngay: e.target.value })} className="text-sm border border-slate-200 rounded px-1.5 py-0.5" /></label>
+      </div>
+      <div className="flex flex-wrap items-center gap-4 mb-2">
+        {oSo(t.payRetention, "tlGiuLai", "%")}
+        {oSo(t.payAdvance, "tlKhauTru", "%")}
+        {oSo(t.payVAT, "tlVAT", "%")}
+      </div>
+      <div className="divide-y divide-slate-100">
+        {dong(t.payPeriodValue, kq.giaTriKy, "#0f172a")}
+        {dong(t.payRetention + " (" + (dn.tlGiuLai || 0) + "%)", -kq.giuLai, "#dc2626")}
+        {dong(t.payAdvance + " (" + (dn.tlKhauTru || 0) + "%)", -kq.khauTru, "#dc2626")}
+        {dong(t.payBeforeVAT, kq.truocVAT, "#0f172a")}
+        {dong(t.payVAT + " (" + (dn.tlVAT || 0) + "%)", kq.vat, "#0ea5e9")}
+        {dong(t.payTotal, kq.tong, "#16a34a", true)}
+      </div>
+      <p className="text-xs text-slate-500 mt-2">{t.payHint}</p>
+    </div>
+  );
+}
+
+function BOQTab({ t, lang, finance, onChange, projects, proj, tasks, inv, canEdit = true }) {
   const { message: antMessage, modal: antModal } = AntApp.useApp();
   const [kySel, setKySel] = useState("");
   const [importOpen, setImportOpen] = useState(false);
@@ -2787,7 +4195,15 @@ function BOQTab({ t, lang, finance, onChange, projects, proj, tasks, inv }) {
   const b = boqOf(boqAll[proj]);
   const items = b.items;
   const kys = [...b.kys].sort((x, y) => (x.soKy || 0) - (y.soKy || 0));
-  const write = (nb) => onChange({ ...finance, boq: { ...boqAll, [proj]: nb } });
+  /* Q8: ô nhập trả về CHUỖI ("1.234,5"). Chuẩn hóa về số ngay khi ghi để cộng dồn không sai
+     và để tệp dữ liệu không lẫn hai kiểu. Chuỗi rỗng giữ nguyên rỗng (nghĩa là "chưa nhập"). */
+  const soHoa = (v) => (v === "" || v === null || v === undefined) ? "" : (typeof v === "number" ? v : num(v));
+  const chuanHoaBoq = (nb) => ({
+    ...nb,
+    items: (nb.items || []).map((it) => ({ ...it, khoiLuong: soHoa(it.khoiLuong), donGia: soHoa(it.donGia) })),
+    kys: (nb.kys || []).map((k) => ({ ...k, kl: Object.fromEntries(Object.entries(k.kl || {}).map(([id, v]) => [id, soHoa(v)])) })),
+  });
+  const write = (nb) => onChange({ ...finance, boq: { ...boqAll, [proj]: chuanHoaBoq(nb) } });
   const ky = kys.find((k) => k.id === kySel) || kys[kys.length - 1] || null;
   const kyIdx = ky ? kys.findIndex((k) => k.id === ky.id) : -1;
   const luyKeTruoc = (itemId) => kys.slice(0, kyIdx < 0 ? kys.length : kyIdx).reduce((s, k) => s + (Number((k.kl || {})[itemId]) || 0), 0);
@@ -2795,6 +4211,12 @@ function BOQTab({ t, lang, finance, onChange, projects, proj, tasks, inv }) {
   const setKlKyNay = (itemId, v) => { if (!ky) return; write({ items, kys: kys.map((k) => k.id === ky.id ? { ...k, kl: { ...(k.kl || {}), [itemId]: v } } : k) }); };
 
   const addItem = () => write({ items: [...items, { id: uid(), stt: "", ten: "", donVi: "", laNhom: false, khoiLuong: "", donGia: "", taskIds: [] }], kys });
+  /* Q1: thêm một dòng PHÁT SINH — mặc định ở trạng thái Đề xuất, chưa tính vào tổng. */
+  const addVO = () => {
+    const soVO = "VO-" + String(items.filter(laVO).length + 1).padStart(2, "0");
+    write({ items: [...items, { id: uid(), stt: "", ten: "", donVi: "", laNhom: false, khoiLuong: "", donGia: "", taskIds: [], voSo: soVO, voTrangThai: "dexuat" }], kys });
+  };
+  const datVO = (id, patch) => write({ items: items.map((it) => it.id === id ? { ...it, ...patch } : it), kys });
   const updItem = (id, patch) => write({ items: items.map((it) => it.id === id ? { ...it, ...patch } : it), kys });
   const delItem = async (id) => { if (!(await askDanger(antModal, t, t.boqDeleteConfirm))) return;
     write({ items: items.filter((it) => it.id !== id), kys: kys.map((k) => { const kl = { ...(k.kl || {}) }; delete kl[id]; return { ...k, kl }; }) }); };
@@ -2815,10 +4237,20 @@ function BOQTab({ t, lang, finance, onChange, projects, proj, tasks, inv }) {
     return Math.round(v * 1000) / 1000;
   };
 
-  const rows = items.filter((it) => !it.laNhom);
+  const kyKhoa = !!(ky && ky.khoa);                                   // Q3: kỳ đã nộp CĐT thì khóa số
+  const doiKhoa = async (co) => {
+    if (!ky) return;
+    if (!co) { const lyDo = await hoiLyDoMoKhoa(antModal, t); if (lyDo === null) return;
+               write({ items, kys: kys.map((k) => k.id === ky.id ? { ...k, khoa: false, moKhoaLyDo: lyDo, moKhoaLuc: Date.now() } : k) }); return; }
+    write({ items, kys: kys.map((k) => k.id === ky.id ? { ...k, khoa: true, khoaLuc: Date.now() } : k) });
+  };
+
+  const rows = items.filter((it) => !it.laNhom && voTinhTien(it));    // Q1: VO chưa duyệt không tính tiền
+  const rowsVOCho = items.filter((it) => !it.laNhom && laVO(it) && it.voTrangThai !== "duyet");
+  const giaTriVOCho = rowsVOCho.reduce((s, it) => s + (Number(it.khoiLuong) || 0) * (Number(it.donGia) || 0), 0);
   const totVal = rows.reduce((s, it) => s + (Number(it.khoiLuong) || 0) * (Number(it.donGia) || 0), 0);
   const totTruoc = rows.reduce((s, it) => s + luyKeTruoc(it.id) * (Number(it.donGia) || 0), 0);
-  const totKyNay = rows.reduce((s, it) => s + klKyNay(it.id) * (Number(it.donGia) || 0), 0);
+  const totKyNay = rows.reduce((s, it) => s + klKyNay(it.id) * giaTrongKy(ky, it), 0);   // R3: kỳ khóa dùng đơn giá đã chốt
   const totLuyKe = totTruoc + totKyNay;
   const invVal = inv.filter((c) => c.projectId === proj).reduce((s, c) => s + (Number(c.value) || 0), 0);
 
@@ -2876,15 +4308,26 @@ function BOQTab({ t, lang, finance, onChange, projects, proj, tasks, inv }) {
         {kys.length > 0 && <AntSelect size="small" value={ky ? ky.id : undefined} onChange={(v) => setKySel(v)} style={{ minWidth: 150 }}
           options={kys.map((k) => ({ value: k.id, label: (lang === "vi" ? "Kỳ " : "IPC ") + k.soKy + (k.denNgay ? " · " + k.denNgay.split("-").reverse().join("/") : "") }))} />}
         {ky && <input type="date" value={ky.denNgay || ""} onChange={(e) => write({ items, kys: kys.map((k) => k.id === ky.id ? { ...k, denNgay: e.target.value } : k) })} className="text-sm" style={boqCellStyle} />}
-        <AntBtn size="small" icon={<Plus size={13} />} onClick={addKy}>{lang === "vi" ? "Kỳ mới" : "New period"}</AntBtn>
-        {ky && <AntBtn size="small" danger onClick={delKy}>{t.delete}</AntBtn>}
+        <AntBtn size="small" icon={<Plus size={13} />} onClick={addKy} disabled={!canEdit}>{lang === "vi" ? "Kỳ mới" : "New period"}</AntBtn>
+        {ky && !kyKhoa && <AntBtn size="small" danger onClick={delKy} disabled={!canEdit}>{t.delete}</AntBtn>}
+        {ky && (kyKhoa
+          ? <AntTag color="green" style={{ margin: 0 }}><Lock size={11} style={{ verticalAlign: "-1px" }} /> {t.periodLocked}</AntTag>
+          : <AntBtn size="small" icon={<Lock size={13} />} onClick={() => doiKhoa(true)} disabled={!canEdit}>{t.periodLock}</AntBtn>)}
+        {ky && kyKhoa && <AntBtn size="small" onClick={() => doiKhoa(false)} disabled={!canEdit}>{t.periodUnlock}</AntBtn>}
         <span className="ml-auto flex items-center gap-2">
           {ky && items.length > 0 && <AntTooltip title={t.boqExportKyTip}><AntBtn size="small" icon={<Download size={13} />} onClick={exportKyCSV}>{t.boqExportKy}</AntBtn></AntTooltip>}
           <AntBtn size="small" icon={<Inbox size={13} />} onClick={() => setImportOpen((v) => !v)}>{t.boqImport}</AntBtn>
-          <AntBtn size="small" type="primary" icon={<Plus size={13} />} onClick={addItem}>{t.boqAddItem}</AntBtn>
+          <AntBtn size="small" icon={<Plus size={13} />} onClick={addVO} disabled={!canEdit}>{t.voAdd}</AntBtn>
+          <AntBtn size="small" type="primary" icon={<Plus size={13} />} onClick={addItem} disabled={!canEdit}>{t.boqAddItem}</AntBtn>
         </span>
       </div>
 
+      {rowsVOCho.length > 0 && (
+        <div className="text-xs rounded-lg bg-amber-50 border border-amber-200 px-2.5 py-1.5 text-amber-800">
+          {t.voPending.replace("{n}", String(rowsVOCho.length))} <b className="tabular-nums">{fmtMoney(giaTriVOCho, lang)}</b> — {t.voPendingHint}
+        </div>
+      )}
+      {kyKhoa && <div className="text-xs rounded-lg bg-green-50 border border-green-200 px-2.5 py-1.5 text-green-800">{t.periodLockedHint}</div>}
       {invVal > 0 && (
         <div className="text-xs text-slate-500 flex flex-wrap gap-x-4 gap-y-1">
           <span>{t.boqVsContract}: <b className="tabular-nums text-slate-700">{fmtMoney(invVal, lang)}</b></span>
@@ -2902,6 +4345,10 @@ function BOQTab({ t, lang, finance, onChange, projects, proj, tasks, inv }) {
         </div>
       )}
 
+      {ky && rows.length > 0 && (
+        <DeNghiThanhToan t={t} lang={lang} finance={finance} onChange={onChange} proj={proj}
+          ky={ky} giaTriKy={totKyNay} canEdit={canEdit} />
+      )}
       {items.length === 0 ? <Empty2 icon={<Receipt size={44} />} text={t.boqEmpty} /> : (
         <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
           <table style={{ width: "100%", borderCollapse: "collapse", minWidth: ky ? 1120 : 760 }}>
@@ -2921,6 +4368,7 @@ function BOQTab({ t, lang, finance, onChange, projects, proj, tasks, inv }) {
                       <button title={t.boqSuggest + (sg != null ? " → " + fmtQty(sg) : "")} onClick={() => sg != null && setKlKyNay(it.id, sg)} className="text-sky-500 hover:text-sky-700" style={{ padding: 3 }}><Gauge size={14} /></button>
                     )}
                     <button title={lang === "vi" ? "Dòng nhóm (không có tiền)" : "Group row (no money)"} onClick={() => updItem(it.id, { laNhom: !it.laNhom })} style={{ padding: 3, color: it.laNhom ? "#f97316" : "#cbd5e1" }}><Folder size={14} /></button>
+                    {!it.laNhom && <button title={t.voToggle} onClick={() => datVO(it.id, laVO(it) ? { voSo: "", voTrangThai: "" } : { voSo: "VO-" + String(items.filter(laVO).length + 1).padStart(2, "0"), voTrangThai: "dexuat" })} style={{ padding: 3, color: laVO(it) ? "#f59e0b" : "#cbd5e1" }}><Receipt size={14} /></button>}
                     <button title={t.delete} onClick={() => delItem(it.id)} className="text-slate-500 hover:text-red-500" style={{ padding: 3 }}><Trash2 size={14} /></button>
                   </td>
                 );
@@ -2931,17 +4379,42 @@ function BOQTab({ t, lang, finance, onChange, projects, proj, tasks, inv }) {
                     {acts}
                   </tr>
                 );
+                const vo = laVO(it);
+                const voMo = vo && it.voTrangThai !== "duyet";        // Q1: chưa duyệt -> làm mờ, không tính tiền
                 return (
-                  <tr key={it.id} className="border-b border-slate-50">
-                    <td style={{ padding: "4px 6px" }}><BoqTxt v={it.stt} onCh={(v) => updItem(it.id, { stt: v })} w={64} /></td>
-                    <td style={{ padding: "4px 6px", minWidth: 200 }}><BoqTxt v={it.ten} onCh={(v) => updItem(it.id, { ten: v })} w="100%" /></td>
+                  <tr key={it.id} className="border-b border-slate-50" style={voMo ? { opacity: 0.65, background: "#fffbeb" } : vo ? { background: "#f0fdf4" } : undefined}>
+                    <td style={{ padding: "4px 6px" }}>
+                      {vo
+                        ? <BoqTxt v={it.voSo} onCh={(v) => datVO(it.id, { voSo: v })} w={64} bold />
+                        : <BoqTxt v={it.stt} onCh={(v) => updItem(it.id, { stt: v })} w={64} />}
+                    </td>
+                    <td style={{ padding: "4px 6px", minWidth: 200 }}>
+                      <BoqTxt v={it.ten} onCh={(v) => updItem(it.id, { ten: v })} w="100%" />
+                      {vo && (
+                        <span className="flex items-center gap-1 mt-0.5">
+                          {["dexuat", "duyet", "tuchoi"].map((k) => (
+                            <button key={k} onClick={() => canEdit && datVO(it.id, { voTrangThai: k })}
+                              className="text-[10px] px-1.5 py-0.5 rounded border"
+                              style={it.voTrangThai === k
+                                ? { borderColor: VO_TT[k].mau, color: VO_TT[k].mau, background: VO_TT[k].mau + "18", fontWeight: 600 }
+                                : { borderColor: "#e2e8f0", color: "#94a3b8" }}>
+                              {lang === "vi" ? VO_TT[k].vi : VO_TT[k].en}
+                            </button>
+                          ))}
+                        </span>
+                      )}
+                    </td>
                     <td style={{ padding: "4px 6px" }}><BoqTxt v={it.donVi} onCh={(v) => updItem(it.id, { donVi: v })} w={54} /></td>
                     <td style={{ padding: "4px 6px" }}><BoqNum v={it.khoiLuong} onCh={(v) => updItem(it.id, { khoiLuong: v })} w={86} /></td>
                     <td style={{ padding: "4px 6px" }}><BoqNum v={it.donGia} onCh={(v) => updItem(it.id, { donGia: v })} w={108} /></td>
                     {tdR(fmtMoney(klHd * dg, lang), "text-slate-700")}
                     {ky && <>
                       {tdR(fmtQty(lkTr), "text-slate-500")}
-                      <td style={{ padding: "4px 6px", textAlign: "right" }}><BoqNum v={(ky.kl || {})[it.id]} onCh={(v) => setKlKyNay(it.id, v)} w={80} /></td>
+                      <td style={{ padding: "4px 6px", textAlign: "right" }}>
+                        {kyKhoa || !canEdit
+                          ? <span className="tabular-nums text-slate-600 pr-1">{fmtQty(kn)}</span>
+                          : <BoqNum v={(ky.kl || {})[it.id]} onCh={(v) => setKlKyNay(it.id, v)} w={80} />}
+                      </td>
                       {tdR(fmtQty(lk), "font-medium text-slate-700")}
                       {tdR((klHd > 0 ? Math.round(lk / klHd * 100) : 0) + "%", (klHd > 0 && lk > klHd) ? "text-red-500 font-semibold" : "text-slate-500")}
                       {tdR(fmtMoney(lk * dg, lang), "text-emerald-600")}
@@ -3292,11 +4765,95 @@ function WorkloadView({ t, lang, members, tasks, projects }) {
 
 /* ============================ TIMELINE (GANTT) ============================ */
 const DAY_MS = 86400000;
-function isoOf(d) { return d.toISOString().slice(0, 10); }
+/* Định dạng ngày theo LỊCH ĐỊA PHƯƠNG. Trước đây dùng toISOString (giờ UTC) nên ở
+   Việt Nam (UTC+7) mọi lần kéo thanh Gantt đều rơi về TRƯỚC 1 ngày so với chỗ thả. */
+function isoOf(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
 function parseISO(s) { return s ? new Date(s + "T00:00:00") : null; }
-function TimelineView({ t, lang, canEdit, tasks, memberById, project, canBaseline, onSaveBaseline, onOpenTask, onReschedule }) {
+/* A1: một dòng Gantt. React.memo -> khi kéo thanh chỉ dòng đang kéo vẽ lại. */
+const GanttRow = memo(function GanttRow({ it, top, t, lang, canEdit, memberById, min, PX, ROW, LABEL_W,
+                                          critIn, slackIn, badIn, blIn, isDrag, dragMode, dragDelta, setDrag, onOpenTask }) {
+          const delta = isDrag ? dragDelta : 0;
+          const spanGap = Math.round((it.end - it.start) / DAY_MS);
+          let startOff = Math.round((it.start - min) / DAY_MS);
+          let span = spanGap + 1;
+          if (isDrag) {
+            if (dragMode === "left") { const dd = Math.min(delta, spanGap); startOff += dd; span -= dd; }
+            else if (dragMode === "right") { span += Math.max(delta, -spanGap); }
+            else startOff += delta;
+          }
+          const m = it.tk.primaryAssigneeId ? memberById[it.tk.primaryAssigneeId] : null;
+          const wd = it.tk.workdone || 0;
+          const critical = !!critIn && !it.tk.completed;
+          const barColor = it.tk.completed ? "#10b981" : critical ? "#dc2626" : "#f97316";
+          const slackDays = slackIn != null && !it.tk.completed ? slackIn : null;
+          const depCount = depsCua(it.tk).length;
+          const isBad = !!badIn;
+          // kế hoạch gốc: thanh xám mảnh + số ngày lệch so với hạn gốc
+          const bl = blIn || null;
+          const blS = bl && parseISO(bl.s), blE = bl && parseISO(bl.e);
+          const drift = blE ? Math.round((it.end - blE) / DAY_MS) : 0;
+          const driftTxt = bl && drift !== 0 ? ((drift > 0 ? "+" : "") + drift + (lang === "vi" ? "ng " : "d ") + (drift > 0 ? t.baselineLate : t.baselineEarly) + " " + t.baselineDays) : "";
+          const barTip = (critical ? t.criticalTip : (slackDays != null ? t.slackDays + ": " + slackDays + " " + t.daysUnit : "")) + (driftTxt ? " · " + driftTxt : "");
+          return (
+            <div className="flex items-center border-b border-slate-50" style={{ height: ROW, position: "absolute", top, left: 0, right: 0 }}>
+              <div style={{ width: LABEL_W }} className="shrink-0 px-3 border-r border-slate-100 flex items-center gap-1.5">
+                <button onClick={() => onOpenTask(it.tk.id)} className="text-sm text-slate-700 truncate hover:text-orange-600 text-left flex-1">{it.tk.milestone ? "◆ " : ""}{it.tk.title || t.untitled}</button>
+                {critical && <span className="text-[10px] font-bold text-red-600 bg-red-50 rounded px-1 py-0.5 shrink-0">{t.criticalBadge}</span>}
+                {bl && drift > 0 && <span title={driftTxt} className="text-[10px] font-bold shrink-0" style={{ color: "#dc2626" }}>+{drift}{lang === "vi" ? "ng" : "d"}</span>}
+                {isBad && <span title={t.depViolation} className="text-red-500 shrink-0 flex items-center"><AlertTriangle size={13} /></span>}
+                {depCount > 0 && <span title={t.waitingOn} className="text-xs text-amber-500 flex items-center shrink-0"><Network size={12} />{depCount}</span>}
+              </div>
+              <div className="relative flex-1" style={{ height: "100%" }}>
+                {blS && blE && <div title={t.baselineLabel + ": " + bl.s.split("-").reverse().join("/") + " → " + bl.e.split("-").reverse().join("/")}
+                  style={{ position: "absolute", left: Math.round((blS - min) / DAY_MS) * PX, width: Math.max((Math.round((blE - blS) / DAY_MS) + 1) * PX - 3, 8), top: 32, height: 4, borderRadius: 2, background: "#64748b", opacity: 0.85 }} />}
+                {it.tk.milestone ? (
+                  <div onMouseDown={(ev) => canEdit && setDrag({ id: it.tk.id, startX: ev.clientX, origStart: it.start, origEnd: it.end, deltaDays: 0, mode: "move" })}
+                    onTouchStart={(ev) => canEdit && setDrag({ id: it.tk.id, startX: ev.touches[0].clientX, origStart: it.start, origEnd: it.end, deltaDays: 0, mode: "move" })}
+                    onClick={() => { if (!isDrag) onOpenTask(it.tk.id); }}
+                    title={t.milestone + ": " + (it.tk.title || t.untitled) + (barTip ? " · " + barTip : "")}
+                    className="absolute flex items-center justify-center"
+                    style={{ left: startOff * PX, width: PX, top: 9, height: 20, cursor: canEdit ? "grab" : "pointer", opacity: isDrag ? 0.8 : 1 }}>
+                    <span style={{ width: 15, height: 15, transform: "rotate(45deg)", background: it.tk.completed ? "#16a34a" : barColor, borderRadius: 3, boxShadow: "0 1px 2px rgba(0,0,0,.2)" }} />
+                  </div>
+                ) : (
+                <div onMouseDown={(ev) => canEdit && setDrag({ id: it.tk.id, startX: ev.clientX, origStart: it.start, origEnd: it.end, deltaDays: 0, mode: "move" })}
+                  onTouchStart={(ev) => canEdit && setDrag({ id: it.tk.id, startX: ev.touches[0].clientX, origStart: it.start, origEnd: it.end, deltaDays: 0, mode: "move" })}
+                  onClick={() => { if (!isDrag) onOpenTask(it.tk.id); }}
+                  title={barTip}
+                  className="absolute rounded-md flex items-center px-2 gap-1 text-white shadow-sm"
+                  style={{ left: startOff * PX, width: Math.max(span * PX - 3, 18), top: 7, height: 24, background: barColor, cursor: canEdit ? "grab" : "pointer", opacity: isDrag ? 0.8 : 1 }}>
+                  <span className="absolute left-0 top-0 bottom-0 rounded-md" style={{ width: `${wd}%`, background: "rgba(255,255,255,0.25)" }} />
+                  {m && <span className="relative"><Avatar name={m.name} size={16} /></span>}
+                  <span className="relative text-xs truncate">{wd > 0 ? wd + "%" : ""}</span>
+                  {/* tay cầm kéo giãn 2 mép: đổi ngày bắt đầu / hạn chót (đổi thời lượng) */}
+                  {canEdit && <span
+                    onMouseDown={(ev) => { ev.stopPropagation(); setDrag({ id: it.tk.id, startX: ev.clientX, origStart: it.start, origEnd: it.end, deltaDays: 0, mode: "left" }); }}
+                    onTouchStart={(ev) => { ev.stopPropagation(); setDrag({ id: it.tk.id, startX: ev.touches[0].clientX, origStart: it.start, origEnd: it.end, deltaDays: 0, mode: "left" }); }}
+                    onClick={(ev) => ev.stopPropagation()}
+                    style={{ position: "absolute", left: -2, top: -3, bottom: -3, width: 9, cursor: "col-resize" }} />}
+                  {canEdit && <span
+                    onMouseDown={(ev) => { ev.stopPropagation(); setDrag({ id: it.tk.id, startX: ev.clientX, origStart: it.start, origEnd: it.end, deltaDays: 0, mode: "right" }); }}
+                    onTouchStart={(ev) => { ev.stopPropagation(); setDrag({ id: it.tk.id, startX: ev.touches[0].clientX, origStart: it.start, origEnd: it.end, deltaDays: 0, mode: "right" }); }}
+                    onClick={(ev) => ev.stopPropagation()}
+                    style={{ position: "absolute", right: -2, top: -3, bottom: -3, width: 9, cursor: "col-resize" }} />}
+                  {isDrag && dragMode !== "move" && <span className="relative text-xs font-semibold" style={{ marginLeft: "auto" }}>{span}{lang === "vi" ? "ng" : "d"}</span>}
+                </div>
+                )}
+              </div>
+            </div>
+          );
+});
+
+function TimelineView({ t, lang, canEdit, tasks, visibleIds, memberById, project, canBaseline, onSaveBaseline, onSaveLich, onOpenTask, onReschedule }) {
   const [drag, setDrag] = useState(null); // {id, startX, origStart, origEnd, deltaDays, mode: "move"|"left"|"right"}
-  const PX = 26, ROW = 38, LABEL_W = 224;
+  /* P7: thang thời gian. "ngày" giữ như cũ; "tuần"/"tháng" thu nhỏ bề ngang để nhìn được
+     cả dự án dài mà không phải cuộn ngang mãi. */
+  const [zoom, setZoom] = useState(() => { try { return localStorage.getItem("pm_gantt_zoom") || "ngay"; } catch { return "ngay"; } });
+  useEffect(() => { try { localStorage.setItem("pm_gantt_zoom", zoom); } catch {} }, [zoom]);
+  const PX = zoom === "thang" ? 4 : zoom === "tuan" ? 10 : 26;
+  const ROW = 38, LABEL_W = 224;
+  const KHUNG_H = 560, DEM = 6;            // chiều cao khung nhìn biểu đồ + số dòng đệm trên/dưới
+  const [cuon, setCuon] = useState(0);     // vị trí cuộn dọc -> chỉ vẽ dòng đang nhìn thấy (ảo hóa)
 
   // (hooks phải chạy trước mọi early-return — bản cũ đặt effect sau return khi rỗng, vi phạm rules of hooks)
   useEffect(() => {
@@ -3320,69 +4877,152 @@ function TimelineView({ t, lang, canEdit, tasks, memberById, project, canBaselin
     return () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); window.removeEventListener("touchmove", move); window.removeEventListener("touchend", up); };
   }, [drag, onReschedule]);
 
-  const undated = tasks.filter((tk) => !parseISO(tk.startDate) && !parseISO(tk.dueDate)).length;
-  const items = tasks.map((tk) => {
-    let s = parseISO(tk.startDate) || parseISO(tk.dueDate);
-    let e = parseISO(tk.dueDate) || parseISO(tk.startDate);
-    if (!s || !e) return null;
-    if (e < s) e = s;
-    return { tk, start: s, end: e };
-  }).filter(Boolean).sort((a, b) => (a.start - b.start) || (a.end - b.end) || String(a.tk.title || "").localeCompare(String(b.tk.title || "")));
-  if (items.length === 0) return <div className="p-6"><Empty2 icon={<CalendarRange size={44} />} text={t.noTimelineData} /></div>;
-
   const baseline = (project && project.baseline && project.baseline.tasks) || null;
-  let min = items[0].start, max = items[0].end;
-  items.forEach((it) => { if (it.start < min) min = it.start; if (it.end > max) max = it.end; });
-  if (baseline) for (const id in baseline) { const b = baseline[id]; const bs = parseISO(b.s), be = parseISO(b.e); if (bs && bs < min) min = bs; if (be && be > max) max = be; }
-  min = new Date(min.getTime() - 2 * DAY_MS); max = new Date(max.getTime() + 3 * DAY_MS);
-  const totalDays = Math.round((max - min) / DAY_MS) + 1;
-  const dayOf = (d) => Math.round((d - min) / DAY_MS);
 
-  /* ---- CPM (Critical Path Method) trên lịch thực tế ----
-     ES = muộn nhất giữa ngày bắt đầu tự đặt và lúc các việc phụ thuộc xong (ràng buộc "không sớm hơn").
-     Dự trữ (slack) = LS - ES. Slack = 0 => nằm trên ĐƯỜNG GĂNG: trễ 1 ngày là cả dự án trễ 1 ngày. */
-  const nodeById = {};
-  items.forEach((it, i) => { nodeById[it.tk.id] = { i, startDay: dayOf(it.start), dur: Math.round((it.end - it.start) / DAY_MS) + 1, deps: [] }; });
-  items.forEach((it) => { nodeById[it.tk.id].deps = (it.tk.dependsOn || []).filter((d) => nodeById[d]); });
-  const succ = {}; Object.keys(nodeById).forEach((id) => { succ[id] = []; });
-  Object.keys(nodeById).forEach((id) => nodeById[id].deps.forEach((d) => succ[d].push(id)));
-  const indeg = {}; Object.keys(nodeById).forEach((id) => { indeg[id] = nodeById[id].deps.length; });
-  const topo = []; const tq = Object.keys(nodeById).filter((id) => !indeg[id]);
-  while (tq.length) { const id = tq.shift(); topo.push(id); for (const s of succ[id]) if (--indeg[s] === 0) tq.push(s); }
-  const hasCycle = topo.length !== items.length; // có phụ thuộc vòng tròn -> bỏ tính đường găng, chỉ cảnh báo
-  const es = {}, ef = {}, ls = {}, lf = {}, slackOf = {}; const violated = new Set();
-  if (!hasCycle) {
-    for (const id of topo) {
-      const n = nodeById[id];
-      const depEnd = n.deps.length ? Math.max(...n.deps.map((d) => ef[d])) : 0;
-      es[id] = Math.max(n.startDay, depEnd); ef[id] = es[id] + n.dur;
-      for (const d of n.deps) { const dn = nodeById[d]; if (n.startDay < dn.startDay + dn.dur - 1) { violated.add(id); break; } } // bắt đầu khi việc phụ thuộc còn đang chạy
+  /* A1: CPM + khung thời gian chỉ phụ thuộc DỮ LIỆU việc, không phụ thuộc thao tác kéo.
+     Đưa vào useMemo nên kéo thanh không còn tính lại đường găng mỗi khung hình.
+     allItems = TOÀN BỘ việc của dự án (đường găng phải đúng dù đang bật bộ lọc — lỗi B4).  */
+  const lich = useMemo(() => lichCua(project), [project]);
+  const nen = useMemo(() => {
+    const allItems = tasks.map((tk) => {
+      let s = parseISO(tk.startDate) || parseISO(tk.dueDate);
+      let e = parseISO(tk.dueDate) || parseISO(tk.startDate);
+      if (!s || !e) return null;
+      if (e < s) e = s;
+      return { tk, start: s, end: e };
+    }).filter(Boolean).sort((a, b) => (a.start - b.start) || (a.end - b.end) || String(a.tk.title || "").localeCompare(String(b.tk.title || "")));
+    if (!allItems.length) return null;
+
+    let min = allItems[0].start, max = allItems[0].end;
+    allItems.forEach((it) => { if (it.start < min) min = it.start; if (it.end > max) max = it.end; });
+    if (baseline) for (const id in baseline) { const b = baseline[id]; const bs = parseISO(b.s), be = parseISO(b.e); if (bs && bs < min) min = bs; if (be && be > max) max = be; }
+    min = new Date(min.getTime() - 2 * DAY_MS); max = new Date(max.getTime() + 3 * DAY_MS);
+    const totalDays = Math.round((max - min) / DAY_MS) + 1;
+    const dayOf = (d) => Math.round((d - min) / DAY_MS);
+
+    /* ---- CPM (Critical Path Method) trên lịch thực tế ----
+       ES = muộn nhất giữa ngày bắt đầu tự đặt và lúc các việc phụ thuộc xong (ràng buộc "không sớm hơn").
+       Dự trữ (slack) = LS - ES. Slack = 0 => nằm trên ĐƯỜNG GĂNG: trễ 1 ngày là cả dự án trễ 1 ngày. */
+    /* P2: trục NGÀY LÀM VIỆC. lamViec[k] = ngày lịch thứ k (tính từ min) có làm không.
+       viTri[k] = số ngày làm việc trước mốc k -> đổi ngày lịch sang toạ độ ngày làm việc.
+       Nhờ vậy Chủ nhật / ngày lễ không còn được tính là ngày thi công khi tìm đường găng. */
+    const nghiTuan = new Set(lich.ngayNghi);
+    const ngayLe = new Set(lich.ngayLe);
+    const lamViec = new Array(totalDays + 2).fill(true);
+    const viTri = new Array(totalDays + 3).fill(0);
+    for (let k = 0; k <= totalDays + 1; k++) {
+      const d = new Date(min.getTime() + k * DAY_MS);
+      const isoNgay = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+      lamViec[k] = !nghiTuan.has(d.getDay()) && !ngayLe.has(isoNgay);
+      viTri[k + 1] = viTri[k] + (lamViec[k] ? 1 : 0);
     }
-    const projEnd = Math.max(...Object.values(ef));
-    for (const id of [...topo].reverse()) {
-      lf[id] = succ[id].length ? Math.min(...succ[id].map((s) => ls[s])) : projEnd;
-      ls[id] = lf[id] - nodeById[id].dur; slackOf[id] = ls[id] - es[id];
+    const wOf = (k) => viTri[Math.max(0, Math.min(totalDays + 1, k))];        // ngày lịch -> toạ độ ngày làm việc
+    const soNgayLam = (a, b) => Math.max(1, wOf(b + 1) - wOf(a));             // số ngày LÀM VIỆC trong [a, b]
+
+    const nodeById = {};
+    allItems.forEach((it, i) => {
+      const a = dayOf(it.start), b = dayOf(it.end);
+      /* R12: mốc (milestone) là một thời điểm, không tiêu tốn ngày công — để dur = 0 thì
+         việc phụ thuộc vào mốc không bị đẩy lùi thêm 1 ngày. */
+      nodeById[it.tk.id] = { i, startDay: a, endDay: b, startW: wOf(a),
+                             dur: it.tk.milestone ? 0 : soNgayLam(a, b), deps: [] };
+    });
+    allItems.forEach((it) => { nodeById[it.tk.id].deps = depsCua(it.tk).filter((d) => nodeById[d.id]); });
+    const succ = {}; Object.keys(nodeById).forEach((id) => { succ[id] = []; });
+    Object.keys(nodeById).forEach((id) => nodeById[id].deps.forEach((d) => succ[d.id].push({ id, type: d.type, lag: d.lag })));
+    const indeg = {}; Object.keys(nodeById).forEach((id) => { indeg[id] = nodeById[id].deps.length; });
+    const topo = []; const tq = Object.keys(nodeById).filter((id) => !indeg[id]);
+    while (tq.length) { const id = tq.shift(); topo.push(id); for (const sc of succ[id]) if (--indeg[sc.id] === 0) tq.push(sc.id); }
+    const hasCycle = topo.length !== allItems.length; // có phụ thuộc vòng tròn -> bỏ tính đường găng, chỉ cảnh báo
+    const es = {}, ef = {}, ls = {}, lf = {}, slackOf = {}; const violated = new Set();
+    if (!hasCycle) {
+      /* Ràng buộc sớm nhất, viết về dạng "ES của việc sau ≥ ..." (đơn vị: ngày làm việc):
+         FS: ES_sau ≥ EF_truoc + lag   ·   SS: ES_sau ≥ ES_truoc + lag
+         FF: EF_sau ≥ EF_truoc + lag   ·   SF: EF_sau ≥ ES_truoc + lag                       */
+      const rangBuoc = (d, dur) => {
+        const p = nodeById[d.id];
+        if (d.type === "SS") return es[d.id] + d.lag;
+        if (d.type === "FF") return ef[d.id] + d.lag - dur;
+        if (d.type === "SF") return es[d.id] + d.lag - dur;
+        return ef[d.id] + d.lag;                                    // FS
+      };
+      for (const id of topo) {
+        const nd = nodeById[id];
+        const somNhat = nd.deps.length ? Math.max(...nd.deps.map((d) => rangBuoc(d, nd.dur))) : -Infinity;
+        es[id] = Math.max(nd.startW, somNhat === -Infinity ? 0 : somNhat);
+        ef[id] = es[id] + nd.dur;
+        // lịch đang đặt có vi phạm ràng buộc không (dùng ngày THẬT chứ không phải ngày sớm nhất)
+        for (const d of nd.deps) {
+          const p = nodeById[d.id];
+          const viPham = d.type === "SS" ? nd.startW < p.startW + d.lag
+            : d.type === "FF" ? nd.startW + nd.dur < p.startW + p.dur + d.lag
+            : d.type === "SF" ? nd.startW + nd.dur < p.startW + d.lag
+            : nd.startW < p.startW + p.dur + d.lag;                 // FS
+          if (viPham) { violated.add(id); break; }
+        }
+      }
+      const projEnd = Math.max(...Object.values(ef));
+      /* Ràng buộc muộn nhất: đảo ngược đúng 4 công thức trên. */
+      for (const id of [...topo].reverse()) {
+        const dur = nodeById[id].dur;
+        const ss = succ[id];
+        ls[id] = ss.length ? Math.min(...ss.map((sc) => sc.type === "SS" ? ls[sc.id] - sc.lag
+          : sc.type === "FF" ? ls[sc.id] + nodeById[sc.id].dur - dur - sc.lag
+          : sc.type === "SF" ? ls[sc.id] + nodeById[sc.id].dur - sc.lag
+          : ls[sc.id] - dur - sc.lag)) : projEnd - dur;              // FS
+        lf[id] = ls[id] + dur;
+        slackOf[id] = ls[id] - es[id];
+      }
     }
-  }
-  const isCritical = (id) => !hasCycle && slackOf[id] === 0;
 
-  const geo = {};
-  items.forEach((it, i) => { const so = dayOf(it.start); const sp = Math.round((it.end - it.start) / DAY_MS) + 1; geo[it.tk.id] = { i, so, sp }; });
-  const depLines = [];
-  items.forEach((it) => { (it.tk.dependsOn || []).forEach((dep) => {
-    const a = geo[dep], b = geo[it.tk.id]; if (!a || !b) return;
-    const tight = isCritical(dep) && isCritical(it.tk.id) && ef[dep] === es[it.tk.id]; // cạnh nằm trên đường găng
-    const dn = nodeById[dep];
-    const bad = !hasCycle && nodeById[it.tk.id].startDay < dn.startDay + dn.dur - 1; // vi phạm lịch
-    depLines.push({ x1: (a.so + a.sp) * PX, y1: a.i * ROW + 19, x2: b.so * PX, y2: b.i * ROW + 19, tight, bad });
-  }); });
+    /* P7: mốc thời gian theo mức phóng — ngày: mỗi tuần một mốc; tuần: 2 tuần; tháng: đầu tháng. */
+    const ticks = [];
+    if (zoom === "thang") {
+      let c2 = new Date(min.getFullYear(), min.getMonth(), 1);
+      while (c2 <= max) { const off = Math.round((c2 - min) / DAY_MS); if (off >= 0) ticks.push({ off, label: (c2.getMonth() + 1) + "/" + String(c2.getFullYear()).slice(2) }); c2 = new Date(c2.getFullYear(), c2.getMonth() + 1, 1); }
+    } else {
+      const buoc = zoom === "tuan" ? 14 : 7;
+      let c2 = new Date(min);
+      while (c2 <= max) { ticks.push({ off: Math.round((c2 - min) / DAY_MS), label: c2.getDate() + "/" + (c2.getMonth() + 1) }); c2 = new Date(c2.getTime() + buoc * DAY_MS); }
+    }
+    const now0 = new Date();
+    const todayOff = dayOf(new Date(now0.getFullYear(), now0.getMonth(), now0.getDate()));
+    return { allItems, min, max, totalDays, dayOf, nodeById, es, ef, slackOf, violated, hasCycle, ticks, todayOff,
+             showToday: todayOff >= 0 && todayOff <= totalDays };
+  }, [tasks, baseline, lich, zoom]);
 
-  // month header ticks
-  const ticks = []; let cur = new Date(min);
-  while (cur <= max) { const dayOffset = Math.round((cur - min) / DAY_MS); ticks.push({ off: dayOffset, label: `${cur.getDate()}/${cur.getMonth() + 1}` }); cur = new Date(cur.getTime() + 7 * DAY_MS); }
-  const now0 = new Date();
-  const todayOff = dayOf(new Date(now0.getFullYear(), now0.getMonth(), now0.getDate()));
-  const showToday = todayOff >= 0 && todayOff <= totalDays;
+  const undated = tasks.filter((tk) => !parseISO(tk.startDate) && !parseISO(tk.dueDate)).length;
+  const allItems = nen ? nen.allItems : [];
+  const items = useMemo(() => visibleIds ? allItems.filter((it) => visibleIds.has(it.tk.id)) : allItems, [allItems, visibleIds]);
+  const isCritical = (id) => !!nen && !nen.hasCycle && nen.slackOf[id] === 0;
+
+  /* hình học các dòng + dây phụ thuộc: chỉ đổi khi tập việc hiển thị đổi, không đổi khi kéo */
+  const veDay = useMemo(() => {
+    if (!nen) return { geo: {}, depLines: [] };
+    const { nodeById, es, ef, hasCycle, dayOf } = nen;
+    const geo = {};
+    items.forEach((it, i) => { geo[it.tk.id] = { i, so: dayOf(it.start), sp: Math.round((it.end - it.start) / DAY_MS) + 1 }; });
+    const depLines = [];
+    items.forEach((it) => { depsCua(it.tk).forEach((d) => {
+      const a = geo[d.id], b = geo[it.tk.id]; if (!a || !b) return;
+      const crit = (id) => !hasCycle && nen.slackOf[id] === 0;
+      const tight = crit(d.id) && crit(it.tk.id) && ef[d.id] === es[it.tk.id]; // cạnh nằm trên đường găng
+      const bad = !hasCycle && nen.violated.has(it.tk.id);                     // lịch đang đặt vi phạm ràng buộc
+      /* SS/SF nối từ ĐẦU việc trước; FF/SF nối vào CUỐI việc sau */
+      const tuDau = d.type === "SS" || d.type === "SF";
+      const denCuoi = d.type === "FF" || d.type === "SF";
+      depLines.push({ x1: (tuDau ? a.so : a.so + a.sp) * PX, y1: a.i * ROW + 19,
+                      x2: (denCuoi ? b.so + b.sp : b.so) * PX, y2: b.i * ROW + 19, tight, bad, type: d.type, lag: d.lag });
+    }); });
+    return { geo, depLines };
+  }, [nen, items, PX]);
+  const depLines = veDay.depLines;
+
+  const dangLoc = visibleIds && items.length !== allItems.length;
+  if (!nen || items.length === 0) return <div className="p-6"><Empty2 icon={<CalendarRange size={44} />} text={t.noTimelineData} /></div>;
+  const { min, totalDays, slackOf, violated, hasCycle, ticks, todayOff, showToday } = nen;
+  const tuDong = Math.max(0, Math.floor(cuon / ROW) - DEM);
+  const denDong = Math.min(items.length, Math.ceil((cuon + KHUNG_H) / ROW) + DEM);
 
   return (
     <div className="p-6">
@@ -3394,21 +5034,30 @@ function TimelineView({ t, lang, canEdit, tasks, memberById, project, canBaselin
         <span className="flex items-center gap-1.5"><svg width="22" height="8"><line x1="0" y1="4" x2="22" y2="4" stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="3 2" /></svg>{t.depLine}</span>
         {showToday && <span className="flex items-center gap-1.5"><span className="inline-block" style={{ width: 2, height: 12, background: "#0ea5e9" }} />{t.today}</span>}
         {baseline && <span className="flex items-center gap-1.5"><span className="inline-block w-4 rounded-sm" style={{ height: 4, background: "#94a3b8" }} />{t.baselineLabel}</span>}
+        {dangLoc && <span className="text-slate-500">• {t.ganttFiltered}</span>}
         {undated > 0 && <span className="text-slate-500">• {undated} {t.undatedHint}</span>}
         {hasCycle && <span className="text-red-500 flex items-center gap-1"><AlertTriangle size={13} />{t.cycleWarn}</span>}
-        {canBaseline && <span className="ml-auto"><AntBtn size="small" onClick={onSaveBaseline}>{baseline ? t.baselineUpdate : t.baselineSave}</AntBtn>{baseline && project.baseline.savedAt ? <span className="text-slate-500 ml-2">{new Date(project.baseline.savedAt).toLocaleDateString(lang === "vi" ? "vi-VN" : "en-US")}</span> : null}</span>}
+        <span className="ml-auto flex items-center gap-2">
+          <Segmented size="small" value={zoom} onChange={setZoom}
+            options={[{ value: "ngay", label: t.zoomDay }, { value: "tuan", label: t.zoomWeek }, { value: "thang", label: t.zoomMonth }]} />
+          <AntPopover trigger="click" placement="bottomRight" content={<LichLamViec t={t} lang={lang} lich={lich} canEdit={canBaseline} onChange={onSaveLich} />}>
+            <AntBtn size="small" icon={<CalendarDays size={14} />}>{t.workCalendar}</AntBtn>
+          </AntPopover>
+        </span>
+        {canBaseline && <span><AntBtn size="small" onClick={onSaveBaseline}>{baseline ? t.baselineUpdate : t.baselineSave}</AntBtn>{baseline && project.baseline.savedAt ? <span className="text-slate-500 ml-2">{new Date(project.baseline.savedAt).toLocaleDateString(lang === "vi" ? "vi-VN" : "en-US")}</span> : null}</span>}
       </div>
-      <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+      <div className="bg-white rounded-xl border border-slate-200" style={{ overflow: "auto", maxHeight: KHUNG_H }}
+        onScroll={(e) => { const v = e.currentTarget.scrollTop; setCuon((c) => Math.abs(c - v) >= ROW / 2 ? v : c); }}>
         <div style={{ minWidth: LABEL_W + totalDays * PX }}>
           {/* header */}
-          <div className="flex border-b border-slate-200 sticky top-0 bg-white" style={{ height: 28 }}>
+          <div className="flex border-b border-slate-200 sticky top-0 bg-white" style={{ height: 28, zIndex: 6 }}>
             <div style={{ width: LABEL_W }} className="shrink-0 border-r border-slate-100" />
             <div className="relative flex-1">
               {ticks.map((tk, i) => <div key={i} className="absolute text-xs text-slate-500" style={{ left: tk.off * PX, top: 6 }}>{tk.label}</div>)}
             </div>
           </div>
           {/* rows */}
-          <div style={{ position: "relative" }}>
+          <div style={{ position: "relative", height: items.length * ROW }}>
             {showToday && <div style={{ position: "absolute", left: LABEL_W + todayOff * PX, top: 0, height: items.length * ROW, width: 2, background: "#0ea5e9", opacity: 0.45, zIndex: 4, pointerEvents: "none" }} />}
             <svg width={totalDays * PX} height={items.length * ROW} style={{ position: "absolute", left: LABEL_W, top: 0, pointerEvents: "none", overflow: "visible", zIndex: 5 }}>
               {depLines.map((l, i) => {
@@ -3421,71 +5070,63 @@ function TimelineView({ t, lang, canEdit, tasks, memberById, project, canBaselin
                 );
               })}
             </svg>
-            {items.map((it) => {
-            const isDrag = drag && drag.id === it.tk.id;
-            const delta = isDrag ? drag.deltaDays : 0;
-            const spanGap = Math.round((it.end - it.start) / DAY_MS);
-            let startOff = Math.round((it.start - min) / DAY_MS);
-            let span = spanGap + 1;
-            if (isDrag) {
-              if (drag.mode === "left") { const dd = Math.min(delta, spanGap); startOff += dd; span -= dd; }
-              else if (drag.mode === "right") { span += Math.max(delta, -spanGap); }
-              else startOff += delta;
-            }
-            const m = it.tk.primaryAssigneeId ? memberById[it.tk.primaryAssigneeId] : null;
-            const wd = it.tk.workdone || 0;
-            const critical = isCritical(it.tk.id) && !it.tk.completed;
-            const barColor = it.tk.completed ? "#10b981" : critical ? "#dc2626" : "#f97316";
-            const slackDays = !hasCycle && !it.tk.completed ? slackOf[it.tk.id] : null;
-            const depCount = (it.tk.dependsOn || []).length;
-            const isBad = violated.has(it.tk.id);
-            // kế hoạch gốc: thanh xám mảnh + số ngày lệch so với hạn gốc
-            const bl = baseline && baseline[it.tk.id];
-            const blS = bl && parseISO(bl.s), blE = bl && parseISO(bl.e);
-            const drift = blE ? Math.round((it.end - blE) / DAY_MS) : 0;
-            const driftTxt = bl && drift !== 0 ? ((drift > 0 ? "+" : "") + drift + (lang === "vi" ? "ng " : "d ") + (drift > 0 ? t.baselineLate : t.baselineEarly) + " " + t.baselineDays) : "";
-            const barTip = (critical ? t.criticalTip : (slackDays != null ? t.slackDays + ": " + slackDays + " " + t.daysUnit : "")) + (driftTxt ? " · " + driftTxt : "");
-            return (
-              <div key={it.tk.id} className="flex items-center border-b border-slate-50" style={{ height: ROW }}>
-                <div style={{ width: LABEL_W }} className="shrink-0 px-3 border-r border-slate-100 flex items-center gap-1.5">
-                  <button onClick={() => onOpenTask(it.tk.id)} className="text-sm text-slate-700 truncate hover:text-orange-600 text-left flex-1">{it.tk.title || t.untitled}</button>
-                  {critical && <span className="text-[10px] font-bold text-red-600 bg-red-50 rounded px-1 py-0.5 shrink-0">{t.criticalBadge}</span>}
-                  {bl && drift > 0 && <span title={driftTxt} className="text-[10px] font-bold shrink-0" style={{ color: "#dc2626" }}>+{drift}{lang === "vi" ? "ng" : "d"}</span>}
-                  {isBad && <span title={t.depViolation} className="text-red-500 shrink-0 flex items-center"><AlertTriangle size={13} /></span>}
-                  {depCount > 0 && <span title={t.waitingOn} className="text-xs text-amber-500 flex items-center shrink-0"><Network size={12} />{depCount}</span>}
-                </div>
-                <div className="relative flex-1" style={{ height: "100%" }}>
-                  {blS && blE && <div title={t.baselineLabel + ": " + bl.s.split("-").reverse().join("/") + " → " + bl.e.split("-").reverse().join("/")}
-                    style={{ position: "absolute", left: dayOf(blS) * PX, width: Math.max((Math.round((blE - blS) / DAY_MS) + 1) * PX - 3, 8), top: 32, height: 4, borderRadius: 2, background: "#64748b", opacity: 0.85 }} />}
-                  <div onMouseDown={(ev) => canEdit && setDrag({ id: it.tk.id, startX: ev.clientX, origStart: it.start, origEnd: it.end, deltaDays: 0, mode: "move" })}
-                    onTouchStart={(ev) => canEdit && setDrag({ id: it.tk.id, startX: ev.touches[0].clientX, origStart: it.start, origEnd: it.end, deltaDays: 0, mode: "move" })}
-                    onClick={() => { if (!isDrag) onOpenTask(it.tk.id); }}
-                    title={barTip}
-                    className="absolute rounded-md flex items-center px-2 gap-1 text-white shadow-sm"
-                    style={{ left: startOff * PX, width: Math.max(span * PX - 3, 18), top: 7, height: 24, background: barColor, cursor: canEdit ? "grab" : "pointer", opacity: isDrag ? 0.8 : 1 }}>
-                    <span className="absolute left-0 top-0 bottom-0 rounded-md" style={{ width: `${wd}%`, background: "rgba(255,255,255,0.25)" }} />
-                    {m && <span className="relative"><Avatar name={m.name} size={16} /></span>}
-                    <span className="relative text-xs truncate">{wd > 0 ? wd + "%" : ""}</span>
-                    {/* tay cầm kéo giãn 2 mép: đổi ngày bắt đầu / hạn chót (đổi thời lượng) */}
-                    {canEdit && <span
-                      onMouseDown={(ev) => { ev.stopPropagation(); setDrag({ id: it.tk.id, startX: ev.clientX, origStart: it.start, origEnd: it.end, deltaDays: 0, mode: "left" }); }}
-                      onTouchStart={(ev) => { ev.stopPropagation(); setDrag({ id: it.tk.id, startX: ev.touches[0].clientX, origStart: it.start, origEnd: it.end, deltaDays: 0, mode: "left" }); }}
-                      onClick={(ev) => ev.stopPropagation()}
-                      style={{ position: "absolute", left: -2, top: -3, bottom: -3, width: 9, cursor: "col-resize" }} />}
-                    {canEdit && <span
-                      onMouseDown={(ev) => { ev.stopPropagation(); setDrag({ id: it.tk.id, startX: ev.clientX, origStart: it.start, origEnd: it.end, deltaDays: 0, mode: "right" }); }}
-                      onTouchStart={(ev) => { ev.stopPropagation(); setDrag({ id: it.tk.id, startX: ev.touches[0].clientX, origStart: it.start, origEnd: it.end, deltaDays: 0, mode: "right" }); }}
-                      onClick={(ev) => ev.stopPropagation()}
-                      style={{ position: "absolute", right: -2, top: -3, bottom: -3, width: 9, cursor: "col-resize" }} />}
-                    {isDrag && drag.mode !== "move" && <span className="relative text-xs font-semibold" style={{ marginLeft: "auto" }}>{span}{lang === "vi" ? "ng" : "d"}</span>}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+            {items.slice(tuDong, denDong).map((it, k) => (
+              <GanttRow key={it.tk.id} it={it} top={(tuDong + k) * ROW} t={t} lang={lang} canEdit={canEdit} memberById={memberById}
+                min={min} PX={PX} ROW={ROW} LABEL_W={LABEL_W}
+                critIn={isCritical(it.tk.id)} slackIn={hasCycle ? null : slackOf[it.tk.id]}
+                badIn={violated.has(it.tk.id)} blIn={baseline ? baseline[it.tk.id] : null}
+                isDrag={!!drag && drag.id === it.tk.id} dragMode={drag ? drag.mode : null} dragDelta={drag ? drag.deltaDays : 0}
+                setDrag={setDrag} onOpenTask={onOpenTask} />
+            ))}
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* P2: hộp cấu hình lịch làm việc của dự án — ngày nghỉ hằng tuần + ngày lễ.
+   CPM dùng lịch này nên đường găng và dự trữ tính theo NGÀY THI CÔNG THẬT. */
+function LichLamViec({ t, lang, lich, canEdit, onChange }) {
+  const [le, setLe] = useState("");
+  const THU = lang === "vi" ? ["CN", "T2", "T3", "T4", "T5", "T6", "T7"] : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const doiThu = (i) => {
+    if (!canEdit) return;
+    const cur = lich.ngayNghi;
+    onChange({ ...lich, ngayNghi: cur.includes(i) ? cur.filter((x) => x !== i) : [...cur, i].sort() });
+  };
+  const themLe = () => { if (!canEdit || !le || lich.ngayLe.includes(le)) return; onChange({ ...lich, ngayLe: [...lich.ngayLe, le].sort() }); setLe(""); };
+  return (
+    <div style={{ width: 280 }} className="space-y-3">
+      <div>
+        <p className="text-xs text-slate-500 mb-1">{t.weeklyOff}</p>
+        <div className="flex gap-1">
+          {THU.map((nhan, i) => (
+            <button key={i} disabled={!canEdit} onClick={() => doiThu(i)}
+              className={`flex-1 text-xs py-1.5 rounded-lg border transition ${lich.ngayNghi.includes(i) ? "border-orange-300 bg-orange-50 text-orange-600 font-medium" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}>{nhan}</button>
+          ))}
+        </div>
+      </div>
+      <div>
+        <p className="text-xs text-slate-500 mb-1">{t.holidays} {lich.ngayLe.length > 0 && <span>({lich.ngayLe.length})</span>}</p>
+        {lich.ngayLe.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-1.5" style={{ maxHeight: 90, overflowY: "auto" }}>
+            {lich.ngayLe.map((d) => (
+              <span key={d} className="text-xs bg-slate-100 rounded px-1.5 py-0.5 flex items-center gap-1">
+                {d.split("-").reverse().join("/")}
+                {canEdit && <button onClick={() => onChange({ ...lich, ngayLe: lich.ngayLe.filter((x) => x !== d) })} className="text-slate-400 hover:text-red-500" aria-label={t.delete}><X size={11} /></button>}
+              </span>
+            ))}
+          </div>
+        )}
+        {canEdit && (
+          <div className="flex gap-1.5">
+            <input type="date" value={le} onChange={(e) => setLe(e.target.value)} className="flex-1 text-sm border border-slate-200 rounded-lg px-2 py-1" />
+            <AntBtn size="small" onClick={themLe} disabled={!le}>{t.add}</AntBtn>
+          </div>
+        )}
+      </div>
+      <p className="text-xs text-slate-500">{t.workCalendarHint}</p>
     </div>
   );
 }
@@ -3580,9 +5221,54 @@ function buildReportHTML({ t, lang, project, projects, tasks, members, finance, 
 }
 
 /* ============================ HISTORY VIEW ============================ */
-function HistoryView({ t, lang, history, projects, canDelete, onDelete }) {
+/* Nhật ký do MÁY CHỦ ghi: mọi thay đổi qua API đều để lại vết, kể cả khi máy trạm
+   không ghi "Lịch sử". Chỉ đọc — không có đường nào sửa/xóa từ giao diện. */
+function AuditView({ t, lang, projects, proj }) {
+  const [rows, setRows] = useState(null);
+  const [loi, setLoi] = useState("");
+  useEffect(() => {
+    let huy = false;
+    (async () => {
+      setRows(null); setLoi("");
+      const r = await api("/api/audit?limit=500" + (proj ? "&projectId=" + encodeURIComponent(proj) : ""));
+      if (huy) return;
+      if (!r.ok) { setLoi(t.auditNoServer); setRows([]); return; }
+      setRows(r.body.entries || []);
+    })();
+    return () => { huy = true; };
+  }, [proj]); // eslint-disable-line
+  if (rows === null) return <div className="text-center py-16 text-slate-500 text-sm">{t.loading}</div>;
+  if (loi) return <div className="text-center py-16 text-slate-500 text-sm">{loi}</div>;
+  if (!rows.length) return <div className="text-center py-16 text-slate-500"><Lock size={44} className="mx-auto mb-3 opacity-40" /><p className="text-sm">{t.noHistory}</p></div>;
+  const nhan = (e) => (t.auditEntity[e.entity] || e.entity) + (e.name ? " “" + e.name + "”" : "");
+  const truong = (e) => t.auditField[e.field] || t.field[e.field] || e.field;
+  const rutGon = (v) => { const x = String(v == null ? "" : v); return x.length > 60 ? x.slice(0, 60) + "…" : (x || t.emptyVal); };
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100">
+      {rows.map((e, i) => (
+        <div key={i} className="px-4 py-2.5">
+          <p className="text-sm text-slate-700">
+            <span className="font-semibold">{e.actor || "?"}</span>{" "}
+            <span className="text-slate-600">{truong(e)}</span>{" "}
+            <span className="text-slate-500">· {nhan(e)}</span>
+          </p>
+          {e.field !== "tạo mới" && e.field !== "xóa" && (
+            <p className="text-xs text-slate-600 mt-0.5 break-words"><span className="line-through opacity-70">{rutGon(e.from)}</span> → <span className="font-medium">{rutGon(e.to)}</span></p>
+          )}
+          <p className="text-xs text-slate-500 mt-0.5">
+            {new Date(e.ts).toLocaleString(lang === "vi" ? "vi-VN" : "en-US", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+            {e.ip ? " · " + e.ip : ""}{e.rev ? " · rev " + e.rev : ""}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function HistoryView({ t, lang, history, projects, canDelete, canAudit, onDelete }) {
   const { modal: antModal } = AntApp.useApp();
   const [proj, setProj] = useState("");
+  const [tab, setTab] = useState("app");   // "app" = lịch sử ứng dụng ghi, "server" = nhật ký máy chủ ghi
   const q = (s) => `“${s || t.untitled}”`;
   const describe = (e) => {
     const A = t.act; const where = e.projectName ? ` ${t.inProject} ${e.projectName}` : "";
@@ -3613,13 +5299,24 @@ function HistoryView({ t, lang, history, projects, canDelete, onDelete }) {
     }
   };
   const rows = history.filter((e) => !proj || e.projectId === proj);
+  const nutTab = (k, nhan) => (
+    <button key={k} onClick={() => setTab(k)}
+      className={`px-3 py-1.5 text-sm rounded-lg border ${tab === k ? "bg-orange-50 border-orange-300 text-orange-700 font-medium" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"}`}>{nhan}</button>
+  );
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto">
+      {canAudit && (
+        <div className="flex flex-wrap items-center gap-2 mb-3">
+          {nutTab("app", t.histApp)}
+          {nutTab("server", t.histServer)}
+          <span className="text-xs text-slate-500 basis-full sm:basis-auto">{tab === "server" ? t.histServerHint : ""}</span>
+        </div>
+      )}
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm text-slate-500">{rows.length} {lang === "vi" ? "thay đổi" : "changes"}</p>
+        <p className="text-sm text-slate-500">{tab === "app" ? rows.length + " " + (lang === "vi" ? "thay đổi" : "changes") : t.histServerHead}</p>
         <AntSelect value={proj} onChange={(v) => setProj(v)} style={{ minWidth: 190 }} options={[{ value: "", label: t.allProjects }, ...projects.map((p) => ({ value: p.id, label: p.name }))]} />
       </div>
-      {rows.length === 0 ? (
+      {tab === "server" && canAudit ? <AuditView t={t} lang={lang} projects={projects} proj={proj} /> : rows.length === 0 ? (
         <div className="text-center py-16 text-slate-500"><ScrollText size={44} className="mx-auto mb-3 opacity-40" /><p className="text-sm">{t.noHistory}</p></div>
       ) : (
         <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100">
@@ -3641,13 +5338,25 @@ function HistoryView({ t, lang, history, projects, canDelete, onDelete }) {
 
 /* ============================ TASK DETAIL ============================ */
 function TaskFiles({ t, lang, task, canEdit }) {
+  const laLoi = task.kind === "defect";
   const { modal: antModal } = AntApp.useApp();
   const [files, setFiles] = useState([]);
   const [busy, setBusy] = useState(false);
   const load = async () => { const r = await api("/api/taskfiles?taskId=" + encodeURIComponent(task.id)); if (r.ok) setFiles(r.body.files || []); };
   useEffect(() => { load(); }, [task.id]); // eslint-disable-line
   const openFile = async (idx) => { try { const tok = getToken(); const r = await fetch("/api/taskfiles/file?taskId=" + encodeURIComponent(task.id) + "&idx=" + idx, { headers: tok ? { Authorization: "Bearer " + tok } : {} }); if (!r.ok) return; const blob = await r.blob(); const url = URL.createObjectURL(blob); window.open(url, "_blank"); setTimeout(() => URL.revokeObjectURL(url), 30000); } catch (e) {} };
-  const upload = async (fileList) => { setBusy(true); for (const f of Array.from(fileList || [])) { try { const tok = getToken(); await fetch("/api/taskfiles/upload?taskId=" + encodeURIComponent(task.id) + "&filename=" + encodeURIComponent(f.name), { method: "POST", headers: { ...(tok ? { Authorization: "Bearer " + tok } : {}), "Content-Type": f.type || "application/octet-stream" }, body: f }); } catch (e) {} } setBusy(false); load(); };
+  const upload = async (fileList, nhan) => {
+    setBusy(true);
+    for (const f0 of Array.from(fileList || [])) {
+      const f = await nenAnh(f0);
+      const ten = nhan ? nhan + "_" + f.name : f.name;   // TRUOC_ / SAU_ : nhìn tên tệp là biết ảnh nào
+      try {
+        const tok = getToken();
+        await fetch("/api/taskfiles/upload?taskId=" + encodeURIComponent(task.id) + "&filename=" + encodeURIComponent(ten), { method: "POST", headers: { ...(tok ? { Authorization: "Bearer " + tok } : {}), "Content-Type": f.type || "application/octet-stream" }, body: f });
+      } catch (e) {}
+    }
+    setBusy(false); load();
+  };
   const del = async (idx) => { if (!(await askDanger(antModal, t, lang === "vi" ? "Xóa tệp này?" : "Delete this file?"))) return; const tok = getToken(); await fetch("/api/taskfiles/delete?taskId=" + encodeURIComponent(task.id) + "&idx=" + idx, { method: "POST", headers: tok ? { Authorization: "Bearer " + tok } : {} }); load(); };
   return (
     <div>
@@ -3663,7 +5372,15 @@ function TaskFiles({ t, lang, task, canEdit }) {
         ))}
         {files.length === 0 && <p className="text-xs text-slate-500">{lang === "vi" ? "Chưa có tệp." : "No files."}</p>}
       </div>
-      {canEdit && <label className="mt-2 inline-flex items-center gap-1.5 text-sm text-orange-600 hover:underline cursor-pointer"><Plus size={14} />{busy ? (lang === "vi" ? "Đang tải..." : "Uploading...") : (lang === "vi" ? "Thêm tệp" : "Add files")}<input type="file" multiple className="hidden" onChange={(e) => upload(e.target.files)} /></label>}
+      {canEdit && (
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <label className="inline-flex items-center gap-1.5 text-sm text-orange-600 hover:underline cursor-pointer"><Plus size={14} />{busy ? (lang === "vi" ? "Đang tải..." : "Uploading...") : (lang === "vi" ? "Thêm tệp" : "Add files")}<input type="file" multiple className="hidden" onChange={(e) => { upload(e.target.files); e.target.value = ""; }} /></label>
+          {laLoi && <>
+            <label className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-orange-600 cursor-pointer"><Camera size={14} />{t.photoBefore}<input type="file" accept="image/*" capture="environment" multiple className="hidden" onChange={(e) => { upload(e.target.files, "TRUOC"); e.target.value = ""; }} /></label>
+            <label className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-orange-600 cursor-pointer"><Camera size={14} />{t.photoAfter}<input type="file" accept="image/*" capture="environment" multiple className="hidden" onChange={(e) => { upload(e.target.files, "SAU"); e.target.value = ""; }} /></label>
+          </>}
+        </div>
+      )}
     </div>
   );
 }
@@ -3766,10 +5483,14 @@ function TaskDetail({ t, lang, task, members, memberById, me, canEdit, canWorkdo
           {(() => {
             const others = (projTasks || []).filter((x) => x.id !== task.id);
             const byId = (id) => others.find((x) => x.id === id);
-            const deps = task.dependsOn || [];
-            const blockingList = others.filter((x) => (x.dependsOn || []).includes(task.id));
-            const unmet = deps.map(byId).filter((x) => x && !x.completed);
-            const toggle = (id) => { const cur = task.dependsOn || []; onDepends(cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]); };
+            const deps = depsCua(task);
+            const depIds = deps.map((d) => d.id);
+            const blockingList = others.filter((x) => idsPhuThuoc(x).includes(task.id));
+            const unmet = depIds.map(byId).filter((x) => x && !x.completed);
+            const ghi = (ds) => onDepends(ds.map(nenDep));
+            const toggle = (id) => ghi(depIds.includes(id) ? deps.filter((d) => d.id !== id) : [...deps, { id, type: "FS", lag: 0 }]);
+            const doiLoai = (id, type) => ghi(deps.map((d) => d.id === id ? { ...d, type } : d));
+            const doiLag = (id, lag) => ghi(deps.map((d) => d.id === id ? { ...d, lag: Math.round(Number(lag) || 0) } : d));
             return (
               <div className="rounded-xl border border-slate-200 overflow-hidden">
                 <div className="flex items-center gap-2 px-3.5 py-2.5" style={{ background: "#f8fafc" }}>
@@ -3779,11 +5500,28 @@ function TaskDetail({ t, lang, task, members, memberById, me, canEdit, canWorkdo
                 <div className="p-3 space-y-3">
                   <div>
                     <div className="text-xs font-medium text-amber-600 mb-1.5 flex items-center gap-1"><Clock size={12} />{t.waitingOn}</div>
+                    {/* P2: mỗi liên kết đã chọn có LOẠI (FS/SS/FF/SF) và ĐỘ TRỄ riêng */}
+                    {!ro && deps.length > 0 && (
+                      <div className="space-y-1.5 mb-2">
+                        {deps.map((d) => (
+                          <div key={d.id} className="flex flex-wrap items-center gap-1.5 rounded-lg bg-slate-50 px-2 py-1.5">
+                            <span className="flex-1 min-w-[45%] text-sm text-slate-700 truncate">{byId(d.id)?.title || t.untitled}</span>
+                            <AntSelect size="small" value={d.type} onChange={(v) => doiLoai(d.id, v)} style={{ width: 78 }}
+                              options={LOAI_PT.map((k) => ({ value: k, label: k }))} />
+                            <span className="flex items-center gap-1">
+                              <AntInput size="small" type="number" value={d.lag} onChange={(e) => doiLag(d.id, e.target.value)} style={{ width: 62 }} />
+                              <span className="text-xs text-slate-500">{t.lagDays}</span>
+                            </span>
+                          </div>
+                        ))}
+                        <p className="text-xs text-slate-500">{t.depTypeHint}</p>
+                      </div>
+                    )}
                     {ro ? (
-                      <div className="text-sm text-slate-600">{deps.map((id) => byId(id)?.title).filter(Boolean).join(", ") || t.none}</div>
+                      <div className="text-sm text-slate-600">{deps.map((d) => (byId(d.id)?.title || "") + (d.type !== "FS" || d.lag ? " (" + d.type + (d.lag ? (d.lag > 0 ? "+" : "") + d.lag + "d" : "") + ")" : "")).filter(Boolean).join(", ") || t.none}</div>
                     ) : others.length === 0 ? <p className="text-xs text-slate-500">{t.none}</p> : (
                       <div className="space-y-0.5" style={{ maxHeight: 150, overflowY: "auto" }}>
-                        {others.map((o) => { const checked = deps.includes(o.id); return (
+                        {others.map((o) => { const checked = depIds.includes(o.id); return (
                           <label key={o.id} className="flex items-center gap-2 px-1.5 py-1 rounded hover:bg-slate-50 cursor-pointer">
                             <input type="checkbox" checked={checked} onChange={() => toggle(o.id)} className="accent-orange-600" />
                             <span className={`flex-1 text-sm truncate ${o.completed ? "line-through text-slate-500" : "text-slate-700"}`}>{o.title || t.untitled}</span>
@@ -3806,7 +5544,11 @@ function TaskDetail({ t, lang, task, members, memberById, me, canEdit, canWorkdo
               <input type="date" value={task.startDate || ""} disabled={ro} onChange={(e) => applyDates("start", e.target.value)} className="w-full text-sm border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-400 disabled:bg-slate-50" />
             </Field>
             <Field icon={<Clock size={15} />} label={t.plannedDays}>
-              <AntInput type="number" min="0" value={task.duration || ""} disabled={ro} onChange={(e) => applyDates("dur", e.target.value)} placeholder="0" style={{ width: "100%" }} />
+              <AntInput type="number" min="0" value={task.milestone ? "" : (task.duration || "")} disabled={ro || task.milestone} onChange={(e) => applyDates("dur", e.target.value)} placeholder={task.milestone ? "—" : "0"} style={{ width: "100%" }} />
+              <AntCheckbox className="mt-1.5" checked={!!task.milestone} disabled={ro}
+                onChange={(e) => onPatch(e.target.checked ? { milestone: true, duration: null, startDate: task.dueDate || task.startDate || "" } : { milestone: false })}>
+                <span className="text-xs" title={t.milestoneHint}>◆ {t.milestone}</span>
+              </AntCheckbox>
             </Field>
             <Field icon={<CalendarRange size={15} />} label={t.dueDate}>
               <input type="date" value={task.dueDate || ""} disabled={ro} onChange={(e) => applyDates("due", e.target.value)} className="w-full text-sm border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-400 disabled:bg-slate-50" />
@@ -3875,6 +5617,24 @@ function TaskDetail({ t, lang, task, members, memberById, me, canEdit, canWorkdo
             <AntInput.TextArea value={task.description} readOnly={ro} onChange={(e) => onPatch({ description: e.target.value })} rows={4} />
           </div>
 
+          {task.kind === "defect" && (
+            <div className="rounded-xl border border-red-200 bg-red-50/40 p-3.5 space-y-3">
+              <p className="text-sm font-medium text-red-700 flex items-center gap-1.5"><ClipboardCheck size={15} />{t.defects}</p>
+              <label className="block"><span className="text-xs text-slate-500">{t.defectArea}</span>
+                <AntInput value={(task.defect && task.defect.viTri) || ""} disabled={ro}
+                  onChange={(e) => onPatch({ defect: { ...(task.defect || {}), viTri: e.target.value } })} placeholder={t.defectAreaHint} /></label>
+              <div><span className="text-xs text-slate-500">{t.defectSeverity}</span>
+                <div className="flex gap-1.5 mt-0.5">{["high", "med", "low"].map((m) => (
+                  <button key={m} disabled={ro} onClick={() => onPatch({ defect: { ...(task.defect || {}), mucDo: m }, priority: m === "high" ? "high" : m === "low" ? "low" : "medium" })}
+                    className={`flex-1 text-xs py-1.5 rounded-lg border transition ${((task.defect && task.defect.mucDo) || "med") === m ? "border-orange-300 bg-orange-50 text-orange-600" : "border-slate-200 text-slate-500 hover:bg-white"}`}>{t.defectSev[m]}</button>
+                ))}</div>
+              </div>
+              <label className="block"><span className="text-xs text-slate-500">{t.defectContractor}</span>
+                <AntInput value={(task.defect && task.defect.nhaThau) || ""} disabled={ro}
+                  onChange={(e) => onPatch({ defect: { ...(task.defect || {}), nhaThau: e.target.value } })} /></label>
+              <p className="text-xs text-slate-500">{t.defectFlowHint}</p>
+            </div>
+          )}
           {serverMode && <div className="rounded-xl border border-slate-200 p-3.5"><TaskFiles t={t} lang={lang} task={task} canEdit={!ro} /></div>}
 
           <div>

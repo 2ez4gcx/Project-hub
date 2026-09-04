@@ -1,3 +1,8 @@
+>>> Đây là bản NGẮN NHẤT cho Synology (4 bước).
+>>> Bản ĐẦY ĐỦ — QNAP, Docker dòng lệnh, NAS không có Docker, HTTPS, VPN cho
+>>> công trường, sao lưu, cập nhật, xử lý sự cố — nằm ở file
+>>> "HƯỚNG DẪN 2 - Chạy trên NAS công ty.txt".
+
 ==================================================================
   TRẠM DỰ ÁN — CÀI TRÊN NAS SYNOLOGY (đơn giản, không cần rành mạng)
 ==================================================================

@@ -1,5 +1,213 @@
 # Lịch sử phiên bản — Trạm Dự Án
 
+## v4.1.1 — 04/09/2026 — VÁ LỖI HỒI QUY THEO AUDIT LẦN 2
+
+Bản v4.1.0 được audit lại ngay trong ngày (`Bao-cao-audit-lan-2-Tram-Du-An-v4.1.0-2026-09-04.md`,
+điểm 6,6/10). Báo cáo xác nhận cả bốn lỗi B1–B4 đã vá đúng, nhưng chỉ ra **một lỗi hồi quy
+nghiêm trọng và hai lỗi làm sai bằng chứng** mà 243 ca test lúc đó không phủ. Bản này vá
+toàn bộ R1–R12 và bổ sung **45 ca test** khóa đúng những đường lỗi đó.
+
+### ⚠ Không bật "Thành viên dự án" trên bản v4.1.0
+Nếu bạn đã cài v4.1.0, hãy cập nhật lên v4.1.1 **trước khi** dùng tính năng "Thành viên dự
+án" — ở v4.1.0 tính năng này làm người bị giới hạn không lưu được gì (xem R1).
+
+### Nghiêm trọng
+- **R1 — Bật "Thành viên dự án" làm người bị giới hạn thành CHỈ ĐỌC.** Máy chủ ghép lịch sử
+  theo thứ tự [mục ẩn] + [mục người gửi], trong khi luật chống sửa lịch sử đòi đúng khuôn
+  [mục MỚI của người gửi] + [nguyên văn lịch sử máy chủ] → mọi lần lưu đều bị từ chối 403.
+  Nay ghép đúng khuôn (mục mới nhận diện bằng id chưa có trên máy chủ).
+  *Kèm theo:* lỗi trong bước ghép trước đây bị catch rỗng nuốt im lặng; nay ghi vào
+  security.log và **từ chối lưu** thay vì lưu một bản đã mất dữ liệu.
+
+### Bằng chứng và số liệu tài chính
+- **R2 — Nhật ký kiểm toán ghi cả thay đổi BỊ TỪ CHỐI.** Vết tài chính được ghi trước khi
+  kiểm tra khóa kỳ, nên một thao tác trả về 403 vẫn để lại dòng "sửa khối lượng 20 → 99"
+  như thể đã xảy ra. Nay chỉ ghi sau khi lưu thành công.
+- **R3 — Khóa kỳ nghiệm thu chỉ khóa khối lượng.** Đổi **đơn giá** vẫn làm giá trị kỳ đã nộp
+  Chủ đầu tư thay đổi (đo được 20.000.000 → 30.000.000). Nay khi khóa, máy chủ **chụp lại
+  đơn giá** của từng hạng mục vào chính kỳ đó; giá trị kỳ đã chốt tính theo bản chụp. Kỳ đã
+  khóa cũng không đổi được số kỳ, ngày chốt, và không xóa được hạng mục đã nghiệm thu.
+- **R4 — Khóa/mở khóa kỳ không có vết và mở khóa không cần lý do** (hộp thoại có hỏi nhưng
+  gọi thẳng API là bỏ qua được). Nay máy chủ bắt buộc lý do và ghi cả hai chiều vào audit.
+- **R10 — Nhật ký kiểm toán cắt im lặng ở 300 dòng** (nhập 350 việc thì 50 việc không có vết).
+  Nay ghi thêm một dòng tổng kết cho phần vượt trần.
+
+### Hồ sơ và luồng duyệt
+- **R6 — "Thùng rác 90 ngày" thực chất là "xóa chậm":** không có đường khôi phục. Nay có
+  endpoint khôi phục cho cả biên bản lẫn nhật ký, và **nút "Thùng rác hồ sơ"** ở hai tab
+  tương ứng (xem người xóa, lý do, số ngày còn lại, Khôi phục / Xóa vĩnh viễn).
+- **R7 — Con dấu "Chỉ huy trưởng đã duyệt" chưa đáng tin:** duyệt được cả bản còn Nháp,
+  thêm ảnh vào bản đã duyệt vẫn được, người lập xóa được bản đã duyệt. Nay: phải qua bước
+  "Đã nộp" mới duyệt; bản đã duyệt khóa cả ảnh; chỉ Chủ sở hữu/Lãnh đạo mới xóa được.
+
+### Phạm vi dự án
+- **R8 — Tài chính chưa theo phạm vi dự án:** người có quyền tài chính nhưng không thuộc dự
+  án vẫn đọc được BOQ, đơn giá, hợp đồng của dự án giới hạn. Nay lọc khi đọc và **ghép lại
+  khi ghi** (không thì mỗi lần họ lưu là xóa sạch tài chính của dự án họ không thấy).
+- **R9 — Báo cáo ngày không hề được lọc:** bộ lọc viết theo trường `lines` không tồn tại
+  (dữ liệu thật dùng `items`), nên tên việc của dự án ẩn lộ ra ngoài. Nay tra dự án qua
+  `taskId` của từng dòng; dòng ẩn vẫn được giữ nguyên khi người ngoài lưu.
+
+### Đồng bộ và tính toán
+- **R5 — Gộp xung đột chỉ thành công một nửa:** lịch sử sau khi gộp bị sắp lại theo thời
+  gian, nên khi bạn thao tác TRƯỚC nhưng người kia lưu TRƯỚC (trường hợp thường gặp) thì
+  máy chủ từ chối và thao tác vẫn mất. Nay không sắp lại — kiểm chứng trên trình duyệt:
+  cả hai thay đổi đều còn, thông báo "đã được gộp vào bản mới, không mất gì".
+- **R11 — "Doanh thu đã nghiệm thu" ở tab Chi phí cộng cả phát sinh CHƯA DUYỆT**, lệch với
+  tab BOQ và thổi lãi gộp lên. Nay chỉ tính dòng gốc + VO đã duyệt, và dùng đơn giá đã chốt
+  của kỳ khóa.
+- **R12 — Mốc (milestone) vẫn ăn 1 ngày công** trong tính đường găng. Nay bằng 0.
+
+### Kiểm thử
+243 → **288 ca**. Thêm `tests/test-hoi-quy-lan2.mjs` (40 ca cho R1–R10) và 5 ca cho R5/R12
+trong hai tệp sẵn có. Ba đường lỗi mà báo cáo nêu là "test không phủ" (R1, R2, R5) nay đều
+có ca test riêng.
+
+### Còn để ngỏ (không đổi so với v4.1.0)
+P3/P4 · Q4 · Q6 · Q9/U4 · H4 · H6 · U6 · U7 · A2 (ảo hóa Danh sách) · A4 · A11 ·
+R11 (công thức VAT của Đề nghị thanh toán — cần kế toán chốt: hiện tính VAT **sau** khi trừ
+giữ lại và tạm ứng; thông lệ phổ biến là tính trên giá trị nghiệm thu).
+
+---
+
+## v4.1.0 — 04/09/2026 — XỬ LÝ TOÀN BỘ BÁO CÁO AUDIT NĂM VAI TRÒ
+
+Bản này giải quyết báo cáo `Bao-cao-audit-5-vai-tro-Tram-Du-An-2026-09-04.md`
+(điểm 5,1/10): cả 4 lỗi phải vá ngay, toàn bộ gói 1 tuần, toàn bộ gói 1 tháng
+và phần lớn gói 1 quý.
+
+### ⚠ THAY ĐỔI HÀNH VI — đọc trước khi cập nhật
+
+1. **Xóa biên bản / nhật ký thi công KHÔNG còn xóa vĩnh viễn ngay.** Hồ sơ vào
+   thùng rác 90 ngày, phải ghi lý do; chỉ Chủ sở hữu mới xóa hẳn được.
+2. **Nhật ký thi công có trạng thái Nháp → Đã nộp → Chỉ huy trưởng duyệt.**
+   Sau khi duyệt thì khóa sửa; chỉ Chủ sở hữu / Lãnh đạo mở khóa được.
+3. **Hai người lập nhật ký cùng một ngày**: người thứ hai nhận thông báo
+   "ngày này đã có nhật ký của X" thay vì âm thầm ghi đè (lỗi B3).
+4. **Đường găng nay tính theo NGÀY LÀM VIỆC** của dự án (mặc định nghỉ Chủ
+   nhật). Số ngày dự trữ có thể khác bản cũ — đây là cách tính đúng.
+5. **Lãnh đạo mặc định CHỈ XEM chi phí.** Muốn cho sửa thì bật thêm quyền
+   "Sửa chi phí" trong Cộng tác. Tài khoản cũ giữ nguyên quyền sửa như trước.
+6. **Kỳ nghiệm thu có thể KHÓA.** Kỳ đã khóa thì không ai sửa được số liệu,
+   kể cả người có quyền sửa chi phí; mở khóa phải ghi lý do và chỉ Chủ sở hữu.
+7. **Dự án có thể giới hạn thành viên.** Dự án chưa khai thành viên vẫn mở cho
+   cả công ty như trước; khi đã khai thì người ngoài không tải được dữ liệu,
+   tệp và hồ sơ của dự án đó.
+8. **Màn Gantt nay có khung cuộn riêng cao 560 px** (ảo hóa dòng) thay vì kéo
+   dài theo cả trang.
+
+### Bốn lỗi làm sai dữ liệu — đã vá
+- **B1** Kéo thanh Gantt lệch −1 ngày do múi giờ (`isoOf` dùng `toISOString`
+  trên ngày local). Nay định dạng theo giờ địa phương; có 6 ca test cho việc
+  kéo k ngày ra đúng k ngày, kể cả qua ranh giới năm.
+- **B2** Mất mạng vẫn báo "Đã đồng bộ" và thao tác mất khi tải lại trang. Nay
+  có nhãn đỏ "CHƯA LƯU — mất kết nối", hàng đợi trong `localStorage`, tự gửi
+  lại khi có mạng và chặn đóng tab khi còn thay đổi chưa lưu.
+- **B3** Nhật ký cùng ngày bị bản sau đè, vẫn giữ tên người lập cũ. Nay trả
+  409 kèm tên người đã lập.
+- **B4** Đường găng tính trên tập việc ĐANG LỌC. Nay CPM luôn chạy trên toàn
+  bộ việc của dự án; bộ lọc chỉ quyết định vẽ dòng nào.
+
+### Tiến độ & kế hoạch
+- **P1 — Cấu trúc WBS.** Thêm nút "Nhóm theo: Trạng thái | Giai đoạn". Nhóm
+  theo giai đoạn có mã số WBS và **% hoàn thành tính theo trọng số thời lượng**
+  (việc 20 ngày nặng gấp 10 lần việc 2 ngày), thay vì đếm số việc. Thêm **mốc
+  (milestone)**: việc không có thời lượng, vẽ hình thoi trên Gantt.
+- **P2 — Phụ thuộc đầy đủ.** Ngoài FS nay có **SS / FF / SF** và **độ trễ
+  (lag/lead)** cho từng liên kết. Thêm **lịch làm việc của dự án** (ngày nghỉ
+  hằng tuần + ngày lễ); CPM tính trên trục ngày làm việc thật.
+- **P5 — Nhật ký thi công có cấu trúc.** Bảng nhân lực theo tổ đội (có tổng),
+  bảng máy móc theo giờ, **bảng khối lượng theo hạng mục BOQ** (là số nên cộng
+  dồn được), thời tiết chi tiết (nhiệt độ, giờ mưa, giờ ngừng việc), mục
+  **Sự cố / mất an toàn tách riêng**, ô ý kiến TVGS/Chủ đầu tư, và luồng ký
+  duyệt của Chỉ huy trưởng. Bản in cập nhật đủ các mục mới.
+- **P6** Lỗi tải ảnh nhật ký không còn bị nuốt — báo rõ số ảnh hỏng.
+- **P7** Gantt có **mức phóng Ngày / Tuần / Tháng** (dự án 1.000 việc rút từ
+  13.484 px xuống 2.264 px bề ngang).
+
+### Chi phí & khối lượng (QS)
+- **Q1 — Phát sinh (VO).** Dòng BOQ có thể là dòng phát sinh, mang số hiệu VO
+  và trạng thái Đề xuất / Đã duyệt / Từ chối. **Chỉ VO đã duyệt mới cộng vào
+  giá trị hợp đồng**; có cảnh báo tổng giá trị VO đang chờ.
+- **Q2 — Ngân sách vs chi phí thực tế.** Tab "Chi phí thực tế" mới: ngân sách
+  theo 6 nhóm (vật tư, nhân công, máy, thầu phụ, chung, khác), sổ chi phí thực
+  tế (ngày, nhóm, chứng từ, nhà cung cấp, số tiền), và bảng đối chiếu Doanh thu
+  đã nghiệm thu / Ngân sách / Đã cam kết / Thực tế / **Lãi gộp tạm tính**.
+- **Q3 — Vết sửa số liệu tài chính + khóa kỳ.** Máy chủ tự ghi nhật ký kiểm
+  toán cấp trường cho đơn giá, khối lượng hợp đồng và khối lượng từng kỳ; kỳ
+  đã nộp Chủ đầu tư có thể khóa.
+- **Q5 — Đề nghị thanh toán.** Sinh thẳng từ kỳ nghiệm thu: giá trị kỳ − giữ
+  lại bảo hành − khấu trừ tạm ứng + VAT (VAT tính sau khấu trừ, đúng thông lệ).
+- **Q7 — Tách quyền tài chính.** "Xem chi phí" và "Sửa chi phí" là hai quyền
+  riêng; Kế toán/Lãnh đạo có thể chỉ xem.
+- **Q8** Số trong BOQ được chuẩn hóa về kiểu số khi lưu, không còn lẫn chuỗi.
+
+### Chất lượng & an toàn (QA/QC – HSE)
+- **H1 — Lỗi tồn đọng (punch list).** Tab mới với vị trí, mức độ, nhà thầu chịu
+  trách nhiệm, hạn khắc phục; lọc theo vị trí / nhà thầu / trạng thái; đếm
+  Đang mở / Đã sửa / Đã xác nhận / Quá hạn. Ảnh **trước – sau khắc phục** có
+  nhãn rõ. Vòng đời bám đúng luồng duyệt sẵn có, nên người được giao chỉ báo
+  được "đã sửa" chứ không tự hạ mức độ hay nới hạn.
+- **H2 — Bảng kiểm nghiệm thu số hóa.** Biên bản loại "Nghiệm thu nội bộ" với
+  **8 mẫu bảng kiểm** (cốp pha, cốt thép, bê tông, hoàn thiện, MEP, an toàn đầu
+  giờ, giàn giáo, giấy phép làm việc), từng mục Đạt / Không đạt / N/A + ghi chú,
+  có kết quả tổng. **Mục Không đạt tự sinh lỗi tồn đọng.** Biên bản nay sửa
+  được sau khi lập (trước chỉ tạo hoặc xóa).
+- **H3 — Module An toàn (HSE).** Tab mới: số ngày không tai nạn, sổ sự cố lấy
+  từ nhật ký thi công, danh sách họp an toàn đầu giờ và giấy phép làm việc.
+- **H5 — Thùng rác hồ sơ.** Xóa biên bản/nhật ký là chuyển vào thùng rác 90
+  ngày kèm lý do; chỉ Chủ sở hữu xóa hẳn.
+
+### Giao diện & hiện trường
+- **U1** Dòng việc trên điện thoại: tên việc chiếm dòng riêng, không còn bị
+  dải nhãn ép về 0.
+- **U2 — Nhập liệu nhanh.** Nút **"Chụp ảnh"** mở thẳng camera sau; **nén ảnh
+  trên máy** (≤1600 px, JPEG 0,8 — đo được 11,4 MB → 458 KB); danh sách ảnh có
+  dung lượng và nút bỏ từng ảnh; **nút micro đọc thành chữ** (Web Speech) cho
+  mọi ô của nhật ký.
+- **U3** Phiên đăng nhập sống qua lần khởi động lại máy chủ (lưu băm token vào
+  `sessions.json`), hạn 30 ngày.
+- **U5 — Không còn "gõ xong mất".** Khi hai người lưu cùng lúc, ứng dụng **gộp
+  ba chiều theo từng bản ghi** thay vì tải lại và bỏ hết: ai sửa việc nào thì
+  giữ việc đó; chỉ khi cả hai cùng sửa MỘT việc mới nhường máy chủ, và báo
+  đúng tên việc cần kiểm tra lại.
+
+### Kiến trúc, hiệu năng, phân quyền
+- **A1/A2 — Gantt nhanh hơn ~9 lần.** CPM và hình học đưa vào `useMemo`, mỗi
+  dòng thành `React.memo`, và **ảo hóa dòng**. Dự án 1.000 việc: kéo thanh từ
+  **64 ms xuống 7 ms mỗi khung hình**, DOM từ 24.192 xuống 3.783 nút.
+- **A3 — Cache máy chủ.** `data.json` được giữ trong RAM, chỉ đọc lại đĩa khi
+  tệp đổi (so mtime + size). Tiết kiệm ~3,3 ms mỗi request ở khối 514 KB, tăng
+  tuyến tính theo cỡ dữ liệu.
+- **A5** Thêm luật máy chủ cho báo cáo ngày: chỉ chủ báo cáo sửa nội dung của
+  mình, người khác chỉ thêm bình luận đứng tên mình.
+- **A6 — Thành viên theo dự án.** Dự án có thể khai danh sách thành viên; máy
+  chủ **lọc dữ liệu khi đọc** và **ghép lại khi ghi** để người bị giới hạn
+  không làm mất dữ liệu dự án họ không thấy. Cổng xem tệp/hồ sơ tôn trọng
+  danh sách này.
+- **A8/A10 — Nhật ký kiểm toán do MÁY CHỦ ghi.** `audit.jsonl` chỉ-thêm, tự
+  sinh từ phần diff máy chủ đã tính: ai, khi nào, IP, rev, thực thể, trường,
+  trước → sau. Không ai xóa được qua ứng dụng. Có tab "Nhật ký máy chủ" cho
+  Chủ sở hữu / Lãnh đạo. Trước đây "Lịch sử" do máy trạm tự ghi và là tự nguyện.
+- **A9** Ghi lịch sử cho ngày bắt đầu, thời lượng, đổi trạng thái, lưu kế
+  hoạch gốc, xóa vĩnh viễn, đổi thành viên dự án.
+
+### Kiểm thử
+Bộ kiểm thử tăng từ 74 lên **243 ca**, thêm 6 tệp test mới:
+`test-audit-trail`, `test-loi-ton-dong`, `test-nghiem-thu`,
+`test-nhat-ky-cau-truc`, `test-thanh-vien-du-an`, `test-chi-phi-qs`,
+`test-gop-xung-dot`. Chạy một lệnh: `node tests/kiem-tra-tat-ca.mjs`.
+
+### Còn để ngỏ (gói quý sau)
+P3/P4 (kế hoạch gốc nhiều phiên bản, ngày bắt đầu/kết thúc thực tế) ·
+Q4 sổ khối lượng lũy kế từ nhật ký · Q6 rev tài chính theo từng dự án ·
+Q9/U4 BOQ và Gantt dạng thẻ cho điện thoại · H4 tiêu chí bắt buộc trước khi
+duyệt · H6 danh mục loại biên bản cấu hình được · U6 thông báo đẩy (Web Push) ·
+U7 nợ i18n và aria-label · A2 ảo hóa màn Danh sách · A4 đồng bộ theo patch ·
+A11 báo cáo "ai sửa gì tuần này".
+
+---
+
 ## v4.0.0 — 04/09/2026 — PHẦN MỀM TỰ DO
 
 ### Gỡ bỏ hoàn toàn cơ chế giấy phép

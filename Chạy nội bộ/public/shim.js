@@ -24,8 +24,9 @@
           try { var d = await r.json(); return { error: (d && d.message) || "Thay đổi bị máy chủ từ chối." }; }
           catch (e) { return { error: "Thay đổi bị máy chủ từ chối." }; }
         }
-        return r.ok;
-      } catch (e) { return false; }
+        if (!r.ok) return { error: "Máy chủ không lưu được (mã " + r.status + ")." };
+        return true;
+      } catch (e) { return "offline"; }   // mất mạng / máy chủ không phản hồi — KHÔNG được coi là đã lưu
     }
   };
 })();

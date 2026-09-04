@@ -1,0 +1,226 @@
+══════════════════════════════════════════════════════════════════════
+  TRẠM DỰ ÁN — HƯỚNG DẪN 1: CHẠY TRÊN MÁY CÁ NHÂN
+  (Windows / macOS / Linux — 1 máy, có thể cho vài người cùng dùng)
+══════════════════════════════════════════════════════════════════════
+
+  Dùng cách này khi:
+   • Chạy thử để xem phần mềm có hợp không.
+   • Công ty nhỏ, 1–15 người, có một máy tính để bàn luôn bật.
+   • Chưa có NAS.
+
+  KHÔNG dùng cách này khi: cần chạy 24/7 và máy hay tắt/ngủ. Khi đó
+  xem "HƯỚNG DẪN 2 - Chạy trên NAS công ty.txt".
+
+  Thời gian: khoảng 10 phút.
+
+
+══════════════════════════════════════════════════════════════════════
+  PHẦN A — CÀI ĐẶT (làm 1 lần)
+══════════════════════════════════════════════════════════════════════
+
+BƯỚC 1. Cài Node.js
+──────────────────────────────────────────────────────────────────────
+  • Vào https://nodejs.org → tải bản **LTS** → cài như phần mềm bình
+    thường (bấm Next đến hết, không cần đổi gì).
+  • Kiểm tra đã cài được chưa:
+        Windows: mở "Command Prompt" (nút Start, gõ cmd)
+        Mac:     mở "Terminal"
+    rồi gõ:      node -v
+    Hiện ra dạng  v20.x.x  hoặc  v22.x.x  là được.
+
+
+BƯỚC 2. Chép phần mềm vào máy
+──────────────────────────────────────────────────────────────────────
+  • Giải nén gói  tram-du-an-noi-bo.zip  ra một thư mục CỐ ĐỊNH,
+    ví dụ:   D:\TramDuAn        (Windows)
+             ~/TramDuAn         (Mac)
+
+  ⚠ ĐỪNG để trong Downloads hay Desktop rồi dọn dẹp lung tung — thư mục
+    "data" chứa TOÀN BỘ dữ liệu công ty sẽ nằm ngay trong đó.
+
+  ⚠ ĐỪNG để trong thư mục đang đồng bộ đám mây (OneDrive, Google Drive,
+    Dropbox). Các phần mềm này khóa file lúc đồng bộ, dễ làm hỏng dữ
+    liệu khi phần mềm đang ghi. Muốn sao lưu lên đám mây thì xem PHẦN D.
+
+
+BƯỚC 3. Khởi động lần đầu
+──────────────────────────────────────────────────────────────────────
+  • Windows: nhấp đúp  "Khởi động (Windows).bat"
+  • Mac:     nhấp đúp  "Khoi-dong (Mac-Linux).command"
+             (lần đầu Mac có thể chặn: bấm chuột phải → Open → Open)
+  • Linux:   mở Terminal trong thư mục đó, gõ:  node server.js
+
+  Một cửa sổ đen (Terminal) hiện ra và **PHẢI GIỮ MỞ** suốt thời gian
+  dùng. Đóng cửa sổ = tắt phần mềm.
+
+  Trong cửa sổ đó bạn sẽ thấy:
+
+      • Máy này (This computer):  http://localhost:3000
+      • Mạng nội bộ (LAN/NAS):    http://192.168.1.25:3000
+      ****************************************************
+      *  MÃ CÀI ĐẶT (nhập khi tạo tài khoản chủ): A3F19B
+      ****************************************************
+
+  → GHI LẠI "MÃ CÀI ĐẶT". Chỉ dùng đúng một lần, để tạo tài khoản
+    Chủ sở hữu. Người ngoài không có mã này thì không tạo được.
+
+
+BƯỚC 4. Tạo tài khoản Chủ sở hữu
+──────────────────────────────────────────────────────────────────────
+  • Mở trình duyệt (Chrome / Edge / Safari) vào:  http://localhost:3000
+  • Màn hình "Tạo tài khoản Chủ sở hữu" hiện ra. Điền:
+        Họ tên       — tên bạn
+        Email        — email của bạn (dùng để đăng nhập)
+        Mật khẩu     — bạn tự đặt
+        MÃ CÀI ĐẶT   — mã ở Bước 3
+  • Bấm tạo. Xong — bạn là Chủ sở hữu, toàn quyền.
+
+
+BƯỚC 5. Tạo tài khoản cho nhân viên
+──────────────────────────────────────────────────────────────────────
+  • Thanh bên trái → "Cộng tác" → thêm từng người:
+        họ tên, email, mật khẩu bạn đặt cho họ, bộ phận, quyền.
+  • Gửi cho họ: địa chỉ truy cập + email + mật khẩu.
+  • Nhắc họ tự đổi mật khẩu sau lần đăng nhập đầu.
+
+  QUYỀN NÊN LƯU Ý (bật/tắt trong "Cộng tác"):
+    Giao việc       — tạo và giao việc cho người khác
+    Xem chi phí     — nhìn thấy mục Chi phí
+    Sửa chi phí     — nhập/sửa số tiền (bỏ tích = CHỈ XEM)
+    Lịch sử         — xem lịch sử thay đổi
+    Lãnh đạo        — duyệt việc cấp cao, xem mọi dự án
+    Teamlead        — duyệt việc trong bộ phận mình
+
+
+══════════════════════════════════════════════════════════════════════
+  PHẦN B — CHO NGƯỜI KHÁC CÙNG DÙNG TRONG VĂN PHÒNG
+══════════════════════════════════════════════════════════════════════
+
+  Máy đang chạy phần mềm gọi là "máy chủ". Những máy khác (kể cả điện
+  thoại) trong CÙNG mạng wifi/dây của văn phòng vào được bằng địa chỉ
+  "Mạng nội bộ" mà cửa sổ đen đã in ra, ví dụ:
+
+        http://192.168.1.25:3000
+
+  NẾU MÁY KHÁC KHÔNG VÀO ĐƯỢC — làm theo thứ tự:
+
+  1) Cùng mạng chưa?  Điện thoại phải nối wifi công ty, không dùng 4G.
+
+  2) Tường lửa Windows đang chặn.  Chạy MỘT LẦN, bằng quyền Quản trị:
+       • Nút Start → gõ  cmd  → chuột phải "Command Prompt"
+         → "Run as administrator"
+       • Dán dòng sau rồi Enter:
+
+     netsh advfirewall firewall add rule name="Tram Du An" dir=in action=allow protocol=TCP localport=3000
+
+  3) IP của máy chủ bị đổi.  Router thường cấp IP động. Vào giao diện
+     router đặt "IP tĩnh / DHCP reservation" cho máy chủ, hoặc mỗi sáng
+     xem lại địa chỉ trong cửa sổ đen.
+
+  4) Máy chủ đang ngủ.  Vào Settings → Power → đặt "Never sleep".
+
+
+══════════════════════════════════════════════════════════════════════
+  PHẦN C — CÁC CHỈNH SỬA HAY DÙNG
+══════════════════════════════════════════════════════════════════════
+
+ĐỔI CỔNG (khi 3000 bị phần mềm khác chiếm)
+──────────────────────────────────────────────────────────────────────
+  Tạo file tên  .env  trong thư mục  data  (data\.env), nội dung:
+
+        PORT=3001
+
+  Khởi động lại. Địa chỉ thành  http://localhost:3001
+
+  Dấu hiệu bị chiếm cổng: cửa sổ đen báo lỗi  EADDRINUSE.
+
+
+BẬT HTTPS (khóa xanh, mật khẩu không đi dạng chữ trần trong mạng)
+──────────────────────────────────────────────────────────────────────
+  Trong mạng nội bộ kín thì HTTP chấp nhận được, nhưng bật HTTPS vẫn
+  tốt hơn — nhất là khi có wifi khách.
+
+  • Windows: nhấp đúp  "Tạo chứng chỉ HTTPS (Windows).bat"
+    (không cần cài thêm gì), rồi khởi động lại phần mềm.
+  • Mac/Linux: xem "BẢO MẬT - Bật HTTPS (nội bộ).txt".
+
+  Sau đó địa chỉ đổi thành  https://...  Trình duyệt sẽ cảnh báo
+  "không an toàn" vì chứng chỉ tự ký — bấm "Nâng cao → Tiếp tục".
+  Đây là chuyện bình thường với chứng chỉ nội bộ.
+
+  Chi tiết đầy đủ: "BẢO MẬT - Bật HTTPS (nội bộ).txt".
+
+
+BẬT EMAIL NHẮC VIỆC (không bắt buộc)
+──────────────────────────────────────────────────────────────────────
+  Vào "Cài đặt" trong phần mềm, mục SMTP, điền thông tin hộp thư gửi
+  đi (Gmail cần "App password", không dùng mật khẩu thường).
+  Không điền thì phần mềm vẫn chạy bình thường, chỉ là không gửi email.
+
+
+TỰ CHẠY KHI BẬT MÁY (Windows)
+──────────────────────────────────────────────────────────────────────
+  • Nhấn  Windows + R  → gõ  shell:startup  → Enter.
+  • Tạo lối tắt (shortcut) của "Khởi động (Windows).bat" vào thư mục
+    vừa mở.
+  Từ đó mỗi lần bật máy phần mềm tự chạy.
+
+  ⚠ Cách này chỉ chạy khi có người ĐĂNG NHẬP vào Windows. Cần chạy
+    24/7 kể cả khi chưa đăng nhập thì nên dùng NAS (Hướng dẫn 2).
+
+
+══════════════════════════════════════════════════════════════════════
+  PHẦN D — SAO LƯU (QUAN TRỌNG NHẤT)
+══════════════════════════════════════════════════════════════════════
+
+  TOÀN BỘ dữ liệu công ty nằm trong thư mục  data:
+        data\data.json        công việc, dự án, lịch sử
+        data\accounts.json    tài khoản + mật khẩu (đã băm)
+        data\finance.json     hợp đồng, BOQ, chi phí
+        data\records.json     biên bản       + thư mục uploads
+        data\sitelogs.json    nhật ký thi công + thư mục nhatky-thi-cong
+        data\audit.jsonl      nhật ký kiểm toán (ai sửa gì)
+        data\snapshots\       bản chụp mỗi ngày, giữ 14 ngày gần nhất
+
+  PHẦN MỀM ĐÃ TỰ LÀM GIÚP BẠN:
+   • Chụp lại toàn bộ file dữ liệu MỖI NGÀY vào data\snapshots
+     (giữ 14 ngày). Lỡ tay xóa nhầm thì lấy lại được.
+   • Gửi email sao lưu MỖI THỨ BẢY, nếu bạn đã điền email nhận sao lưu
+     trong Cài đặt.
+
+  BẠN VẪN PHẢI TỰ LÀM (vì cháy máy / mất máy thì snapshot cũng mất):
+   • Mỗi tuần, chép cả thư mục  data  sang ổ cứng ngoài hoặc lên
+     Google Drive / OneDrive. Nên TẮT phần mềm trước khi chép.
+   • Giữ ít nhất 3 bản gần nhất.
+
+  KHÔI PHỤC: tắt phần mềm → xóa thư mục data hiện tại → chép bản sao
+  lưu vào đúng chỗ đó → khởi động lại.
+
+
+══════════════════════════════════════════════════════════════════════
+  PHẦN E — CẬP NHẬT LÊN BẢN MỚI
+══════════════════════════════════════════════════════════════════════
+
+  1. Tắt phần mềm (đóng cửa sổ đen / Ctrl+C).
+  2. SAO LƯU thư mục  data  ra chỗ khác (đề phòng).
+  3. Giải nén gói mới, chép đè TẤT CẢ **TRỪ thư mục "data"**.
+     → Dữ liệu, tài khoản, cấu hình giữ nguyên.
+  4. Khởi động lại.
+  5. Trong trình duyệt bấm  Ctrl + F5  (Mac: Cmd + Shift + R) một lần
+     để nạp lại giao diện mới.
+  6. Đọc "CÓ GÌ MỚI.txt" — phần đầu luôn ghi những THAY ĐỔI HÀNH VI
+     (thứ làm khác bản cũ) để bạn không bị bất ngờ.
+
+
+══════════════════════════════════════════════════════════════════════
+  KHI CÓ SỰ CỐ
+══════════════════════════════════════════════════════════════════════
+  Mở "VẬN HÀNH & SỰ CỐ.txt" — có sẵn cách xử lý cho 9 tình huống
+  thường gặp: quên mật khẩu quản trị, lỡ xóa dự án, dữ liệu hỏng,
+  đổi máy chủ, cổng bị chiếm, email không gửi được...
+
+  Quên mật khẩu Chủ sở hữu: xem "BẢO MẬT - Quên mật khẩu quản trị
+  (đọc kỹ).txt" (dùng công cụ reset-password.js chạy ngay trên máy chủ).
+
+──────────────────────────────────────────────────────────────────────
+Phần mềm do Khuong Doan phát triển — https://khuongdoan.com/

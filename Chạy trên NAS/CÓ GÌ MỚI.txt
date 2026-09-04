@@ -1,4 +1,177 @@
 ═══════════════════════════════════════════════════════════════
+  TRẠM DỰ ÁN v4.1.1 — SỬA LỖI QUAN TRỌNG (đọc nếu đang dùng v4.1.0)
+═══════════════════════════════════════════════════════════════
+
+Bản v4.1.0 được kiểm tra lại ngay trong ngày và phát hiện vài lỗi mới.
+Bản 4.1.1 này sửa hết. NÊN CẬP NHẬT NGAY nếu đang dùng 4.1.0.
+
+⚠ QUAN TRỌNG NHẤT
+ • Ở bản 4.1.0, khi bật "Thành viên dự án" cho một dự án thì những
+   người bị giới hạn KHÔNG LƯU ĐƯỢC GÌ NỮA (mọi thao tác bị máy chủ
+   từ chối). Bản này sửa xong. Nếu đang ở 4.1.0, đừng bật tính năng
+   đó cho tới khi cập nhật.
+
+SỐ LIỆU TIỀN — ĐÁNG TIN HƠN
+ • Trước: kỳ nghiệm thu đã khóa chỉ khóa KHỐI LƯỢNG. Sửa ĐƠN GIÁ vẫn
+   làm số tiền của kỳ đã nộp Chủ đầu tư thay đổi. Nay khi bấm "Khóa
+   kỳ", phần mềm CHỤP LẠI đơn giá của từng hạng mục vào kỳ đó — sau
+   này ai sửa đơn giá thì số của kỳ đã nộp vẫn y nguyên.
+ • Kỳ đã khóa nay cũng không đổi được ngày chốt, số kỳ, và không xóa
+   được hạng mục đã nghiệm thu.
+ • Mở khóa kỳ BẮT BUỘC ghi lý do, và cả việc khóa lẫn mở khóa đều
+   được ghi vào Nhật ký máy chủ.
+ • Trước: một thao tác BỊ TỪ CHỐI vẫn để lại dòng trong Nhật ký máy
+   chủ như thể đã xảy ra. Nay chỉ ghi khi thật sự lưu được.
+ • Tab "Chi phí thực tế": doanh thu không còn cộng nhầm các phát sinh
+   CHƯA được Chủ đầu tư duyệt (trước đây làm lãi gộp cao hơn thực tế).
+
+HỒ SƠ — THÙNG RÁC NAY LẤY LẠI ĐƯỢC THẬT
+ • Trước: xóa biên bản/nhật ký nói là "giữ 90 ngày" nhưng KHÔNG có
+   cách nào lấy lại. Nay có nút "Thùng rác hồ sơ" ở tab Biên bản và
+   tab Nhật ký: xem ai xóa, lý do, còn bao nhiêu ngày, bấm Khôi phục.
+
+NHẬT KÝ THI CÔNG — CHỮ KÝ DUYỆT ĐÁNG TIN HƠN
+ • Phải bấm "Nộp nhật ký" rồi Chỉ huy trưởng mới duyệt được (trước
+   đây duyệt thẳng bản còn Nháp cũng được).
+ • Nhật ký đã duyệt nay khóa cả phần ẢNH, và người lập không tự xóa
+   được nữa (chỉ Chủ sở hữu / Lãnh đạo).
+
+RIÊNG TƯ THEO DỰ ÁN
+ • Mục Chi phí nay cũng theo "Thành viên dự án": người không thuộc dự
+   án không còn xem được BOQ, đơn giá, hợp đồng của dự án đó.
+ • Báo cáo ngày không còn để lộ tên công việc của dự án mà người xem
+   không được vào.
+
+KHÔNG CÒN "GÕ XONG MẤT"
+ • Trước: nếu bạn thao tác TRƯỚC nhưng người khác lưu TRƯỚC, việc gộp
+   vẫn thất bại và thao tác của bạn mất. Nay gộp đúng trong cả hai
+   trường hợp — đã thử trên máy thật: cả hai thay đổi đều còn.
+
+KHÁC
+ • Mốc (milestone) không còn bị tính là 1 ngày công khi tính đường găng.
+ • Nhập hàng loạt trên 300 việc: nhật ký kiểm toán không cắt im lặng nữa.
+
+CÁCH CẬP NHẬT
+ Chép đè cả thư mục (TRỪ thư mục "data") rồi khởi động lại.
+ Dữ liệu cũ giữ nguyên. Bảo mọi người bấm Ctrl+F5 một lần.
+
+Phần mềm do Khuong Doan phát triển — https://khuongdoan.com/
+
+
+═══════════════════════════════════════════════════════════════
+  TRẠM DỰ ÁN v4.1 — CÓ GÌ MỚI (so với v4.0)
+═══════════════════════════════════════════════════════════════
+
+⚠ TÁM THỨ LÀM KHÁC BẢN CŨ — ĐỌC TRƯỚC KHI CẬP NHẬT
+
+ 1. Xóa biên bản hoặc nhật ký thi công KHÔNG còn mất hẳn ngay. Hồ sơ vào
+    thùng rác 90 ngày và phải ghi lý do. Chỉ Chủ sở hữu mới xóa hẳn được.
+ 2. Nhật ký thi công nay có 3 bước: Nháp → Đã nộp → Chỉ huy trưởng duyệt.
+    Duyệt xong là khóa, không sửa được nữa (Chủ sở hữu mở khóa lại được).
+ 3. Hai người cùng lập nhật ký một ngày: người thứ hai được báo "ngày này
+    đã có nhật ký của anh X" thay vì âm thầm ghi đè lên bài của người kia.
+ 4. Đường găng nay tính theo NGÀY LÀM VIỆC (mặc định nghỉ Chủ nhật). Số
+    ngày dự trữ có thể khác bản cũ — cách tính mới mới là đúng.
+ 5. Lãnh đạo mặc định CHỈ XEM chi phí. Muốn cho sửa thì vào Cộng tác bật
+    thêm quyền "Sửa chi phí". Tài khoản đang có giữ nguyên quyền như cũ.
+ 6. Kỳ nghiệm thu khóa được. Kỳ đã khóa thì không ai sửa số liệu, kể cả
+    người có quyền sửa chi phí; mở khóa phải ghi lý do.
+ 7. Dự án giới hạn được thành viên. Dự án chưa chỉ định thành viên vẫn mở
+    cho cả công ty như trước.
+ 8. Màn Dòng thời gian (Gantt) nay có khung cuộn riêng thay vì kéo dài
+    theo cả trang — mở dự án nghìn việc nhanh hơn hẳn.
+
+───────────────────────────────────────────────────────────────
+BỐN LỖI ĐÃ SỬA (những lỗi này làm sai số liệu mà không ai biết)
+
+ • Kéo thanh trên Gantt bị lệch 1 ngày so với chỗ thả. Đã sửa.
+ • Mất mạng mà vẫn báo "Đã đồng bộ", thao tác mất khi tải lại trang.
+   Nay có nhãn đỏ "CHƯA LƯU — mất kết nối", tự gửi lại khi có mạng,
+   và cảnh báo nếu đóng tab khi còn thay đổi chưa lưu.
+ • Nhãn "Găng" sai khi đang bật bộ lọc. Nay đường găng luôn tính trên
+   toàn bộ dự án, bộ lọc chỉ ẩn bớt dòng cho dễ nhìn.
+ • Nhật ký cùng ngày bị đè. Đã sửa (xem mục 3 ở trên).
+
+───────────────────────────────────────────────────────────────
+TIẾN ĐỘ
+
+ • Nhóm việc theo GIAI ĐOẠN thi công (Phần móng, Phần thân…) chứ không
+   chỉ theo trạng thái. Mỗi giai đoạn có mã số và % hoàn thành tính
+   THEO TRỌNG SỐ THỜI LƯỢNG — việc 20 ngày nặng hơn việc 2 ngày.
+ • Thêm MỐC (milestone): việc không có thời lượng, vẽ hình thoi trên Gantt.
+ • Phụ thuộc đủ 4 kiểu FS / SS / FF / SF, có số ngày trễ hoặc chồng lấn.
+ • Lịch làm việc riêng cho từng dự án: chọn thứ nghỉ hằng tuần và ngày lễ.
+ • Gantt phóng to thu nhỏ: Ngày / Tuần / Tháng.
+
+NHẬT KÝ THI CÔNG — nhập nhanh hơn ngoài công trường
+
+ • Bảng NHÂN LỰC theo tổ đội (có dòng tổng số người), bảng MÁY MÓC theo
+   giờ, bảng KHỐI LƯỢNG theo hạng mục BOQ — khối lượng là SỐ nên cộng
+   dồn được khi lập kỳ nghiệm thu, không phải đọc lại chữ để cộng tay.
+ • Thời tiết ghi được nhiệt độ, số giờ mưa, số giờ ngừng việc.
+ • Mục SỰ CỐ / MẤT AN TOÀN tách riêng khỏi "vướng mắc tiến độ".
+ • Ô ghi ý kiến chỉ đạo của Tư vấn giám sát / Chủ đầu tư.
+ • Nút "CHỤP ẢNH" mở thẳng camera sau của điện thoại.
+ • Ảnh được THU NHỎ ngay trên máy trước khi gửi (ảnh 11 MB còn khoảng
+   450 KB) — tải nhanh hơn cả chục lần qua sóng ngoài công trường.
+ • Nút MICRO: bấm rồi nói, máy tự ghi thành chữ (Chrome/Edge).
+
+CHẤT LƯỢNG & AN TOÀN
+
+ • LỖI TỒN ĐỌNG (punch list): tab riêng, ghi vị trí (tầng/trục/phòng),
+   mức độ, nhà thầu chịu trách nhiệm, hạn khắc phục; ảnh TRƯỚC và SAU
+   khắc phục; lọc theo vị trí / nhà thầu / trạng thái.
+ • BẢNG KIỂM NGHIỆM THU số hóa với 8 mẫu sẵn (cốp pha, cốt thép, bê tông,
+   hoàn thiện, điện nước, an toàn đầu giờ, giàn giáo, giấy phép làm việc).
+   Từng mục chấm Đạt / Không đạt / N/A. Mục KHÔNG ĐẠT tự sinh ra một lỗi
+   tồn đọng, khỏi phải gõ lại.
+ • Biên bản nay SỬA được sau khi lập (trước chỉ tạo mới hoặc xóa).
+ • Tab AN TOÀN (HSE): số ngày không tai nạn, sổ sự cố, danh sách họp an
+   toàn đầu giờ và giấy phép làm việc.
+
+CHI PHÍ
+
+ • Tab CHI PHÍ THỰC TẾ mới: ngân sách theo 6 nhóm (vật tư, nhân công,
+   máy, thầu phụ, chung, khác) và sổ chi phí thực tế có chứng từ, nhà
+   cung cấp. Bảng đối chiếu Doanh thu / Ngân sách / Cam kết / Thực tế
+   và LÃI GỘP TẠM TÍNH.
+ • PHÁT SINH (VO): dòng BOQ phát sinh có số hiệu và trạng thái Đề xuất /
+   Đã duyệt / Từ chối. Chỉ phát sinh ĐÃ DUYỆT mới cộng vào giá trị hợp đồng.
+ • ĐỀ NGHỊ THANH TOÁN sinh thẳng từ kỳ nghiệm thu: giá trị kỳ trừ giữ lại
+   bảo hành, trừ khấu trừ tạm ứng, cộng VAT — không phải nhập lại tay.
+ • Tách quyền "Xem chi phí" và "Sửa chi phí".
+
+AN TOÀN DỮ LIỆU
+
+ • NHẬT KÝ MÁY CHỦ: từ nay máy chủ TỰ ghi mọi thay đổi (ai, lúc nào, từ
+   máy nào, sửa trường gì, trước → sau) vào một tệp chỉ-thêm. Không ai
+   xóa được từ trong phần mềm. Chủ sở hữu và Lãnh đạo xem ở màn "Lịch sử
+   thay đổi", tab "Nhật ký máy chủ". Trước đây lịch sử do máy trạm tự
+   ghi nên sửa qua công cụ khác thì không để lại dấu vết.
+ • THÀNH VIÊN THEO DỰ ÁN: chỉ định ai được vào dự án nào. Người ngoài
+   không tải được công việc, tệp, hồ sơ của dự án đó.
+ • KHÔNG CÒN "GÕ XONG MẤT": hai người lưu cùng lúc thì phần mềm GỘP thay
+   đổi của cả hai. Chỉ khi cả hai cùng sửa MỘT việc mới phải chọn, và
+   phần mềm báo đúng tên việc cần xem lại.
+ • Đăng nhập giữ được sau khi khởi động lại máy chủ/NAS (hạn 30 ngày),
+   không phải đăng nhập lại mỗi lần.
+
+NHANH HƠN
+
+ • Dự án 1.000 việc: kéo thanh trên Gantt nhanh hơn khoảng 9 lần
+   (đo được 64 ms → 7 ms mỗi khung hình), số phần tử trên trang giảm
+   từ hơn 24.000 xuống dưới 4.000.
+ • Máy chủ giữ dữ liệu trong bộ nhớ, không đọc lại tệp cho mỗi thao tác.
+
+───────────────────────────────────────────────────────────────
+CÁCH CẬP NHẬT
+ Chép đè cả thư mục (TRỪ thư mục "data") rồi khởi động lại.
+ Dữ liệu cũ giữ nguyên, không phải làm gì thêm.
+
+Phần mềm do Khuong Doan phát triển — https://khuongdoan.com/
+
+
+═══════════════════════════════════════════════════════════════
   TRẠM DỰ ÁN v4.0 — CÓ GÌ MỚI (so với v3.5)
 ═══════════════════════════════════════════════════════════════
 

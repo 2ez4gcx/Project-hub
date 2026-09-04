@@ -1,3 +1,7 @@
+>>> HƯỚNG DẪN ĐẦY ĐỦ nằm ở file "HƯỚNG DẪN 1 - Chạy trên máy cá nhân.txt"
+>>> (cài đặt, cho máy khác trong văn phòng vào, đổi cổng, HTTPS, sao lưu,
+>>>  cập nhật, tự chạy khi bật máy). File dưới đây chỉ là bản tóm tắt.
+
 ========================================================
   TRẠM DỰ ÁN — ĐỌC TRƯỚC
 ========================================================

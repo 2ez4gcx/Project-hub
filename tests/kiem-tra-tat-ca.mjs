@@ -50,7 +50,7 @@ for (const f of ["server.js", "reset-password.js"]) {
 }
 
 // ───────────────────────── 3. Bốn bộ test nghiệp vụ ─────────────────────────
-h("3. Bộ kiểm thử (phân quyền, nghiệp vụ, khôi phục)");
+h("3. Bộ kiểm thử (phân quyền, nghiệp vụ, hiện trường, nhật ký kiểm toán, khôi phục)");
 const DATA = path.join(tmp, "data");
 mkdirSync(DATA, { recursive: true });
 const srv = spawn(process.execPath, [path.join(LOCAL, "server.js")],
@@ -71,10 +71,22 @@ let cases = 0;
 if (up) {
   cases += runTest("test-authz.mjs");
   cases += runTest("test-nghiep-vu.mjs");
+  cases += runTest("test-hien-truong.mjs");
+  cases += runTest("test-audit-trail.mjs");
+  cases += runTest("test-loi-ton-dong.mjs");
+  cases += runTest("test-nghiem-thu.mjs");
+  cases += runTest("test-nhat-ky-cau-truc.mjs");
+  cases += runTest("test-thanh-vien-du-an.mjs");
+  cases += runTest("test-chi-phi-qs.mjs");
+  cases += runTest("test-hoi-quy-lan2.mjs");
   cases += runTest("test-restore.mjs", [DATA, String(RESTORE_PORT)]);
 }
 try { srv.kill(); } catch {}
 await sleep(400);
+
+// ── 3b. Logic lịch & đường găng (không cần máy chủ) ──
+cases += runTest("test-lich-gantt.mjs");
+cases += runTest("test-gop-xung-dot.mjs");
 
 // ───────────────────────── 4. HTTPS ─────────────────────────
 h("4. HTTPS (chứng chỉ tự ký)");
