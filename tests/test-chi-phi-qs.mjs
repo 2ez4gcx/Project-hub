@@ -118,6 +118,40 @@ ok("mở khóa xong sửa được khối lượng", r.status === 200, r.status)
 f = await fin(OWNER);
 ok("khối lượng mới đã ghi", f.boq.P1.kys[0].kl.g1 === 90, String(f.boq.P1.kys[0].kl.g1));
 
+/* ══════ Máy trạm KHÔNG được cắt mất khối nào khi tải tài chính về ══════
+   Lỗi thật đã gặp: normalizeFinance chỉ giữ investorContracts/subContracts/boq nên ngân sách,
+   sổ chi phí và đề nghị thanh toán bị vứt ngay khi tải trang; lần lưu sau máy trạm gửi bản đã
+   cắt lên và máy chủ ghi đè thành rỗng => mất sạch số liệu chi phí người dùng đã nhập. */
+{
+  const thanNF = (() => {
+    const i = SRC.indexOf("function normalizeFinance(");
+    const j = SRC.indexOf("\n}", i);
+    return SRC.slice(i, j + 2);
+  })();
+  const normalizeFinance = eval("(" + thanNF.replace("function normalizeFinance", "function") + ")");
+
+  const tuMayChu = await fin(OWNER);
+  const sauChuanHoa = normalizeFinance(tuMayChu);
+  const thieu = Object.keys(tuMayChu).filter((k) => k !== "rev" && k !== "updatedAt" && !(k in sauChuanHoa));
+  ok("máy trạm giữ ĐỦ mọi khối mà máy chủ trả về", thieu.length === 0, "bị cắt mất: " + JSON.stringify(thieu));
+
+  ok("giữ ngân sách sau khi chuẩn hóa",
+     JSON.stringify(sauChuanHoa.nganSach) === JSON.stringify(tuMayChu.nganSach), JSON.stringify(sauChuanHoa.nganSach));
+  ok("giữ sổ chi phí thực tế sau khi chuẩn hóa",
+     JSON.stringify(sauChuanHoa.chiPhi) === JSON.stringify(tuMayChu.chiPhi));
+  ok("giữ đề nghị thanh toán sau khi chuẩn hóa",
+     JSON.stringify(sauChuanHoa.deNghi) === JSON.stringify(tuMayChu.deNghi));
+
+  /* Vòng khứ hồi thật: chuẩn hóa rồi lưu ngược lên, số liệu phải còn nguyên. */
+  const r2 = await api("/api/finance", { method: "POST", body: JSON.stringify({ ...sauChuanHoa, expectedRev: tuMayChu.rev }) }, OWNER);
+  ok("lưu lại bản đã chuẩn hóa", r2.status === 200, r2.status);
+  const lai = await fin(OWNER);
+  ok("KHỨ HỒI máy chủ -> máy trạm -> máy chủ KHÔNG mất ngân sách",
+     JSON.stringify(lai.nganSach) === JSON.stringify(tuMayChu.nganSach), JSON.stringify(lai.nganSach));
+  ok("KHỨ HỒI không mất sổ chi phí", JSON.stringify(lai.chiPhi) === JSON.stringify(tuMayChu.chiPhi));
+  ok("KHỨ HỒI không mất đề nghị thanh toán", JSON.stringify(lai.deNghi) === JSON.stringify(tuMayChu.deNghi));
+}
+
 // ── nhật ký kiểm toán vẫn ghi mọi thay đổi số liệu ──
 const au = (await api("/api/audit?limit=400", {}, OWNER)).body.entries || [];
 ok("nhật ký kiểm toán ghi thay đổi khối lượng kỳ",

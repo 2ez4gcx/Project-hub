@@ -1,4 +1,33 @@
 ═══════════════════════════════════════════════════════════════
+  TRẠM DỰ ÁN v4.1.2 — SỬA LỖI MẤT SỐ LIỆU CHI PHÍ
+═══════════════════════════════════════════════════════════════
+
+⚠ NẾU ĐANG DÙNG v4.1.0 HOẶC v4.1.1 — CẬP NHẬT NGAY
+
+ • Lỗi: Ngân sách, sổ chi phí thực tế và đề nghị thanh toán bị XÓA
+   mỗi khi tải lại trang. Nhập xong, F5 một cái là mất, không có
+   thông báo gì. Bản này sửa xong.
+
+ • Nếu bạn đã nhập ngân sách / chi phí thực tế trên bản cũ: số liệu
+   đó nhiều khả năng đã mất. Lấy lại trong thư mục
+   data\snapshots\ (phần mềm tự chụp mỗi ngày, giữ 14 ngày):
+   tìm file finance.json của ngày TRƯỚC khi bị mất rồi đối chiếu.
+
+CÒN SỬA THÊM
+
+ • Việc ĐÃ XONG không còn bị gắn nhãn đỏ "Quá hạn" nữa. Trước đây
+   mọi việc đã hoàn thành có hạn chót trong quá khứ đều hiện đỏ,
+   làm dự án cũ đỏ rực và che mất những việc trễ thật. Nay chỉ hiện
+   ngày, màu trung tính.
+
+CÁCH CẬP NHẬT
+ Chép đè cả thư mục (TRỪ thư mục "data") rồi khởi động lại.
+ Bảo mọi người bấm Ctrl+F5 một lần.
+
+Phần mềm do Khuong Doan phát triển — https://khuongdoan.com/
+
+
+═══════════════════════════════════════════════════════════════
   TRẠM DỰ ÁN v4.1.1 — SỬA LỖI QUAN TRỌNG (đọc nếu đang dùng v4.1.0)
 ═══════════════════════════════════════════════════════════════
 

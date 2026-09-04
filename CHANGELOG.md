@@ -1,5 +1,38 @@
 # Lịch sử phiên bản — Trạm Dự Án
 
+## v4.1.2 — 04/09/2026 — VÁ MẤT SỐ LIỆU CHI PHÍ
+
+Hai lỗi lộ ra khi dựng dữ liệu mẫu để chụp ảnh màn hình cho README — cả hai đều thoát
+được bộ kiểm thử vì test chỉ gọi thẳng API máy chủ, chưa đi qua bước xử lý của máy trạm.
+
+### ⚠ MẤT SỐ LIỆU — cập nhật ngay nếu đang dùng v4.1.0 / v4.1.1
+
+**Ngân sách, sổ chi phí thực tế và đề nghị thanh toán bị xóa mỗi khi tải lại trang.**
+Hàm chuẩn hóa dữ liệu tài chính ở máy trạm chỉ giữ ba khối cũ (hợp đồng CĐT, thầu phụ,
+BOQ) và **vứt bỏ** ba khối thêm ở v4.1.0. Hậu quả dây chuyền: máy trạm tải về bản đã bị
+cắt, rồi lần lưu tiếp theo gửi bản cắt đó lên, máy chủ ghi đè thành rỗng — toàn bộ số
+liệu chi phí người dùng đã nhập biến mất mà không có thông báo nào.
+
+*Nếu bạn đã nhập ngân sách hoặc chi phí thực tế trên v4.1.0/v4.1.1:* số liệu đó nhiều khả
+năng đã mất. Lấy lại từ `data/snapshots/` (bản chụp hằng ngày, giữ 14 ngày) — chép
+`finance.json` của ngày trước khi nhập ra rồi đối chiếu.
+
+Đã thêm 8 ca kiểm thử khứ hồi *máy chủ → máy trạm → máy chủ*, bắt buộc mọi khối dữ liệu
+phải còn nguyên. Test này thất bại đúng 7 ca khi dựng lại lỗi cũ.
+
+### Việc đã xong không còn bị gắn nhãn đỏ "Quá hạn"
+
+Mọi công việc đã hoàn thành có hạn chót trong quá khứ đều hiện nhãn đỏ **"Quá hạn"** ở
+Danh sách, Bảng, Lịch và Việc của tôi — sai về nghiệp vụ (xong rồi thì hết trễ) và làm
+dự án cũ đỏ rực cả màn hình, che mất những việc trễ thật. Nay việc đã xong chỉ hiện ngày
+hoàn thành với màu trung tính.
+
+### Kiểm thử
+
+288 → **301 ca**. Thêm 8 ca khứ hồi tài chính và 5 ca cho nhãn hạn chót.
+
+---
+
 ## v4.1.1 — 04/09/2026 — VÁ LỖI HỒI QUY THEO AUDIT LẦN 2
 
 Bản v4.1.0 được audit lại ngay trong ngày (`Bao-cao-audit-lan-2-Tram-Du-An-v4.1.0-2026-09-04.md`,

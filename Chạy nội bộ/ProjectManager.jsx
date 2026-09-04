@@ -708,7 +708,7 @@ function dueMeta(iso, lang) {
   else if (diff === 0) label = t.today;
   else if (diff === 1) label = t.tomorrow;
   else label = `${d.getDate()}/${d.getMonth() + 1}`;
-  return { label, overdue, soon: diff >= 0 && diff <= 2 };
+  return { label, overdue, soon: diff >= 0 && diff <= 2, date: d.getDate() + "/" + (d.getMonth() + 1) };
 }
 function relTime(ts, lang) {
   const t = T[lang]; const s = Math.floor((Date.now() - ts) / 1000);
@@ -731,9 +731,15 @@ function fmtMoney(n, lang) {
 }
 function normalizeFinance(f) {
   f = f || {};
+  /* PHẢI giữ ĐỦ mọi khối mà máy chủ lưu. Thiếu một khối ở đây là mất dữ liệu thật:
+     máy trạm tải về bản đã cắt rồi lưu ngược lên, máy chủ ghi đè thành rỗng. */
+  const obj = (x) => (x && typeof x === "object" && !Array.isArray(x)) ? x : {};
   return { investorContracts: Array.isArray(f.investorContracts) ? f.investorContracts : [],
     subContracts: Array.isArray(f.subContracts) ? f.subContracts : [],
-    boq: (f.boq && typeof f.boq === "object" && !Array.isArray(f.boq)) ? f.boq : {} }; // { projectId: [hạng mục] }
+    boq: obj(f.boq),            // { projectId: { items, kys } }
+    nganSach: obj(f.nganSach),  // { projectId: { nhóm chi phí: số tiền } }
+    chiPhi: obj(f.chiPhi),      // { projectId: [khoản chi thực tế] }
+    deNghi: obj(f.deNghi) };    // { projectId: { kyId: đề nghị thanh toán } }
 }
 const sumItems = (arr) => (arr || []).reduce((s, x) => s + (Number(x.amount) || 0), 0);
 // money input grouping (vi uses '.', en uses ',')
@@ -2741,9 +2747,12 @@ function PriorityFlag({ p, t }) {
   const m = PRIORITY_META[p];
   return <AntTag bordered={false} icon={<Flag size={10} fill={m.color} stroke={m.color} style={{ marginRight: 3 }} />} style={{ background: m.bg, color: m.color, margin: 0, display: "inline-flex", alignItems: "center" }}>{t.priorities[p]}</AntTag>;
 }
-function DueBadge({ iso, lang }) {
+function DueBadge({ iso, lang, done }) {
   const m = dueMeta(iso, lang); if (!m) return null;
-  return <AntTag bordered={false} color={m.overdue ? "error" : m.soon ? "warning" : "default"} icon={<Clock size={10} style={{ marginRight: 3 }} />} style={{ margin: 0, display: "inline-flex", alignItems: "center" }}>{m.label}</AntTag>;
+  /* Việc đã xong thì hạn chót chỉ còn là thông tin, không phải cảnh báo:
+     không tô đỏ "Quá hạn" nữa, chỉ hiện ngày cho ai cần đối chiếu. */
+  const mau = done ? "default" : m.overdue ? "error" : m.soon ? "warning" : "default";
+  return <AntTag bordered={false} color={mau} icon={<Clock size={10} style={{ marginRight: 3 }} />} style={{ margin: 0, display: "inline-flex", alignItems: "center" }}>{done ? m.date || m.label : m.label}</AntTag>;
 }
 function CommentCount({ n }) { if (!n) return null; return <span className="inline-flex items-center gap-0.5 text-xs text-slate-500"><MessageSquare size={11} />{n}</span>; }
 function SubtaskBadge({ subtasks, mini }) {
@@ -2849,7 +2858,7 @@ function TaskRow({ task, t, lang, canEdit, memberById, blocked, onToggle, onOpen
         <DepBadge blocked={blocked} />
         <CommentCount n={task.comments?.length} />
         {task.reminderLead ? <Bell size={13} className="text-amber-500" /> : null}
-        {task.dueDate && <DueBadge iso={task.dueDate} lang={lang} />}
+        {task.dueDate && <DueBadge iso={task.dueDate} lang={lang} done={task.completed || task.status === "done"} />}
         <PriorityFlag p={task.priority} t={t} />
         <AssigneeStack task={task} memberById={memberById} size={24} />
       </div>
@@ -2888,7 +2897,7 @@ function BoardView({ t, lang, canEdit, memberById, sections, groupBy, groupOf, t
                     <div className="mt-2 flex items-center gap-2"><WorkBar v={task.workdone || 0} w={72} /><SubtaskBadge subtasks={task.subtasks} mini /><DepBadge blocked={blockedIds && blockedIds.has(task.id)} /></div>
                     <div className="flex items-center gap-1.5 mt-2">
                       <PriorityFlag p={task.priority} t={t} />
-                      {task.dueDate && <DueBadge iso={task.dueDate} lang={lang} />}
+                      {task.dueDate && <DueBadge iso={task.dueDate} lang={lang} done={task.completed || task.status === "done"} />}
                       {task.reminderLead ? <Bell size={12} className="text-amber-500" /> : null}
                       <CommentCount n={task.comments?.length} />
                       <div className="flex-1" />
@@ -3276,7 +3285,7 @@ function Dashboard({ t, lang, projects, tasks, onOpenProject, onOpenTask, member
                       {task.completed ? <CheckCircle2 size={14} className="text-green-500 shrink-0" /> : <Circle size={14} className="text-slate-400 shrink-0" />}
                       <span className="flex-1 min-w-0 text-sm text-slate-700 truncate">{task.title || t.untitled}</span>
                       {(task.subtasks || []).length > 0 && <span className="text-xs text-slate-500 flex items-center gap-0.5 shrink-0"><ListChecks size={12} />{sd}/{task.subtasks.length}</span>}
-                      <DueBadge iso={task.dueDate} lang={lang} />
+                      <DueBadge iso={task.dueDate} lang={lang} done={task.completed || task.status === "done"} />
                     </button>
                   ); })}
                 </div>
@@ -3325,7 +3334,7 @@ function MyWork({ t, lang, me, tasks, projects, memberById, onOpenTask }) {
             <span className="flex-1 min-w-0 text-sm text-slate-700 truncate">{task.title || t.untitled}</span>
             <span className="hidden sm:flex items-center gap-1.5 text-xs text-slate-500"><span className="w-2 h-2 rounded-full" style={{ background: proj?.color }} />{proj?.name}</span>
             <WorkBar v={task.workdone || 0} />
-            <DueBadge iso={task.dueDate} lang={lang} /><PriorityFlag p={task.priority} t={t} />
+            <DueBadge iso={task.dueDate} lang={lang} done={task.completed || task.status === "done"} /><PriorityFlag p={task.priority} t={t} />
           </div>); })}
       </div>
     </section>

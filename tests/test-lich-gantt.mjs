@@ -190,6 +190,36 @@ ok("R12 — CPM trong mã nguồn cho mốc dur = 0",
    SRC.includes("dur: it.tk.milestone ? 0 : soNgayLam(a, b)"),
    "không thấy nhánh milestone trong phần dựng nodeById");
 
+// ══════ Nhãn hạn chót: việc ĐÃ XONG thì không còn "quá hạn" ══════
+/* Lỗi thật đã gặp: mọi việc đã hoàn thành có hạn chót trong quá khứ đều bị gắn nhãn đỏ
+   "Quá hạn" — sai nghiệp vụ (xong rồi thì hết trễ) và làm dự án cũ đỏ rực cả màn hình.
+   Nguyên nhân: DueBadge chưa bao giờ được cho biết việc đã xong hay chưa. */
+{
+  const thanDM = (() => {
+    const i = SRC.indexOf("function dueMeta(");
+    const j = SRC.indexOf("\n}", i);
+    return SRC.slice(i, j + 2);
+  })();
+  /* dueMeta cần bảng chữ T và today0 -> nạp bản tối giản đủ dùng */
+  const today0 = () => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); };
+  const T = { vi: { overdue: "Quá hạn", today: "Hôm nay", tomorrow: "Ngày mai" } };
+  const dueMeta = eval("(" + thanDM.replace("function dueMeta", "function") + ")");
+
+  const truoc = new Date(Date.now() - 10 * DAY_MS);
+  const isoTruoc = truoc.getFullYear() + "-" + String(truoc.getMonth() + 1).padStart(2, "0") + "-" + String(truoc.getDate()).padStart(2, "0");
+  const m = dueMeta(isoTruoc, "vi");
+  ok("hạn chót đã qua -> dueMeta báo overdue", m.overdue === true);
+  ok("dueMeta trả về NGÀY THẬT để hiển thị cho việc đã xong",
+     m.date === truoc.getDate() + "/" + (truoc.getMonth() + 1), m.date);
+
+  ok("DueBadge nhận biết việc đã xong", /function DueBadge\(\{ iso, lang, done \}\)/.test(SRC));
+  ok("việc đã xong KHÔNG tô màu cảnh báo",
+     SRC.includes('const mau = done ? "default" : m.overdue ? "error" : m.soon ? "warning" : "default";'));
+  const soCho = (SRC.match(/<DueBadge iso=\{task\.dueDate\} lang=\{lang\} done=/g) || []).length;
+  const tongCho = (SRC.match(/<DueBadge /g) || []).length;
+  ok("MỌI chỗ dùng DueBadge đều truyền trạng thái hoàn thành", soCho === tongCho, soCho + "/" + tongCho + " chỗ");
+}
+
 // ── chốt chặn: mã nguồn đang chạy phải còn đúng các thành phần này ──
 ok("ProjectManager.jsx có đủ 4 loại phụ thuộc", /LOAI_PT = \["FS", "SS", "FF", "SF"\]/.test(SRC));
 ok("CPM trong mã nguồn tính theo ngày làm việc", SRC.includes("const soNgayLam = (a, b)") && SRC.includes("lamViec[k] = !nghiTuan.has"));

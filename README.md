@@ -36,6 +36,62 @@ cd "Chạy nội bộ" && node server.js
 
 ---
 
+## Giao diện
+
+> Ảnh chụp từ dữ liệu mẫu — tên người, tên dự án và mọi con số đều là hư cấu.
+
+### Tiến độ theo giai đoạn thi công
+Gom việc theo giai đoạn (WBS) thay vì chỉ theo trạng thái. Mỗi giai đoạn có mã số và
+**% hoàn thành tính theo trọng số thời lượng** — việc 10 ngày nặng gấp 5 lần việc 2 ngày.
+
+![Danh sách công việc gom theo giai đoạn thi công](docs/anh/02-danh-sach-theo-giai-doan.png)
+
+### Đường găng tính theo ngày công thật
+Thanh **đỏ** là đường găng — trễ một ngày là cả dự án trễ một ngày. Đường nối là quan hệ phụ
+thuộc (FS/SS/FF/SF, có độ trễ). Vạch xanh là hôm nay. Chủ nhật và ngày lễ không tính vào
+ngày công. Kéo thanh để dời lịch, kéo mép để đổi thời lượng; xem theo Ngày / Tuần / Tháng.
+
+![Gantt với đường găng và quan hệ phụ thuộc](docs/anh/03-gantt-duong-gang.png)
+
+### Lỗi tồn đọng (punch list)
+Ghi vị trí (tầng – trục – phòng), mức độ, nhà thầu chịu trách nhiệm, hạn khắc phục, ảnh
+trước và sau. Lọc theo vị trí / nhà thầu / trạng thái. Vòng đời bám đúng luồng duyệt sẵn có:
+*Đang mở → Nhà thầu báo đã sửa → QC xác nhận đóng*.
+
+![Danh sách lỗi tồn đọng theo vị trí và nhà thầu](docs/anh/04-loi-ton-dong.png)
+
+### Nhật ký thi công có cấu trúc
+Bảng nhân lực theo tổ đội, bảng máy theo giờ, khối lượng gắn hạng mục BOQ (là số nên cộng
+dồn được), mục sự cố tách riêng, và luồng *Nháp → Đã nộp → Chỉ huy trưởng duyệt* — duyệt
+xong là khóa sửa. In được theo mẫu NĐ 06/2021.
+
+![Nhật ký thi công đã được Chỉ huy trưởng duyệt](docs/anh/05-nhat-ky-thi-cong.png)
+
+### BOQ theo kỳ nghiệm thu và đề nghị thanh toán
+Khối lượng nhập theo từng kỳ, lũy kế tự tính lại nên sửa kỳ cũ thì kỳ sau vẫn đúng. Kỳ đã
+nộp Chủ đầu tư **khóa được** (máy chủ chụp lại đơn giá, sửa giá về sau không đổi số đã nộp).
+Đề nghị thanh toán sinh thẳng từ giá trị kỳ — trừ giữ lại bảo hành, khấu trừ tạm ứng, cộng VAT.
+
+![BOQ theo kỳ nghiệm thu kèm đề nghị thanh toán](docs/anh/06-boq-de-nghi-thanh-toan.png)
+
+### Ngân sách so với chi phí thực tế
+Sáu nhóm chi phí, sổ chi phí thực tế có chứng từ và nhà cung cấp, đối chiếu
+*Doanh thu đã nghiệm thu – Ngân sách – Đã cam kết – Thực tế* và **lãi gộp tạm tính**.
+
+![Bảng ngân sách và chi phí thực tế](docs/anh/07-ngan-sach-chi-phi.png)
+
+### Tổng quan cho lãnh đạo
+![Màn hình tổng quan](docs/anh/01-tong-quan.png)
+
+### Dùng được ngoài công trường
+Tên việc chiếm dòng riêng trên điện thoại; chụp ảnh mở thẳng camera; ảnh được nén trên máy
+trước khi tải lên (ảnh 11 MB còn khoảng 450 KB); nhập bằng giọng nói; mất sóng vẫn thao tác
+được và tự gửi lại khi có mạng.
+
+<img src="docs/anh/08-dien-thoai-danh-sach.png" alt="Danh sách công việc trên điện thoại" width="320">
+
+---
+
 ## Tính năng
 
 **Tiến độ** — WBS theo giai đoạn với % trọng số thời lượng · phụ thuộc FS/SS/FF/SF có
