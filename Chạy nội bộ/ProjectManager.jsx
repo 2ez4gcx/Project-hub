@@ -1,3 +1,13 @@
+/* Trạm Dự Án — phần mềm quản lý thi công cho công ty xây dựng
+   Copyright (C) 2026 Khuong Doan <https://khuongdoan.com/>
+   SPDX-License-Identifier: AGPL-3.0-or-later
+
+   Phần mềm tự do theo GNU AGPL v3 trở lên. Kèm điều khoản bổ sung theo mục 7(b):
+   dòng ghi danh tác giả PHẢI được giữ ở chân thanh bên, banner máy chủ, /api/config
+   và chân biểu mẫu in. Xóa ghi danh là mất quyền sử dụng (mục 8).
+   Điều khoản bổ sung: DIEU-KHOAN-BO-SUNG.txt · Toàn văn giấy phép: LICENSE.txt
+   Giải thích tiếng Việt: docs/Giay-phep-tieng-Viet.md */
+
 import { useState, useEffect, useMemo, useRef, useCallback, memo } from "react";
 import "@ant-design/v5-patch-for-react-19";
 import { ConfigProvider, App as AntApp, Button as AntBtn, Input as AntInput, Card as AntCard, Alert as AntAlert, Segmented, Typography, Select as AntSelect, Checkbox as AntCheckbox, Badge as AntBadge, Tag as AntTag, Tooltip as AntTooltip, Modal as AntModal, Drawer as AntDrawer, Tabs as AntTabs, Progress as AntProgress, Empty as AntEmpty, Slider as AntSlider, Switch as AntSwitch, Popover as AntPopover } from "antd";
@@ -879,13 +889,21 @@ function seedServer(lang) {
 =================================================================== */
 const AUTHOR_CREDIT = "Phần mềm do Khuong Doan phát triển — © 2026";
 const AUTHOR_URL = "https://khuongdoan.com/";
-/* Dòng ghi danh tác giả + link trang web, đặt ở góc dưới (sidebar và màn đăng nhập) */
-function AuthorCredit({ suffix, className }) {
+const SOURCE_URL = "https://github.com/2ez4gcx/Project-hub";
+/* Dòng ghi danh tác giả + link trang web, đặt ở góc dưới (sidebar và màn đăng nhập).
+   Điều khoản bổ sung 7(b) của giấy phép bắt buộc giữ khối này — được thêm ghi danh của
+   mình bên cạnh, không được thay thế hay giấu đi.
+   Liên kết "Mã nguồn" là để người vận hành tự động đúng mục 13 AGPL: ai cho người ngoài
+   dùng qua mạng thì phải mời họ xem mã nguồn bản đang chạy. Máy chủ truyền sourceUrl
+   xuống, sửa mã thì trỏ vào kho của mình. */
+function AuthorCredit({ suffix, className, sourceUrl }) {
   return (
     <p className={className || "text-xs text-slate-500 text-center leading-tight pt-1"}>
       {AUTHOR_CREDIT}{suffix || ""}
       {" · "}
       <a href={AUTHOR_URL} target="_blank" rel="noopener noreferrer" className="text-orange-700 hover:underline">khuongdoan.com</a>
+      {" · "}
+      <a href={sourceUrl || SOURCE_URL} target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:underline">Mã nguồn (AGPL-3.0)</a>
     </p>
   );
 }
@@ -938,6 +956,7 @@ function ProjectManagerInner() {
   const [serverMode, setServerMode] = useState(false);
   const [features, setFeatures] = useState({});
   const [appVersion, setAppVersion] = useState("");
+  const [sourceUrl, setSourceUrl] = useState("");     // mục 13 AGPL: mã nguồn của bản ĐANG chạy
   const [authUser, setAuthUser] = useState(null);
   const [needsSetup, setNeedsSetup] = useState(false);
   const [authReady, setAuthReady] = useState(false);
@@ -1021,6 +1040,7 @@ function ProjectManagerInner() {
         setServerMode(true);
         if (c.body.features) setFeatures(c.body.features);
         if (c.body.version) setAppVersion(c.body.version);
+        if (c.body.sourceUrl) setSourceUrl(c.body.sourceUrl);
         if (!c.body.hasAccounts) { setNeedsSetup(true); setAuthReady(true); setLoaded(true); return; }
         const tok = getToken();
         if (tok) { const m = await api("/api/me"); if (m.ok) { await afterLogin(m.body.user); return; } setToken(null); }
@@ -1712,8 +1732,8 @@ function ProjectManagerInner() {
 
   if (!loaded) return <div className="h-screen flex items-center justify-center text-slate-500">…</div>;
 
-  if (serverMode && needsSetup) return <AuthScreen mode="setup" t={t} lang={lang} setLang={setLang} error={authError} onSubmit={(n, e, p, c) => doSetup(n, e, p, c)} />;
-  if (serverMode && !authUser) return <AuthScreen mode="login" t={t} lang={lang} setLang={setLang} error={authError} onSubmit={(e, p) => doLogin(e, p)} />;
+  if (serverMode && needsSetup) return <AuthScreen mode="setup" t={t} lang={lang} setLang={setLang} error={authError} sourceUrl={sourceUrl} onSubmit={(n, e, p, c) => doSetup(n, e, p, c)} />;
+  if (serverMode && !authUser) return <AuthScreen mode="login" t={t} lang={lang} setLang={setLang} error={authError} sourceUrl={sourceUrl} onSubmit={(e, p) => doLogin(e, p)} />;
 
   return (
     <div className="flex h-screen w-full bg-slate-50 text-slate-800 antialiased overflow-hidden" style={{ fontFamily: "system-ui, -apple-system, 'Segoe UI', sans-serif" }}>
@@ -1774,7 +1794,7 @@ function ProjectManagerInner() {
             <Globe size={15} className="text-slate-500 ml-1.5" />
             {["vi", "en"].map((l) => (<button key={l} onClick={() => setLang(l)} className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-colors ${lang === l ? "bg-white text-orange-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}>{l === "vi" ? "Tiếng Việt" : "English"}</button>))}
           </div>
-          <AuthorCredit suffix={appVersion ? " · v" + appVersion : ""} />
+          <AuthorCredit suffix={appVersion ? " · v" + appVersion : ""} sourceUrl={sourceUrl} />
         </div>
       </aside>
 
@@ -5236,7 +5256,7 @@ function buildReportHTML({ t, lang, project, projects, tasks, members, finance, 
     <body style="font-family:Arial,system-ui,sans-serif;max-width:900px;margin:24px auto;padding:0 16px;color:#1e293b">
     <h1 style="color:#ea580c;margin-bottom:0">${esc(t.appName)} — ${esc(t.reportFor)}</h1>
     <div style="color:#64748b;font-size:12px">${t.generatedAt}: ${now.toLocaleString(lang === "vi" ? "vi-VN" : "en-US")}</div>
-    <div style="color:#94a3b8;font-size:11px;margin-top:2px">Phần mềm do Khuong Doan phát triển · <a href="https://khuongdoan.com/" style="color:#c2410c">khuongdoan.com</a></div>
+    <div style="color:#94a3b8;font-size:11px;margin-top:2px">Phần mềm do Khuong Doan phát triển · <a href="https://khuongdoan.com/" style="color:#c2410c">khuongdoan.com</a> · AGPL-3.0</div>
     ${body}</body></html>`;
 }
 
@@ -5944,7 +5964,7 @@ function SettingsModal({ t, lang, onLoad, onSave, onFeatures, onClose, membersCo
 }
 
 /* ============================ AUTH SCREEN (setup / login) ============================ */
-function AuthScreen({ mode, t, lang, setLang, error, onSubmit }) {
+function AuthScreen({ mode, t, lang, setLang, error, onSubmit, sourceUrl }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -5969,7 +5989,7 @@ function AuthScreen({ mode, t, lang, setLang, error, onSubmit }) {
           {isSetup && <p className="text-xs text-slate-500 -mt-1">{lang === "vi" ? "Xem mã trong cửa sổ máy chủ (Terminal / Log của container)." : "Find the code in the server console / container log."}</p>}
           {error && <AntAlert type="error" showIcon message={error} />}
           <AntBtn type="primary" size="large" block disabled={!ok} onClick={submit}>{isSetup ? t.createOwnerBtn : t.signIn}</AntBtn>
-          <AuthorCredit className="text-xs text-slate-500 mt-4 text-center" />
+          <AuthorCredit className="text-xs text-slate-500 mt-4 text-center" sourceUrl={sourceUrl} />
         </div>
         <div className="flex items-center justify-center mt-5">
           <Segmented size="small" value={lang} onChange={(v) => setLang(v)} options={[{ label: "Tiếng Việt", value: "vi" }, { label: "English", value: "en" }]} />

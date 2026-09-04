@@ -1,4 +1,41 @@
 ═══════════════════════════════════════════════════════════════
+  TRẠM DỰ ÁN v4.2.0 — ĐỔI GIẤY PHÉP SANG AGPL-3.0
+═══════════════════════════════════════════════════════════════
+
+ ⚠ THAY ĐỔI GIẤY PHÉP — ĐỌC MỤC ĐẦU
+
+ • CÔNG TY BẠN DÙNG PHẦN MỀM: KHÔNG PHẢI LÀM GÌ CẢ.
+   Vẫn miễn phí vĩnh viễn, không giới hạn số người, không mã kích
+   hoạt, được sửa mã tùy ý, dữ liệu vẫn nằm trọn trong thư mục "data"
+   trên máy bạn. Không có gì phải làm thêm.
+
+ • Ràng buộc mới CHỈ phát sinh khi bạn đưa phần mềm RA NGOÀI công ty:
+     - Giao hoặc bán cho công ty khác  -> phải kèm mã nguồn đầy đủ,
+       cũng theo AGPL. Không được đóng kín mã rồi bán.
+     - Sửa mã rồi cho người ngoài dùng qua Internet -> phải công khai
+       mã nguồn bản của bạn. Cách làm: đăng mã lên đâu đó rồi điền
+       dòng "sourceUrl" trong data/config.json.
+     - Dòng ghi danh tác giả phải giữ nguyên ở mọi chỗ nó đang hiện.
+
+ • GIAO DIỆN CÓ GÌ MỚI: chân thanh bên và chân màn hình đăng nhập nay
+   có thêm liên kết "Mã nguồn (AGPL-3.0)". Đây là thứ giúp bạn tự
+   động đúng luật khi cho người ngoài dùng qua mạng.
+
+ • Cửa sổ máy chủ in thêm một dòng: giấy phép và địa chỉ mã nguồn.
+
+ • BẢN CŨ KHÔNG BỊ ẢNH HƯỞNG: v4.1.4 trở về trước vẫn theo giấy phép
+   MIT vĩnh viễn. Giấy phép đã trao không thu hồi được.
+
+ • Đọc kỹ: file LICENSE.txt kèm theo, có bản tóm tắt tiếng Việt.
+
+CÁCH CẬP NHẬT
+ Chép đè cả thư mục (TRỪ thư mục "data") rồi khởi động lại.
+ Bảo mọi người bấm Ctrl+F5 một lần.
+
+Phần mềm do Khuong Doan phát triển — https://khuongdoan.com/
+
+
+═══════════════════════════════════════════════════════════════
   TRẠM DỰ ÁN v4.1.4 — VÁ: EMAIL NHẮC VIỆC KHÔNG GỬI ĐƯỢC
 ═══════════════════════════════════════════════════════════════
 

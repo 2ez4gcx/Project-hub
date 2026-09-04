@@ -1,5 +1,81 @@
 # Lịch sử phiên bản — Trạm Dự Án
 
+## v4.2.0 — 04/09/2026 — ĐỔI GIẤY PHÉP SANG AGPL-3.0
+
+> **Bản v4.1.4 trở về trước vẫn theo giấy phép MIT, vĩnh viễn.** Giấy phép đã trao không
+> thu hồi được: ai đang giữ một bản cũ thì giữ nguyên quyền MIT cho bản ấy, kể cả quyền bán
+> lại bản đóng kín. AGPL chỉ áp dụng từ **v4.2.0** trở đi.
+
+### Vì sao đổi
+
+MIT cho phép bất kỳ ai lấy phần mềm này, đổi logo, đóng kín mã nguồn rồi bán cho nhà thầu
+khác — không cần đóng góp gì lại, thậm chí không buộc giữ tên tác giả trên giao diện.
+
+AGPL giữ nguyên **mọi quyền tự do cho người dùng thật** (công ty xây dựng cài về chạy trên
+NAS của mình) nhưng chặn đúng trường hợp trên. Vẫn là phần mềm tự do, mã nguồn mở theo đúng
+định nghĩa của FSF và OSI.
+
+### Công ty đang dùng phần mềm: KHÔNG PHẢI LÀM GÌ CẢ
+
+Miễn phí vĩnh viễn, không giới hạn người dùng, không mã kích hoạt, được sửa mã tùy ý, dữ
+liệu vẫn nằm trọn trên máy bạn. Ràng buộc mới chỉ phát sinh khi bạn **đưa phần mềm ra ngoài**
+công ty mình.
+
+| Bạn là | Phải làm gì |
+|---|---|
+| Cài cho nhân viên mình dùng | Không phải làm gì |
+| Sửa mã, dùng nội bộ | Không phải công khai gì |
+| Sửa mã, cho người ngoài dùng qua Internet | Công khai mã nguồn bản của bạn, trỏ `sourceUrl` vào đó |
+| Giao/bán cho công ty khác | Kèm mã nguồn đầy đủ, cũng theo AGPL |
+| Muốn bán bản đóng kín | Cần giấy phép thương mại riêng từ tác giả |
+
+### Điều khoản bổ sung 7(b): ghi danh tác giả bắt buộc giữ
+
+Mục 7(b) của AGPL cho phép tác giả **bắt buộc giữ dòng ghi danh hiển thị ngay trong giao
+diện**, không chỉ trong file LICENSE. Đã dùng quyền đó. Dòng
+*"Phần mềm do Khuong Doan phát triển — https://khuongdoan.com/"* phải được giữ ở năm chỗ:
+chân thanh bên và màn đăng nhập, banner máy chủ, trường `author` của `/api/config`, chân
+biểu mẫu in, và file LICENSE. Được thêm ghi danh của mình bên cạnh; không được thay thế,
+che hay thu nhỏ. Xóa là **chấm dứt quyền sử dụng** theo mục 8.
+
+### Mục 13: phần mềm tự lo giúp người vận hành
+
+AGPL mục 13 buộc ai cho người ngoài dùng qua mạng phải mời được họ xem mã nguồn **bản đang
+chạy**. Đây là chỗ dễ vi phạm nhất mà không ai cố ý, nên phần mềm làm sẵn:
+
+- Giao diện có liên kết **"Mã nguồn (AGPL-3.0)"** ở chân thanh bên và chân màn đăng nhập.
+- Địa chỉ lấy từ `sourceUrl` trong `data/config.json`. Bỏ trống thì trỏ về kho gốc —
+  không sửa mã thì như vậy là đã đúng luật, không phải làm gì.
+- Có sửa mã: đăng mã nguồn của mình lên đâu đó rồi điền `sourceUrl`. Liên kết trong giao
+  diện và dòng in ở cửa sổ máy chủ tự đổi theo.
+
+### Đã đổi những gì
+
+- `LICENSE` (gốc repo): toàn văn AGPL-3.0 tải từ gnu.org, **khớp từng byte** với bản gốc.
+  Không chèn thêm gì vào đó — GitHub chỉ nhận diện đúng giấy phép khi văn bản khớp bản
+  chuẩn, thêm một đoạn đầu file là nó hiện "Other". Vì vậy phần bản quyền và điều khoản bổ
+  sung để riêng ở `DIEU-KHOAN-BO-SUNG.txt`.
+- `LICENSE.txt` trong cả hai gói: tóm tắt tiếng Việt cho người dùng cuối + điều khoản bổ
+  sung + toàn văn. `DIEU-KHOAN-BO-SUNG.txt` cũng đi kèm gói.
+- `docs/Giay-phep-tieng-Viet.md`: viết lại toàn bộ, giải thích theo từng vai trò.
+- Trường `license` trong hai `package.json`, tiêu đề SPDX ở đầu `server.js` và
+  `ProjectManager.jsx`, thẻ `author`/`license` trong `index.html`, mô tả trong
+  `manifest.json`, chân biểu mẫu in.
+- `/api/config` trả thêm `license`, `author`, `authorUrl`, `sourceUrl`.
+- README và ba file ĐỌC TRƯỚC.
+
+### Kiểm thử
+
+Thêm `tests/test-giay-phep.mjs` — **37 ca**, chạy trong cổng kiểm soát. Nó khóa cả hai
+chiều: văn bản giấy phép phải đủ (toàn văn, mục 13, điều khoản 7b, mốc v4.1.4) *và* ghi danh
+phải còn đủ ở cả năm chỗ. Lý do: điều khoản 7(b) chỉ có sức nặng khi chính bản phát hành của
+tác giả tuân thủ điều mình đặt ra — một lần dọn mã vô tình xóa mất một chỗ là sau này rất khó
+đi đòi người khác giữ.
+
+308 → **345 ca**, 26 → **27 mục** trong cổng kiểm soát.
+
+---
+
 ## v4.1.4 — 04/09/2026 — EMAIL NHẮC VIỆC CHƯA TỪNG CHẠY TRÊN BẢN MÁY CÁ NHÂN
 
 ### Lỗi: gói phát hành thiếu thư viện gửi email

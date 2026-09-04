@@ -87,6 +87,7 @@ await sleep(400);
 // ── 3b. Logic lịch & đường găng (không cần máy chủ) ──
 cases += runTest("test-lich-gantt.mjs");
 cases += runTest("test-gop-xung-dot.mjs");
+cases += runTest("test-giay-phep.mjs");   // giấy phép + ghi danh tác giả phải còn đủ
 
 // ───────────────────────── 4. HTTPS ─────────────────────────
 h("4. HTTPS (chứng chỉ tự ký)");

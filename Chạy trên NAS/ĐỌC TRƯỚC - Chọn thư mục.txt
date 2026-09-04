@@ -56,8 +56,12 @@ năng và giao diện, nhưng DỮ LIỆU RIÊNG:
    cập nhật đúng thư mục mình đang dùng.
  • Sao lưu = giữ lại thư mục "data". Đó là toàn bộ tài sản của bạn.
  • Phần mềm MIỄN PHÍ, dùng vĩnh viễn, không có hạn dùng thử và không
-   cần mã kích hoạt. Điều kiện duy nhất khi chia sẻ lại: giữ dòng ghi
-   danh tác giả (xem file LICENSE kèm theo).
+   cần mã kích hoạt. Công ty bạn cài về dùng thì không phải làm gì thêm.
+
+ • Giấy phép AGPL-3.0. Chỉ khi bạn ĐƯA PHẦN MỀM RA NGOÀI công ty mình
+   mới có ràng buộc: giữ nguyên dòng ghi danh tác giả, và kèm mã nguồn
+   cho người nhận (không được đóng kín mã rồi bán). Chi tiết dễ hiểu
+   nằm trong file LICENSE.txt kèm theo.
 
  • Tài liệu khác có sẵn trong CẢ HAI thư mục:
        CÓ GÌ MỚI.txt                    thay đổi của bản mới nhất

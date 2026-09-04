@@ -1,3 +1,13 @@
+/* Trạm Dự Án — phần mềm quản lý thi công cho công ty xây dựng
+   Copyright (C) 2026 Khuong Doan <https://khuongdoan.com/>
+   SPDX-License-Identifier: AGPL-3.0-or-later
+
+   Phần mềm tự do theo GNU AGPL v3 trở lên. Kèm điều khoản bổ sung theo mục 7(b):
+   dòng ghi danh tác giả PHẢI được giữ ở chân thanh bên, banner máy chủ, /api/config
+   và chân biểu mẫu in. Xóa ghi danh là mất quyền sử dụng (mục 8).
+   Điều khoản bổ sung: DIEU-KHOAN-BO-SUNG.txt · Toàn văn giấy phép: LICENSE.txt
+   Giải thích tiếng Việt: docs/Giay-phep-tieng-Viet.md */
+
 /* Trạm Dự Án — máy chủ NAS / mạng nội bộ, có đăng nhập.
    Tài khoản (tên, email, mật khẩu) do Chủ sở hữu tạo. Đăng nhập bằng email + mật khẩu.
    Mật khẩu được băm (scrypt + salt). Không cần thư viện ngoài cho phần đăng nhập.
@@ -34,6 +44,15 @@ const crypto = require("crypto");
     } catch {}
   }
 })();
+
+/* Ghi danh tác giả — điều khoản bổ sung 7(b) của giấy phép bắt buộc giữ nguyên các chỗ
+   dùng ba hằng số này. Đừng xóa để "cho gọn": xóa là mất quyền dùng phần mềm. */
+const TAC_GIA = "Khuong Doan";
+const TAC_GIA_URL = "https://khuongdoan.com/";
+/* Mục 13 AGPL: ai cho người ngoài dùng qua mạng thì phải mời họ xem mã nguồn bản ĐANG
+   chạy. Sửa mã thì đổi "sourceUrl" trong data/config.json trỏ vào kho của mình; không
+   sửa gì thì để trống, phần mềm trỏ về kho gốc và thế là đã đúng luật. */
+const MA_NGUON_MAC_DINH = "https://github.com/2ez4gcx/Project-hub";
 
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "data");
 const PUBLIC = path.join(__dirname, "public");
@@ -1045,7 +1064,8 @@ const requestHandler = async (req, res) => {
   // ---- public auth endpoints ----
   if (p === "/api/config" && req.method === "GET") {
     CONFIG = loadConfig();
-    return json(res, 200, { serverMode: true, appName: CONFIG.appName || "Trạm Dự Án", version: APP_VERSION, features: CONFIG.features || {}, hasAccounts: loadAccounts().length > 0 });
+    return json(res, 200, { serverMode: true, appName: CONFIG.appName || "Trạm Dự Án", version: APP_VERSION, features: CONFIG.features || {}, hasAccounts: loadAccounts().length > 0,
+      license: "AGPL-3.0-or-later", author: TAC_GIA, authorUrl: TAC_GIA_URL, sourceUrl: CONFIG.sourceUrl || MA_NGUON_MAC_DINH });
   }
   if (p === "/api/setup" && req.method === "POST") {
     const accts = loadAccounts();
@@ -1998,7 +2018,8 @@ server.listen(PORT, "0.0.0.0", () => {
   loadSessions();
   if (tokens.size) console.log("   Phiên đăng nhập: khôi phục " + tokens.size + " phiên (không phải đăng nhập lại sau khi khởi động lại).");
   console.log("   Dữ liệu: " + DATA + "\n   Tài khoản: " + ACCOUNTS + "\n   Nhật ký bảo mật: " + path.join(DATA_DIR, "security.log") + "\n");
-  console.log("   Tác giả: Khuong Doan · https://khuongdoan.com/");
+  console.log("   Tác giả: " + TAC_GIA + " · " + TAC_GIA_URL);
+  console.log("   Giấy phép: AGPL-3.0 (phần mềm tự do) · mã nguồn: " + (loadConfig().sourceUrl || MA_NGUON_MAC_DINH));
   console.log("   Nhấn Ctrl+C để dừng.\n");
   const sec = Math.max(20, (loadConfig().reminderCheckSeconds || 60));
   runReminderCheck().catch(() => {});

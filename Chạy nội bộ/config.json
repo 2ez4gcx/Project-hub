@@ -1,6 +1,7 @@
 {
   "appName": "Trạm Dự Án",
   "appUrl": "",
+  "sourceUrl": "",
   "reminderCheckSeconds": 60,
   "backup": {
     "email": "",

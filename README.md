@@ -6,7 +6,8 @@ Kiểu Asana nhưng làm cho ngành xây dựng: WBS theo giai đoạn, đườn
 thật, nhật ký thi công có bảng nhân lực/máy/khối lượng, punch list, bảng kiểm nghiệm thu,
 BOQ theo kỳ nghiệm thu, phát sinh (VO), ngân sách – chi phí thực tế, đề nghị thanh toán.
 
-Miễn phí, mã nguồn mở theo giấy phép MIT. Không hạn dùng thử, không mã kích hoạt.
+Phần mềm tự do, mã nguồn mở theo giấy phép **AGPL-3.0**. Miễn phí vĩnh viễn, không hạn dùng
+thử, không mã kích hoạt, không thu thập dữ liệu.
 
 - **Tác giả:** Khuong Doan — <https://khuongdoan.com/>
 - **Phiên bản hiện tại:** xem [CHANGELOG.md](CHANGELOG.md)
@@ -209,9 +210,22 @@ Lỗ hổng bảo mật: xem [SECURITY.md](SECURITY.md) — đừng mở Issue c
 
 ## Giấy phép
 
-MIT — xem [LICENSE](LICENSE) (bản giải thích tiếng Việt:
-[docs/Giay-phep-tieng-Viet.md](docs/Giay-phep-tieng-Viet.md)). Ai cũng được dùng, sửa và
-phân phối lại cho mục đích thương mại hay phi thương mại; điều kiện duy nhất là
-**giữ dòng ghi danh tác giả**. Không hạn dùng thử, không mã kích hoạt, không thu thập dữ liệu.
+**AGPL-3.0-or-later** — toàn văn ở [LICENSE](LICENSE), điều khoản bổ sung ở
+[DIEU-KHOAN-BO-SUNG.txt](DIEU-KHOAN-BO-SUNG.txt), bản giải thích tiếng Việt ở
+[docs/Giay-phep-tieng-Viet.md](docs/Giay-phep-tieng-Viet.md).
+
+| Bạn là | Phải làm gì |
+|---|---|
+| Công ty cài cho nhân viên mình dùng | **Không phải làm gì cả.** Miễn phí, vĩnh viễn, không giới hạn người dùng, được sửa mã tùy ý |
+| Có sửa mã và cho người ngoài dùng qua Internet | Công khai mã nguồn bản của bạn, rồi trỏ `sourceUrl` trong `data/config.json` vào đó |
+| Giao hoặc bán cho công ty khác | Phải kèm mã nguồn đầy đủ, cũng theo AGPL — không được đóng kín lại |
+| Muốn bán bản đóng kín | Cần giấy phép thương mại riêng: <https://khuongdoan.com/> |
+
+Kèm **điều khoản bổ sung theo mục 7(b)**: dòng ghi danh tác giả phải được giữ ở chân thanh
+bên, banner máy chủ, `/api/config` và chân biểu mẫu in. Được thêm ghi danh của mình bên
+cạnh; không được thay thế hay giấu đi. Xóa ghi danh là **chấm dứt quyền sử dụng** (mục 8).
+
+> **Bản v4.1.4 trở về trước phát hành theo giấy phép MIT** và giữ nguyên quyền đó vĩnh viễn —
+> giấy phép đã trao không thu hồi được. AGPL chỉ áp dụng từ **v4.2.0** trở đi.
 
 Phần mềm do **Khuong Doan** phát triển — <https://khuongdoan.com/>

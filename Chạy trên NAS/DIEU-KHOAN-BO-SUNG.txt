@@ -1,0 +1,80 @@
+Trạm Dự Án — phần mềm quản lý thi công cho công ty xây dựng
+Copyright (C) 2026 Khuong Doan <https://khuongdoan.com/>
+
+SPDX-License-Identifier: AGPL-3.0-or-later
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU Affero General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program. If not, see <https://www.gnu.org/licenses/>.
+
+
+================================================================================
+ADDITIONAL TERMS — GNU AGPL version 3, section 7(b)
+================================================================================
+
+In accordance with section 7(b) of the GNU Affero General Public License
+version 3, anyone who conveys this program, a modified version of it, or any
+work based on it, MUST PRESERVE the following author attribution:
+
+        Phần mềm do Khuong Doan phát triển — https://khuongdoan.com/
+        (Software developed by Khuong Doan)
+
+in every one of the following places in which it appears in the work:
+
+  1. The footer of the application sidebar and of the login screen, visible to
+     every user of the running program.
+  2. The startup banner printed by the server to its console.
+  3. The "author" and "authorUrl" fields returned by GET /api/config.
+  4. The footer of printed forms and of documents exported by the program.
+  5. This LICENSE file, and the LICENSE.txt shipped inside each distribution
+     package.
+
+You MAY add your own attribution alongside it — for example "Modified by
+<your company>" — and you MAY translate it. You MAY NOT replace it, hide it,
+shrink it below the legibility of surrounding text, or remove it.
+
+Removing or obscuring any of these attributions terminates the rights granted
+to you under this License (see section 8).
+
+
+================================================================================
+RUNNING THIS PROGRAM OVER A NETWORK — section 13
+================================================================================
+
+If you modify this program and let anyone use the modified version over a
+network, section 13 requires you to offer those users the source code of YOUR
+modified version.
+
+To make this easy, the program shows a "Mã nguồn" (source code) link in its
+interface, taken from the "sourceUrl" field of data/config.json. If you modify
+the program, point that field at your own published source. If you do not
+modify it, leave it pointing at the original repository and you are compliant.
+
+
+================================================================================
+LICENSE HISTORY — please read before assuming which terms apply
+================================================================================
+
+Trạm Dự Án v4.1.4 and every earlier release were published under the MIT
+License. That grant is irrevocable for copies already received: anyone holding
+one of those releases keeps the MIT terms for it forever, including the right
+to sell it.
+
+Trạm Dự Án v4.2.0 and later are licensed under the GNU Affero General Public
+License version 3 or later, together with the additional terms stated above.
+
+
+================================================================================
+Full text of the GNU Affero General Public License version 3: see the file
+LICENSE next to this one, which is the verbatim license text.
+Bản giải thích tiếng Việt: docs/Giay-phep-tieng-Viet.md
+================================================================================
+
