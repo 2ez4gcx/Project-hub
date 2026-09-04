@@ -220,6 +220,36 @@ ok("R12 — CPM trong mã nguồn cho mốc dur = 0",
   ok("MỌI chỗ dùng DueBadge đều truyền trạng thái hoàn thành", soCho === tongCho, soCho + "/" + tongCho + " chỗ");
 }
 
+// ══════ Cột tên việc trên Gantt phải được GHIM khi cuộn ngang ══════
+/* Trước đây cuộn ngang một chút là cột nhãn 224px trôi mất, còn lại một rừng thanh màu
+   không biết dòng nào là việc gì — ở dự án vài trăm việc gần như không dùng được. */
+{
+  const dong = SRC.split("\n");
+  const dongNhan = dong.findIndex((l) => l.includes("position: \"sticky\", left: 0, zIndex: 7"));
+  ok("cột tên việc của mỗi dòng được ghim (sticky, left 0)", dongNhan > 0);
+
+  const khoiNhan = dong.slice(dongNhan, dongNhan + 3).join("\n");
+  ok("cột tên việc có nền đục để che thanh trượt qua bên dưới", khoiNhan.includes('background: "#fff"'));
+  ok("có đổ bóng khi đã cuộn ngang", khoiNhan.includes("daCuonNgang ?"));
+
+  ok("ô góc của thanh tiêu đề cũng được ghim",
+     SRC.includes('width: LABEL_W, position: "sticky", left: 0, zIndex: 9'));
+
+  /* Thứ tự lớp: vạch hôm nay < dây phụ thuộc < cột nhãn < thanh tiêu đề < ô góc */
+  const z = (mo) => { const m = SRC.match(mo); return m ? Number(m[1]) : -1; };
+  const zHomNay = z(/background: "#0ea5e9", opacity: 0\.45, zIndex: (\d+)/);
+  const zDay = z(/pointerEvents: "none", overflow: "visible", zIndex: (\d+)/);
+  const zNhan = 7, zTieuDe = z(/style=\{\{ height: 28, zIndex: (\d+) \}\}/), zGoc = 9;
+  ok("thứ tự lớp đúng: hôm nay < dây phụ thuộc < cột nhãn < tiêu đề < ô góc",
+     zHomNay < zDay && zDay < zNhan && zNhan < zTieuDe && zTieuDe < zGoc,
+     "hôm nay=" + zHomNay + " dây=" + zDay + " nhãn=" + zNhan + " tiêu đề=" + zTieuDe + " góc=" + zGoc);
+
+  ok("chỉ đặt lại trạng thái khi cuộn ngang BẬT/TẮT, không phải mỗi pixel",
+     SRC.includes("setDaCuonNgang((cu) => cu === ngang ? cu : ngang);"));
+  ok("mỗi dòng Gantt được truyền trạng thái cuộn ngang",
+     SRC.includes("LABEL_W={LABEL_W} daCuonNgang={daCuonNgang}"));
+}
+
 // ── chốt chặn: mã nguồn đang chạy phải còn đúng các thành phần này ──
 ok("ProjectManager.jsx có đủ 4 loại phụ thuộc", /LOAI_PT = \["FS", "SS", "FF", "SF"\]/.test(SRC));
 ok("CPM trong mã nguồn tính theo ngày làm việc", SRC.includes("const soNgayLam = (a, b)") && SRC.includes("lamViec[k] = !nghiTuan.has"));

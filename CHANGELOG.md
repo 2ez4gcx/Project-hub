@@ -1,5 +1,29 @@
 # Lịch sử phiên bản — Trạm Dự Án
 
+## v4.1.3 — 04/09/2026 — GHIM CỘT TÊN VIỆC TRÊN GANTT
+
+### Cuộn ngang không còn mất tên việc
+
+Trên màn Dòng thời gian, cuộn sang phải một chút là **cột tên việc trôi ra ngoài**, còn
+lại một rừng thanh màu không biết dòng nào là việc gì. Ở dự án vài trăm việc thì gần như
+không dùng được: muốn biết thanh nào của việc nào phải cuộn ngược về đầu.
+
+Nay cột tên việc và ô góc của thanh tiêu đề đều được **ghim cố định bên trái**; thanh
+công việc trượt xuống dưới nó như bảng tính, và mép cột có đổ bóng nhẹ khi đã cuộn để
+thấy rõ đây là cột đang nổi.
+
+Đã kiểm trên trình duyệt thật: cuộn ngang 2.262 px ở mức phóng Ngày — cột tên việc đứng
+nguyên tại chỗ, nhãn "Găng" vẫn đọc được. Kéo thanh đổi lịch vẫn hoạt động bình thường
+(dời đúng số ngày) và tốc độ không đổi.
+
+### Kiểm thử
+
+301 → **308 ca**. Thêm 7 ca cho việc ghim cột, trong đó có ca kiểm **thứ tự lớp**
+(vạch hôm nay → dây phụ thuộc → cột nhãn → thanh tiêu đề → ô góc) — đặt sai thứ tự thì
+dây phụ thuộc sẽ vẽ đè lên tên việc, loại lỗi rất khó thấy khi đọc mã.
+
+---
+
 ## v4.1.2 — 04/09/2026 — VÁ MẤT SỐ LIỆU CHI PHÍ
 
 Hai lỗi lộ ra khi dựng dữ liệu mẫu để chụp ảnh màn hình cho README — cả hai đều thoát

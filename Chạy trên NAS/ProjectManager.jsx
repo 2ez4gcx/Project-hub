@@ -4779,7 +4779,7 @@ const DAY_MS = 86400000;
 function isoOf(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
 function parseISO(s) { return s ? new Date(s + "T00:00:00") : null; }
 /* A1: một dòng Gantt. React.memo -> khi kéo thanh chỉ dòng đang kéo vẽ lại. */
-const GanttRow = memo(function GanttRow({ it, top, t, lang, canEdit, memberById, min, PX, ROW, LABEL_W,
+const GanttRow = memo(function GanttRow({ it, top, t, lang, canEdit, memberById, min, PX, ROW, LABEL_W, daCuonNgang,
                                           critIn, slackIn, badIn, blIn, isDrag, dragMode, dragDelta, setDrag, onOpenTask }) {
           const delta = isDrag ? dragDelta : 0;
           const spanGap = Math.round((it.end - it.start) / DAY_MS);
@@ -4805,7 +4805,9 @@ const GanttRow = memo(function GanttRow({ it, top, t, lang, canEdit, memberById,
           const barTip = (critical ? t.criticalTip : (slackDays != null ? t.slackDays + ": " + slackDays + " " + t.daysUnit : "")) + (driftTxt ? " · " + driftTxt : "");
           return (
             <div className="flex items-center border-b border-slate-50" style={{ height: ROW, position: "absolute", top, left: 0, right: 0 }}>
-              <div style={{ width: LABEL_W }} className="shrink-0 px-3 border-r border-slate-100 flex items-center gap-1.5">
+              <div style={{ width: LABEL_W, position: "sticky", left: 0, zIndex: 7, background: "#fff",
+                            boxShadow: daCuonNgang ? "6px 0 6px -4px rgba(15,23,42,.18)" : "none" }}
+                   className="shrink-0 px-3 border-r border-slate-100 flex items-center gap-1.5">
                 <button onClick={() => onOpenTask(it.tk.id)} className="text-sm text-slate-700 truncate hover:text-orange-600 text-left flex-1">{it.tk.milestone ? "◆ " : ""}{it.tk.title || t.untitled}</button>
                 {critical && <span className="text-[10px] font-bold text-red-600 bg-red-50 rounded px-1 py-0.5 shrink-0">{t.criticalBadge}</span>}
                 {bl && drift > 0 && <span title={driftTxt} className="text-[10px] font-bold shrink-0" style={{ color: "#dc2626" }}>+{drift}{lang === "vi" ? "ng" : "d"}</span>}
@@ -4863,6 +4865,7 @@ function TimelineView({ t, lang, canEdit, tasks, visibleIds, memberById, project
   const ROW = 38, LABEL_W = 224;
   const KHUNG_H = 560, DEM = 6;            // chiều cao khung nhìn biểu đồ + số dòng đệm trên/dưới
   const [cuon, setCuon] = useState(0);     // vị trí cuộn dọc -> chỉ vẽ dòng đang nhìn thấy (ảo hóa)
+  const [daCuonNgang, setDaCuonNgang] = useState(false);   // đã cuộn ngang chưa -> đổ bóng mép cột nhãn
 
   // (hooks phải chạy trước mọi early-return — bản cũ đặt effect sau return khi rỗng, vi phạm rules of hooks)
   useEffect(() => {
@@ -5056,11 +5059,19 @@ function TimelineView({ t, lang, canEdit, tasks, visibleIds, memberById, project
         {canBaseline && <span><AntBtn size="small" onClick={onSaveBaseline}>{baseline ? t.baselineUpdate : t.baselineSave}</AntBtn>{baseline && project.baseline.savedAt ? <span className="text-slate-500 ml-2">{new Date(project.baseline.savedAt).toLocaleDateString(lang === "vi" ? "vi-VN" : "en-US")}</span> : null}</span>}
       </div>
       <div className="bg-white rounded-xl border border-slate-200" style={{ overflow: "auto", maxHeight: KHUNG_H }}
-        onScroll={(e) => { const v = e.currentTarget.scrollTop; setCuon((c) => Math.abs(c - v) >= ROW / 2 ? v : c); }}>
+        onScroll={(e) => {
+          const v = e.currentTarget.scrollTop;
+          setCuon((c) => Math.abs(c - v) >= ROW / 2 ? v : c);
+          const ngang = e.currentTarget.scrollLeft > 0;      // chỉ đặt lại state khi BẬT/TẮT, không phải mỗi pixel
+          setDaCuonNgang((cu) => cu === ngang ? cu : ngang);
+        }}>
         <div style={{ minWidth: LABEL_W + totalDays * PX }}>
           {/* header */}
-          <div className="flex border-b border-slate-200 sticky top-0 bg-white" style={{ height: 28, zIndex: 6 }}>
-            <div style={{ width: LABEL_W }} className="shrink-0 border-r border-slate-100" />
+          <div className="flex border-b border-slate-200 sticky top-0 bg-white" style={{ height: 28, zIndex: 8 }}>
+            {/* ô góc: ghim cả trên (theo tiêu đề) lẫn trái (theo cột nhãn) */}
+            <div style={{ width: LABEL_W, position: "sticky", left: 0, zIndex: 9, background: "#fff",
+                          boxShadow: daCuonNgang ? "6px 0 6px -4px rgba(15,23,42,.18)" : "none" }}
+                 className="shrink-0 border-r border-slate-100" />
             <div className="relative flex-1">
               {ticks.map((tk, i) => <div key={i} className="absolute text-xs text-slate-500" style={{ left: tk.off * PX, top: 6 }}>{tk.label}</div>)}
             </div>
@@ -5081,7 +5092,7 @@ function TimelineView({ t, lang, canEdit, tasks, visibleIds, memberById, project
             </svg>
             {items.slice(tuDong, denDong).map((it, k) => (
               <GanttRow key={it.tk.id} it={it} top={(tuDong + k) * ROW} t={t} lang={lang} canEdit={canEdit} memberById={memberById}
-                min={min} PX={PX} ROW={ROW} LABEL_W={LABEL_W}
+                min={min} PX={PX} ROW={ROW} LABEL_W={LABEL_W} daCuonNgang={daCuonNgang}
                 critIn={isCritical(it.tk.id)} slackIn={hasCycle ? null : slackOf[it.tk.id]}
                 badIn={violated.has(it.tk.id)} blIn={baseline ? baseline[it.tk.id] : null}
                 isDrag={!!drag && drag.id === it.tk.id} dragMode={drag ? drag.mode : null} dragDelta={drag ? drag.deltaDays : 0}
