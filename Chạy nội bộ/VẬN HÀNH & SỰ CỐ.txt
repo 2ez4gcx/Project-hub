@@ -92,7 +92,8 @@
 ───────────────────────────────────────────────────────────────────────
   1. Cài Node.js bản LTS trên máy mới (nodejs.org).
   2. Chép TOÀN BỘ thư mục phần mềm (gồm cả thư mục "data") sang máy mới.
-  3. Bấm đúp "Khởi động (Windows).bat".
+  3. Bấm đúp "Khởi động (Windows).bat" (bản chạy trên máy cá nhân;
+     bản NAS thì chạy  docker compose up -d --build).
   4. Nếu đã bật HTTPS: chạy lại "Tạo chứng chỉ HTTPS (Windows).bat"
      vì chứng chỉ gắn với tên máy và địa chỉ IP cũ.
   5. Báo địa chỉ mới cho mọi người (địa chỉ in trong cửa sổ máy chủ).

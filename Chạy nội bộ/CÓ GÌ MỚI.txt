@@ -1,4 +1,34 @@
 ═══════════════════════════════════════════════════════════════
+  TRẠM DỰ ÁN v4.1.4 — VÁ: EMAIL NHẮC VIỆC KHÔNG GỬI ĐƯỢC
+═══════════════════════════════════════════════════════════════
+
+ ⚠ THAY ĐỔI HÀNH VI — ĐỌC KỸ NẾU BẠN DÙNG BẢN CHẠY TRÊN MÁY CÁ NHÂN
+
+ • Gói bản máy cá nhân trước đây THIẾU thư viện gửi email. Nghĩa là
+   email nhắc việc và email sao lưu hằng tuần CHƯA BAO GIỜ gửi được,
+   dù bạn đã điền đầy đủ SMTP trong Cài đặt. Cửa sổ máy chủ lại báo
+   "CHƯA cấu hình" nên rất dễ tưởng mình điền sai.
+
+ • Bản này đã kèm sẵn thư viện đó. Cập nhật xong, mở cửa sổ máy chủ
+   xem dòng "Email nhắc việc:" — phải hiện "ĐÃ cấu hình".
+   Nếu hiện "KHÔNG DÙNG ĐƯỢC — thiếu thư viện nodemailer" thì bạn
+   chép file thủ công và bỏ sót thư mục node_modules: mở Command
+   Prompt tại thư mục phần mềm, gõ  npm install  rồi khởi động lại.
+
+ • Bản chạy trên NAS KHÔNG bị lỗi này (Docker tự cài đủ thư viện).
+
+ • Ba file HƯỚNG DẪN nay ghi rõ ngay đầu file chúng thuộc gói nào,
+   và sửa vài chỗ trỏ sang file chỉ có ở gói kia.
+
+CÁCH CẬP NHẬT
+ Chép đè cả thư mục (TRỪ thư mục "data") rồi khởi động lại.
+ Nhớ chép cả thư mục "node_modules" mới — đó là chỗ chứa thư viện gửi
+ email. Bảo mọi người bấm Ctrl+F5 một lần.
+
+Phần mềm do Khuong Doan phát triển — https://khuongdoan.com/
+
+
+═══════════════════════════════════════════════════════════════
   TRẠM DỰ ÁN v4.1.3 — GANTT: GHIM CỘT TÊN VIỆC
 ═══════════════════════════════════════════════════════════════
 

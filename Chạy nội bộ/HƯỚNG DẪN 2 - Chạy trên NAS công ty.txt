@@ -7,9 +7,12 @@
   nằm trên đĩa công ty, mọi người trong văn phòng và ngoài công trường
   (qua VPN) đều dùng được.
 
-  ➤ Nếu bạn dùng SYNOLOGY và chỉ muốn 4 bước nhanh nhất:
-    mở "HUONG DAN NAS (Synology).txt". File bạn đang đọc là bản ĐẦY ĐỦ
-    (nhiều loại NAS, HTTPS, sao lưu, cập nhật, xử lý sự cố).
+  ➤ Hướng dẫn này dùng gói  tram-du-an-nas.zip  (thư mục "Chạy trên NAS").
+    Mọi file được nhắc tới bên dưới đều nằm trong gói đó.
+
+  ➤ Nếu bạn dùng SYNOLOGY và chỉ muốn 4 bước nhanh nhất: mở
+    "HUONG DAN NAS (Synology).txt" trong gói ấy. File bạn đang đọc là bản
+    ĐẦY ĐỦ (nhiều loại NAS, HTTPS, sao lưu, cập nhật, xử lý sự cố).
 
   Cần chuẩn bị:
    • NAS có ít nhất 1 GB RAM trống và 2 GB đĩa trống.
@@ -177,6 +180,8 @@ BẬT HTTPS TRONG MẠNG NỘI BỘ
       data/finance.json     hợp đồng, BOQ, chi phí
       data/records.json     biên bản        + data/uploads/
       data/sitelogs.json    nhật ký thi công + data/nhatky-thi-cong/
+      data/taskfiles.json   tệp đính kèm của công việc
+      data/config.json      cấu hình (SMTP, email sao lưu)
       data/audit.jsonl      nhật ký kiểm toán — ai sửa gì, lúc nào
       data/snapshots/       bản chụp mỗi ngày, giữ 14 ngày
 

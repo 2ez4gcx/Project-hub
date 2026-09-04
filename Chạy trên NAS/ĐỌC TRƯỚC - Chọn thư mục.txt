@@ -37,7 +37,8 @@ năng và giao diện, nhưng DỮ LIỆU RIÊNG:
      (Container Manager), QNAP (Container Station), Docker dòng lệnh,
      và NAS không có Docker. Kèm HTTPS, VPN cho công trường, sao lưu
      bằng Hyper Backup, cập nhật, xử lý sự cố.
-     → Riêng Synology muốn 4 bước ngắn nhất: "HUONG DAN NAS (Synology).txt"
+     → Riêng Synology muốn 4 bước ngắn nhất:
+       "Chạy trên NAS/HUONG DAN NAS (Synology).txt"
 
   3) "Chạy trên NAS/HƯỚNG DẪN 3 - Đưa lên hosting và tên miền.txt"
      Khi cần truy cập từ Internet qua tên miền riêng (VPS + Docker +
@@ -56,7 +57,7 @@ năng và giao diện, nhưng DỮ LIỆU RIÊNG:
  • Sao lưu = giữ lại thư mục "data". Đó là toàn bộ tài sản của bạn.
  • Phần mềm MIỄN PHÍ, dùng vĩnh viễn, không có hạn dùng thử và không
    cần mã kích hoạt. Điều kiện duy nhất khi chia sẻ lại: giữ dòng ghi
-   danh tác giả (xem LICENSE.txt).
+   danh tác giả (xem file LICENSE kèm theo).
 
  • Tài liệu khác có sẵn trong CẢ HAI thư mục:
        CÓ GÌ MỚI.txt                    thay đổi của bản mới nhất

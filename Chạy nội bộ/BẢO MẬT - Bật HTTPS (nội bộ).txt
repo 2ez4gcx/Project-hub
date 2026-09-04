@@ -36,4 +36,5 @@ GHI CHÚ
     Nếu tự tạo pfx với mật khẩu khác: đặt biến TLS_PFX_PASS trong file .env.
   • Không có chứng chỉ thì phần mềm vẫn chạy HTTP như cũ.
   • Bản chạy trên NAS Synology: dùng hướng dẫn riêng
-    "BẢO MẬT - Bật HTTPS trên Synology (đọc kỹ).txt" (reverse proxy).
+    "Chạy trên NAS/BẢO MẬT - Bật HTTPS trên Synology (đọc kỹ).txt"
+    (reverse proxy) — file đó nằm trong gói tram-du-an-nas.zip.

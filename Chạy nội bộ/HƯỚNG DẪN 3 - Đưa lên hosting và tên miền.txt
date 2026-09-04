@@ -302,10 +302,12 @@ BƯỚC 3.5 — Chạy
 ══════════════════════════════════════════════════════════════════════
   7. CẬP NHẬT PHẦN MỀM SAU NÀY
 ══════════════════════════════════════════════════════════════════════
-      # trên máy bạn: chép mã mới lên (TRỪ thư mục data)
-      scp -r "Chạy trên NAS"/* tramduan@<IP-VPS>:~/tram-du-an/
+      # trên máy bạn: đẩy nguyên thư mục mới lên một chỗ tạm
+      # (PowerShell KHÔNG tự bung dấu *, nên đừng viết "Chạy trên NAS"/*)
+      scp -r "Chạy trên NAS" tramduan@<IP-VPS>:~/ban-moi
 
-      # trên VPS:
+      # trên VPS: chép đè, thư mục data không có trong gói nên không bị đụng
+      cp -r ~/ban-moi/. ~/tram-du-an/ && rm -rf ~/ban-moi
       cd ~/tram-du-an
       tar czf ~/truoc-khi-cap-nhat.tar.gz data      # sao lưu nhanh
       docker compose up -d --build

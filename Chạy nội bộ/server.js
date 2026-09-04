@@ -1712,7 +1712,12 @@ process.on("SIGTERM", () => { try { slog("Máy chủ nhận tín hiệu dừng (
 
 /* ===================== EMAIL REMINDER SCHEDULER ===================== */
 let nodemailer = null;
-try { nodemailer = require("nodemailer"); } catch {}
+/* Gói "Chạy nội bộ" có kèm sẵn thư viện này. Nếu ai chép thiếu thư mục node_modules thì
+   email im lặng không gửi — phải nói thẳng là THIẾU THƯ VIỆN, đừng để người dùng tưởng
+   mình điền sai SMTP rồi loay hoay sửa cấu hình mãi không xong. */
+let thieuThuVienMail = false;
+try { nodemailer = require("nodemailer"); } catch { thieuThuVienMail = true; }
+if (thieuThuVienMail) slog("CẢNH BÁO: thiếu thư viện nodemailer -> email nhắc việc và email sao lưu hằng tuần KHÔNG gửi được. Mở thư mục phần mềm, chạy \"npm install\" một lần rồi khởi động lại.");
 function buildTransport() {
   const s = CONFIG.smtp || {};
   const host = process.env.SMTP_HOST || s.host;
@@ -1984,7 +1989,9 @@ server.listen(PORT, "0.0.0.0", () => {
   }
   const cfg = loadConfig();
   const mailReady = !!(nodemailer && (process.env.SMTP_HOST || (cfg.smtp && cfg.smtp.host)));
-  console.log("   Email nhắc việc: " + (mailReady ? "ĐÃ cấu hình" : "CHƯA cấu hình (chạy thử khô — vào Cài đặt để điền)"));
+  console.log("   Email nhắc việc: " + (mailReady ? "ĐÃ cấu hình"
+    : thieuThuVienMail ? "KHÔNG DÙNG ĐƯỢC — thiếu thư viện nodemailer. Chạy \"npm install\" một lần trong thư mục này rồi khởi động lại."
+    : "CHƯA cấu hình (chạy thử khô — vào Cài đặt để điền)"));
   console.log("   Sao lưu hằng tuần (T7): " + ((cfg.backup && cfg.backup.email) ? ("-> " + cfg.backup.email) : "(chưa đặt email nhận sao lưu)"));
   console.log("   Bảo mật: khóa đăng nhập sau " + MAX_FAILS + " lần sai, phiên hết hạn sau " + Math.round(TOKEN_TTL_MS / 86400000) + " ngày không hoạt động.");
   try { donDauVetGiayPhep(); } catch {}

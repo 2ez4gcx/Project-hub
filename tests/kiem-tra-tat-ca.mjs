@@ -116,12 +116,26 @@ if (ssl.status !== 0) {
 // ───────────────────────── 5. Gói phân phối ─────────────────────────
 h("5. Gói phân phối");
 const filesDir = path.join(ROOT, "..", "files");
-for (const z of ["tram-du-an-noi-bo.zip", "tram-du-an-nas.zip"]) {
+/* Thư mục này nằm ngoài repo (chỗ chứa zip giao khách) nên CI không có — đóng gói là
+   việc của máy phát hành. Vắng thì bỏ qua hẳn mục này, đừng chấm hỏng oan cho CI. */
+const coGoi = existsSync(filesDir);
+if (!coGoi) console.log("  – bỏ qua: chưa có thư mục " + filesDir + " (chỉ kiểm ở máy đóng gói).");
+for (const z of coGoi ? ["tram-du-an-noi-bo.zip", "tram-du-an-nas.zip"] : []) {
   const zp = path.join(filesDir, z);
   if (!existsSync(zp)) { ok(z, false, "chưa đóng gói — chạy: cd build && npm run dong-goi"); continue; }
   const ageH = (Date.now() - Number(readFileSync ? (await import("fs")).statSync(zp).mtimeMs : 0)) / 3600000;
   const srcAge = (Date.now() - (await import("fs")).statSync(path.join(LOCAL, "server.js")).mtimeMs) / 3600000;
   ok(z + " (đóng gói sau lần sửa mã cuối)", ageH <= srcAge + 0.5, "zip cũ hơn mã nguồn — đóng gói lại");
+
+  /* Bản chạy trên máy cá nhân phải kèm nodemailer: người dùng chỉ nhấp đúp file .bat,
+     không ai bảo họ chạy "npm install". Bản NAS thì Dockerfile tự "npm ci" nên không cần. */
+  if (z === "tram-du-an-noi-bo.zip") {
+    // Tên file trong zip để dạng chữ thường (không nén) nên tìm thẳng trong buffer là đủ,
+    // khỏi phụ thuộc adm-zip — CI không cài build/node_modules.
+    const coMail = readFileSync(zp).includes("node_modules/nodemailer/");
+    ok(z + " kèm sẵn thư viện nodemailer (email nhắc việc)", coMail,
+       "thiếu node_modules/nodemailer trong zip -> email im lặng không gửi được");
+  }
 }
 
 // ───────────────────────── Kết luận ─────────────────────────

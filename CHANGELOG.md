@@ -1,5 +1,54 @@
 # Lịch sử phiên bản — Trạm Dự Án
 
+## v4.1.4 — 04/09/2026 — EMAIL NHẮC VIỆC CHƯA TỪNG CHẠY TRÊN BẢN MÁY CÁ NHÂN
+
+### Lỗi: gói phát hành thiếu thư viện gửi email
+
+Rà lại toàn bộ hướng dẫn thì lòi ra: gói **tram-du-an-noi-bo.zip** loại bỏ cả thư mục
+`node_modules`, trong đó có `nodemailer` — thư viện DUY NHẤT mà phần mềm cần để gửi thư.
+Không hướng dẫn nào bảo người dùng chạy `npm install`, mà bản này thì cách dùng chính là
+nhấp đúp file .bat. Hậu quả: **email nhắc việc và email sao lưu hằng tuần chưa bao giờ gửi
+được** trên bản chạy máy cá nhân, kể từ khi có tính năng đó.
+
+Tệ hơn, cửa sổ máy chủ báo *"Email nhắc việc: CHƯA cấu hình"* — đổ lỗi cho cấu hình. Ai
+gặp phải sẽ đi sửa SMTP, đổi App Password, thử cổng 465/587… mà không bao giờ ra.
+
+Đã vá cả ba tầng:
+
+- **Gói phát hành** giờ kèm sẵn `nodemailer` (675 KB, không có phụ thuộc con). Giải nén
+  là email chạy, không phải cài gì thêm. Bản NAS không đổi — Dockerfile vẫn tự `npm ci`.
+- **Thông báo nói đúng nguyên nhân**: thiếu thư viện thì in
+  *"KHÔNG DÙNG ĐƯỢC — thiếu thư viện nodemailer. Chạy npm install một lần…"*, và ghi luôn
+  một dòng cảnh báo vào Nhật ký máy chủ (xem trong "Lịch sử thay đổi" → "Nhật ký máy chủ").
+- **Cổng kiểm soát** thêm ca chặn: zip bản nội bộ không có `nodemailer` là không cho phát
+  hành. Đây là loại lỗi 308 ca kiểm thử API không đụng tới được, vì nó nằm ở khâu đóng gói.
+
+### Lỗi: CI trên GitHub không bao giờ xanh được
+
+Mục "5. Gói phân phối" của cổng kiểm soát tìm hai file zip trong thư mục `../files` —
+thư mục nằm NGOÀI repo và bị gitignore, nên GitHub Actions không bao giờ có. Cả hai zip bị
+chấm hỏng, workflow luôn kết luận "CHƯA ĐẠT". Đóng gói là việc của máy phát hành, không
+phải của CI: nay vắng thư mục thì **bỏ qua mục đó và nói rõ đã bỏ qua**.
+
+Đã kiểm bằng cách dựng lại đúng cảnh CI (chỉ 105 file được git theo dõi, không có
+`../files`, không có `node_modules`): kết quả **ĐỦ ĐIỀU KIỆN PHÁT HÀNH, 23 mục đạt**.
+
+### Hướng dẫn: sửa những chỗ trỏ nhầm
+
+- Mỗi gói đều kèm cả ba file HƯỚNG DẪN, nhưng trong đó lại nhắc tên file chỉ có ở gói kia
+  (`HUONG DAN NAS (Synology).txt`, `Khởi động (Windows).bat`…). Nay mỗi hướng dẫn ghi rõ
+  ngay đầu file nó thuộc gói nào, và mọi tham chiếu chéo đều kèm tên gói/thư mục.
+- HƯỚNG DẪN 3 mục 7: lệnh `scp -r "Chạy trên NAS"/* …` **không chạy trên PowerShell**
+  (PowerShell không tự bung dấu `*` cho lệnh ngoài). Thay bằng cách chép qua thư mục tạm
+  rồi `cp -r` trên VPS.
+- Danh sách file dữ liệu trong HƯỚNG DẪN 1 và 2 thiếu `taskfiles.json` và `config.json`.
+- README: quy trình phát hành ghi `git push --tags` — lệnh này chỉ đẩy nhãn, KHÔNG đẩy
+  nhánh, nhãn sẽ trỏ vào commit GitHub chưa có. Đã sửa và bổ sung bước tạo GitHub Release.
+- `tests/README.md`: ghi nhầm `test-hoi-quy-lan2` phủ R1–R10 (thật ra R1–R12) và nói
+  `test-chi-phi-qs` không cần máy chủ (thật ra có gọi API).
+
+---
+
 ## v4.1.3 — 04/09/2026 — GHIM CỘT TÊN VIỆC TRÊN GANTT
 
 ### Cuộn ngang không còn mất tên việc

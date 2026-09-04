@@ -27,14 +27,14 @@ này, nên máy cá nhân và CI không bao giờ lệch nhau.
 | `test-nhat-ky-cau-truc.mjs` | Nhật ký có bảng nhân lực/máy/khối lượng, luồng Nháp → Đã nộp → Duyệt, khóa sau duyệt |
 | `test-thanh-vien-du-an.mjs` | Thành viên theo dự án: lọc khi đọc, **ghép lại khi ghi** để không mất dữ liệu ẩn |
 | `test-chi-phi-qs.mjs` | Quyền xem/sửa tài chính, phát sinh VO, ngân sách – chi phí, đề nghị thanh toán, khóa kỳ |
-| `test-hoi-quy-lan2.mjs` | Các lỗi hồi quy R1–R10 của báo cáo audit lần 2 — đường lỗi mà bộ test cũ không phủ |
+| `test-hoi-quy-lan2.mjs` | Các lỗi hồi quy R1–R12 của báo cáo audit lần 2 — đường lỗi mà bộ test cũ không phủ |
 | `test-restore.mjs` | Khôi phục dữ liệu từ snapshot |
 | `test-lich-gantt.mjs` | Logic lịch & CPM: kéo k ngày = k ngày, 4 loại phụ thuộc, lag, lịch làm việc, mốc |
 | `test-gop-xung-dot.mjs` | Gộp ba chiều khi hai người lưu cùng lúc — không được mất thao tác của ai |
 
-Hai tệp cuối và `test-chi-phi-qs` không cần máy chủ: chúng trích thẳng hàm từ
-`Chạy nội bộ/ProjectManager.jsx` để chạy, nên nếu ai sửa thuật toán mà quên sửa test thì
-test hỏng ngay — đúng ý đồ.
+`test-lich-gantt.mjs` và `test-gop-xung-dot.mjs` không cần máy chủ: chúng trích thẳng hàm
+từ `Chạy nội bộ/ProjectManager.jsx` để chạy, nên nếu ai sửa thuật toán mà quên sửa test thì
+test hỏng ngay — đúng ý đồ. Các bộ còn lại (kể cả `test-chi-phi-qs.mjs`) đều gọi API thật.
 
 `test-tai.mjs` là script **đo tải** (không nằm trong cổng kiểm soát), chạy tay khi đụng vào
 phần đồng bộ.

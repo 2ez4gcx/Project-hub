@@ -27,9 +27,12 @@ nhau ở cách chạy. Chọn một:
 Chạy nhanh nhất (cần [Node.js](https://nodejs.org) bản LTS):
 
 ```bash
-cd "Chạy nội bộ" && node server.js
+cd "Chạy nội bộ" && npm install && node server.js
 # mở http://localhost:3000, dùng MÃ CÀI ĐẶT in ra ở cửa sổ dòng lệnh để tạo tài khoản Chủ sở hữu
 ```
+
+Máy chủ chạy được ngay cả khi bỏ `npm install` — chỉ mất email nhắc việc và email sao lưu
+(phụ thuộc duy nhất là `nodemailer`). Gói zip phát hành đã kèm sẵn thư viện này.
 
 > **Trước khi mở ra Internet**, đọc mục 5 của HƯỚNG DẪN 3. Phần mềm được thiết kế cho mạng
 > nội bộ; đưa ra Internet cần thêm HTTPS, tường lửa và các bước siết bảo mật nêu trong đó.
@@ -181,8 +184,12 @@ kiểm tra gói phân phối; in **"ĐỦ ĐIỀU KIỆN PHÁT HÀNH"** hoặc *
 4. Cập nhật `CHANGELOG.md` và `CÓ GÌ MỚI.txt` của cả hai bản.
    **Thay đổi hành vi** (quyền, mặc định, luồng làm việc) phải nêu ở ĐẦU "CÓ GÌ MỚI".
 5. `cd build && npm run dong-goi`.
-6. `git commit` → `git tag vX.Y.Z` → `git push --tags`.
-7. Giải nén thử zip, chạy `node server.js`, đăng nhập một lần trước khi giao khách.
+6. `git commit` → `git tag -a vX.Y.Z` → `git push origin main` → `git push origin vX.Y.Z`.
+   (`git push --tags` một mình chỉ đẩy nhãn, **không** đẩy nhánh — nhãn sẽ trỏ vào
+   commit mà GitHub chưa có.)
+7. `gh release create vX.Y.Z` kèm **cả hai** zip trong `../files` — đó là thứ người
+   dùng thật sự tải về.
+8. Giải nén thử zip, chạy `node server.js`, đăng nhập một lần trước khi giao khách.
 
 ---
 

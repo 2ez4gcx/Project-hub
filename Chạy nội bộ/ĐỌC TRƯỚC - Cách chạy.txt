@@ -7,7 +7,8 @@
 ========================================================
 
 • CÔNG TY DÙNG NAS SYNOLOGY:
-  → Mở file "HUONG DAN NAS (Synology).txt" và làm theo 4 bước.
+  → Dùng gói  tram-du-an-nas.zip  (thư mục "Chạy trên NAS"), mở file
+    "HUONG DAN NAS (Synology).txt" trong đó và làm theo 4 bước.
     Đây là cách dùng chính thức cho nhiều người.
 
 • MUỐN CHẠY THỬ NHANH TRÊN 1 MÁY TÍNH (Windows/Mac):
@@ -16,8 +17,8 @@
      Mac:     nhấp đúp  "Khoi-dong (Mac-Linux).command"
   3. Mở trình duyệt:  http://localhost:3000
   4. Lần đầu: tạo tài khoản Chủ sở hữu (tên, email, mật khẩu) ngay
-     trên màn hình. Sau đó vào "Thành viên" để tạo tài khoản cho
-     nhân viên (bạn đặt mật khẩu cho họ).
+     trên màn hình. Sau đó vào "Cộng tác" ở thanh bên trái để tạo tài
+     khoản cho nhân viên (bạn đặt mật khẩu cho họ).
 
 ĐĂNG NHẬP: chỉ cần email + mật khẩu. Chỉ Chủ sở hữu tạo được tài
 khoản (tránh người lạ/spam).

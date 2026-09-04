@@ -1,6 +1,7 @@
 /* Đóng gói 2 bản phân phối thành zip trong thư mục "files" (cạnh thư mục repo).
    Cách dùng:  cd build && npm run dong-goi
-   Tự loại: thư mục data, .env, *.log, *.bak, *.tmp, node_modules.
+   Tự loại: thư mục data, .env, *.log, *.bak, *.tmp, node_modules — TRỪ nodemailer của
+   bản "Chạy nội bộ" (người dùng chỉ nhấp đúp file .bat, không ai bảo họ npm install).
    Dùng adm-zip để tên file tiếng Việt giữ nguyên dấu khi giải nén (Compress-Archive
    của PowerShell và tar.exe của Windows đều làm hỏng tên có dấu). */
 import AdmZip from "adm-zip";
@@ -12,9 +13,14 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(here, "..");
 const OUT = path.join(root, "..", "files");
 
+/* Bản NAS không cần kèm thư viện vì Dockerfile tự chạy "npm ci --omit=dev" khi build. */
+let kemThuVien = false;
 const skip = (rel) => {
   const r = rel.split(path.sep).join("/");
-  return r === ".env" || r.startsWith("data/") || r.startsWith("node_modules/")
+  // rel của CHÍNH thư mục không có dấu "/" cuối, phải nhận cả hai dạng nếu không sẽ bỏ sót cả cây
+  if (r === "node_modules" || r.startsWith("node_modules/"))
+    return !(kemThuVien && (r === "node_modules" || r.startsWith("node_modules/nodemailer")));
+  return r === ".env" || r.startsWith("data/")
     || r.endsWith(".log") || r.endsWith(".bak") || r.endsWith(".tmp");
 };
 
@@ -31,6 +37,7 @@ function collect(dir, base, out) {
 
 for (const [folder, zipName] of [["Chạy trên NAS", "tram-du-an-nas"], ["Chạy nội bộ", "tram-du-an-noi-bo"]]) {
   const src = path.join(root, folder);
+  kemThuVien = folder === "Chạy nội bộ";
   const files = collect(src, src, []);
   const zip = new AdmZip();
   for (const f of files) zip.addLocalFile(f.full, path.dirname(f.rel.split(path.sep).join("/")) === "." ? "" : path.dirname(f.rel.split(path.sep).join("/")));

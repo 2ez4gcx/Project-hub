@@ -3,6 +3,9 @@
   (Windows / macOS / Linux — 1 máy, có thể cho vài người cùng dùng)
 ══════════════════════════════════════════════════════════════════════
 
+  ➤ Hướng dẫn này dùng gói  tram-du-an-noi-bo.zip  (thư mục "Chạy nội bộ").
+    Mọi file được nhắc tới bên dưới đều nằm trong gói đó.
+
   Dùng cách này khi:
    • Chạy thử để xem phần mềm có hợp không.
    • Công ty nhỏ, 1–15 người, có một máy tính để bàn luôn bật.
@@ -157,6 +160,11 @@ BẬT EMAIL NHẮC VIỆC (không bắt buộc)
   đi (Gmail cần "App password", không dùng mật khẩu thường).
   Không điền thì phần mềm vẫn chạy bình thường, chỉ là không gửi email.
 
+  ⚠ Nếu cửa sổ đen báo  "Email nhắc việc: KHÔNG DÙNG ĐƯỢC — thiếu thư
+    viện nodemailer"  thì thư mục  node_modules  bị thiếu (thường do
+    chép file thủ công thay vì giải nén cả gói). Mở Command Prompt tại
+    thư mục phần mềm, gõ  npm install  một lần rồi khởi động lại.
+
 
 TỰ CHẠY KHI BẬT MÁY (Windows)
 ──────────────────────────────────────────────────────────────────────
@@ -179,6 +187,8 @@ TỰ CHẠY KHI BẬT MÁY (Windows)
         data\finance.json     hợp đồng, BOQ, chi phí
         data\records.json     biên bản       + thư mục uploads
         data\sitelogs.json    nhật ký thi công + thư mục nhatky-thi-cong
+        data\taskfiles.json   tệp đính kèm của công việc
+        data\config.json      cấu hình (SMTP, email sao lưu)
         data\audit.jsonl      nhật ký kiểm toán (ai sửa gì)
         data\snapshots\       bản chụp mỗi ngày, giữ 14 ngày gần nhất
 
