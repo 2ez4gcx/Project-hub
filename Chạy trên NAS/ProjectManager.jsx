@@ -25,6 +25,31 @@ import {
 /* ----------------------------- i18n ----------------------------- */
 const T = {
   vi: {
+    __ma: "vi",
+    srcLink: "Mã nguồn (AGPL-3.0)",
+    e_bad_code: "Mã cài đặt không đúng.",
+    e_bad_type: "Loại tệp này không được phép tải lên (nguy cơ bảo mật).",
+    e_bad_value: "Dữ liệu không hợp lệ.",
+    e_bad_key: "Khóa dữ liệu không hợp lệ.",
+    e_already_setup: "Hệ thống đã có tài khoản Chủ sở hữu.",
+    e_conflict: "Người khác vừa lưu thay đổi. Hãy tải lại và thao tác lại.",
+    e_email_exists: "Email này đã được dùng.",
+    e_forbidden: "Bạn không có quyền làm việc này.",
+    e_forbidden_change: "Bạn không có quyền đổi mục này.",
+    e_log_exists: "Ngày này đã có nhật ký thi công.",
+    e_missing: "Còn thiếu thông tin bắt buộc.",
+    e_need_owner: "Việc này cần quyền Chủ sở hữu.",
+    e_no_task: "Công việc không tồn tại.",
+    e_not_found: "Không tìm thấy mục này.",
+    e_notfound: "Không tìm thấy mục này.",
+    e_owner_only: "Chỉ Chủ sở hữu mới làm được việc này.",
+    e_period_locked: "Kỳ nghiệm thu đã khóa, không sửa được.",
+    e_scope_merge_failed: "Máy chủ không ghép được dữ liệu theo phạm vi dự án. Vui lòng báo quản trị.",
+    e_server_error: "Máy chủ gặp lỗi khi xử lý yêu cầu này.",
+    e_too_large: "Tệp hoặc dữ liệu gửi lên quá lớn.",
+    e_unauthorized: "Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.",
+    e_weak_password: "Mật khẩu phải dài ít nhất 8 ký tự, có cả chữ và số.",
+    e_write_failed: "Máy chủ không ghi được dữ liệu.",
     appName: "Trạm Dự Án", tagline: "Quản lý công việc",
     myWork: "Việc của tôi", dashboard: "Tổng quan", projects: "Dự án",
     newProject: "Dự án mới", projectName: "Tên dự án", create: "Tạo",
@@ -315,6 +340,31 @@ const T = {
     auditField: { "tạo mới": "đã tạo", "xóa": "đã xóa", "xóa vĩnh viễn": "đã xóa vĩnh viễn", workdone: "sửa % hoàn thành", dueDate: "sửa hạn chót", startDate: "sửa ngày bắt đầu", duration: "sửa thời lượng", status: "đổi trạng thái", title: "đổi tên", priority: "đổi ưu tiên", assignees: "đổi người làm", section: "chuyển hạng mục", donGia: "sửa đơn giá", khoiLuong: "sửa khối lượng hợp đồng", khoiLuongKy: "sửa khối lượng kỳ nghiệm thu", giaTri: "sửa giá trị hợp đồng" },
   },
   en: {
+    __ma: "en",
+    srcLink: "Source code (AGPL-3.0)",
+    e_bad_code: "Wrong setup code.",
+    e_bad_type: "This file type is not allowed (security risk).",
+    e_bad_value: "Invalid data.",
+    e_bad_key: "Invalid data key.",
+    e_already_setup: "An Owner account already exists.",
+    e_conflict: "Someone else just saved a change. Reload and try again.",
+    e_email_exists: "That email is already in use.",
+    e_forbidden: "You are not allowed to do this.",
+    e_forbidden_change: "You are not allowed to change this field.",
+    e_log_exists: "A site log already exists for this date.",
+    e_missing: "Some required information is missing.",
+    e_need_owner: "This action requires the Owner account.",
+    e_no_task: "That task no longer exists.",
+    e_not_found: "Not found.",
+    e_notfound: "Not found.",
+    e_owner_only: "Only the Owner can do this.",
+    e_period_locked: "This acceptance period is locked and cannot be edited.",
+    e_scope_merge_failed: "The server could not merge data for your project scope. Please tell your administrator.",
+    e_server_error: "The server hit an error handling this request.",
+    e_too_large: "The file or data you sent is too large.",
+    e_unauthorized: "Your session expired. Please sign in again.",
+    e_weak_password: "Password must be at least 8 characters and contain both letters and digits.",
+    e_write_failed: "The server could not save the data.",
     appName: "Project Hub", tagline: "Work management",
     myWork: "My Work", dashboard: "Dashboard", projects: "Projects",
     newProject: "New project", projectName: "Project name", create: "Create",
@@ -887,6 +937,17 @@ function seedServer(lang) {
 /* ===================================================================
    MAIN
 =================================================================== */
+/* Máy chủ luôn trả thông báo tiếng Việt vì nó không biết người dùng đang để ngôn ngữ nào.
+   Ở chế độ English thì dịch theo mã lỗi; mã nào không có bản dịch (thường là câu kèm số
+   liệu động) thì dùng nguyên câu máy chủ — thà tiếng Việt còn hơn mất mất chi tiết. */
+function loiMayChu(r, t, macDinh) {
+  const b = (r && r.body) || {};
+  /* English: bản dịch theo mã -> câu mặc định của chỗ gọi -> đành lấy câu tiếng Việt.
+     Tiếng Việt: câu của máy chủ trước, vì nó cụ thể nhất (kèm số phút khóa, ngày...). */
+  if (t.__ma !== "vi") return (b.error && t["e_" + b.error]) || macDinh || b.message;
+  return b.message || macDinh;
+}
+
 const AUTHOR_CREDIT = "Phần mềm do Khuong Doan phát triển — © 2026";
 const AUTHOR_URL = "https://khuongdoan.com/";
 const SOURCE_URL = "https://github.com/2ez4gcx/Project-hub";
@@ -896,14 +957,14 @@ const SOURCE_URL = "https://github.com/2ez4gcx/Project-hub";
    Liên kết "Mã nguồn" là để người vận hành tự động đúng mục 13 AGPL: ai cho người ngoài
    dùng qua mạng thì phải mời họ xem mã nguồn bản đang chạy. Máy chủ truyền sourceUrl
    xuống, sửa mã thì trỏ vào kho của mình. */
-function AuthorCredit({ suffix, className, sourceUrl }) {
+function AuthorCredit({ suffix, className, sourceUrl, t }) {
   return (
     <p className={className || "text-xs text-slate-500 text-center leading-tight pt-1"}>
       {AUTHOR_CREDIT}{suffix || ""}
       {" · "}
       <a href={AUTHOR_URL} target="_blank" rel="noopener noreferrer" className="text-orange-700 hover:underline">khuongdoan.com</a>
       {" · "}
-      <a href={sourceUrl || SOURCE_URL} target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:underline">Mã nguồn (AGPL-3.0)</a>
+      <a href={sourceUrl || SOURCE_URL} target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:underline">{(t && t.srcLink) || "Mã nguồn (AGPL-3.0)"}</a>
     </p>
   );
 }
@@ -1014,13 +1075,13 @@ function ProjectManagerInner() {
     setAuthError("");
     const r = await api("/api/setup", { method: "POST", body: JSON.stringify({ name, email, password, code }) });
     if (r.ok) { setToken(r.body.token); setNeedsSetup(false); await afterLogin(r.body.user); }
-    else setAuthError((r.body && r.body.message) || t.setupFailed);
+    else setAuthError(loiMayChu(r, t, t.setupFailed));
   };
   const doLogin = async (email, password) => {
     setAuthError("");
     const r = await api("/api/login", { method: "POST", body: JSON.stringify({ email, password }) });
     if (r.ok) { setToken(r.body.token); await afterLogin(r.body.user); }
-    else setAuthError((r.body && r.body.message) || t.wrongLogin);
+    else setAuthError(loiMayChu(r, t, t.wrongLogin));
   };
   const doLogout = async () => {
     try { await api("/api/logout", { method: "POST" }); } catch {}
@@ -1794,7 +1855,7 @@ function ProjectManagerInner() {
             <Globe size={15} className="text-slate-500 ml-1.5" />
             {["vi", "en"].map((l) => (<button key={l} onClick={() => setLang(l)} className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-colors ${lang === l ? "bg-white text-orange-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}>{l === "vi" ? "Tiếng Việt" : "English"}</button>))}
           </div>
-          <AuthorCredit suffix={appVersion ? " · v" + appVersion : ""} sourceUrl={sourceUrl} />
+          <AuthorCredit suffix={appVersion ? " · v" + appVersion : ""} sourceUrl={sourceUrl} t={t} />
         </div>
       </aside>
 
@@ -1962,7 +2023,7 @@ function ThungRacHoSo({ t, lang, project, loai, onClose, onDoi }) {
     setBusy(x.id);
     const r = await api(duong + "/restore", { method: "POST", body: JSON.stringify({ id: x.id }) });
     setBusy("");
-    if (!r.ok) { antModal.warning({ title: t.restore, content: (r.body && r.body.message) || t.saveFailed }); return; }
+    if (!r.ok) { antModal.warning({ title: t.restore, content: loiMayChu(r, t, t.saveFailed) }); return; }
     await nap(); onDoi && onDoi();
   };
   const xoaHan = async (x) => {
@@ -1970,7 +2031,7 @@ function ThungRacHoSo({ t, lang, project, loai, onClose, onDoi }) {
     setBusy(x.id);
     const r = await api(duong + "/delete", { method: "POST", body: JSON.stringify({ id: x.id, purge: true }) });
     setBusy("");
-    if (!r.ok) { antModal.warning({ title: t.deleteForever, content: (r.body && r.body.message) || t.saveFailed }); return; }
+    if (!r.ok) { antModal.warning({ title: t.deleteForever, content: loiMayChu(r, t, t.saveFailed) }); return; }
     nap();
   };
   const fmtD = (d) => d ? d.split("-").reverse().join("/") : "—";
@@ -2100,7 +2161,7 @@ function RecordModal({ t, lang, project, onClose, onSaved, onDefects }) {
   const submit = async () => {
     if (busy) return; setBusy(true); setErr("");
     const r = await api("/api/records", { method: "POST", body: JSON.stringify({ projectId: project.id, projectName: project.name, date, type, number, note, checklist: laNghiemThu ? bangKiem : undefined }) });
-    if (!r.ok) { setErr((r.body && r.body.message) || t.saveFailed); setBusy(false); return; }
+    if (!r.ok) { setErr(loiMayChu(r, t, t.saveFailed)); setBusy(false); return; }
     const rid = r.body.record.id;
     for (const f of files) {
       try {
@@ -2555,7 +2616,7 @@ function SiteLogModal({ t, lang, project, log, boqItems, onClose, onSaved }) {
       weatherAM: wAM, weatherPM: wPM, manpower, work, equipment, issues, nextPlan,
       thoiTiet, nhanLuc, thietBi, khoiLuong, suCo, ykienGiamSat, trangThai: napLuon ? "danop" : trangThai };
     const r = await api("/api/sitelogs", { method: "POST", body: JSON.stringify(body) });
-    if (!r.ok) { setErr((r.body && r.body.message) || t.siteRequired); setBusy(false); return; }   // 409: ngày đã có nhật ký của người khác
+    if (!r.ok) { setErr(loiMayChu(r, t, t.siteRequired)); setBusy(false); return; }   // 409: ngày đã có nhật ký của người khác
     const lid = r.body.log.id;
     let anhLoi = 0;   // trước đây lỗi tải ảnh bị nuốt -> nhật ký lưu KHÔNG kèm ảnh mà không ai biết
     for (const f of files) {
@@ -5989,7 +6050,7 @@ function AuthScreen({ mode, t, lang, setLang, error, onSubmit, sourceUrl }) {
           {isSetup && <p className="text-xs text-slate-500 -mt-1">{lang === "vi" ? "Xem mã trong cửa sổ máy chủ (Terminal / Log của container)." : "Find the code in the server console / container log."}</p>}
           {error && <AntAlert type="error" showIcon message={error} />}
           <AntBtn type="primary" size="large" block disabled={!ok} onClick={submit}>{isSetup ? t.createOwnerBtn : t.signIn}</AntBtn>
-          <AuthorCredit className="text-xs text-slate-500 mt-4 text-center" sourceUrl={sourceUrl} />
+          <AuthorCredit className="text-xs text-slate-500 mt-4 text-center" sourceUrl={sourceUrl} t={t} />
         </div>
         <div className="flex items-center justify-center mt-5">
           <Segmented size="small" value={lang} onChange={(v) => setLang(v)} options={[{ label: "Tiếng Việt", value: "vi" }, { label: "English", value: "en" }]} />

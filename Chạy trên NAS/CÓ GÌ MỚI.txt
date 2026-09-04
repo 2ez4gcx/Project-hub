@@ -1,4 +1,27 @@
 ═══════════════════════════════════════════════════════════════
+  TRẠM DỰ ÁN v4.2.1 — SỬA TÀI LIỆU CŨ VÀ PHẦN TIẾNG ANH
+═══════════════════════════════════════════════════════════════
+
+ • BẢN CHẠY TRÊN NAS: file "VẬN HÀNH & SỰ CỐ.txt" trước đây còn sót
+   một mục bảo bạn liên hệ xin "MÃ GIA HẠN GIẤY PHÉP". Cơ chế đó đã
+   bị GỠ BỎ từ bản 4.0.0 — phần mềm miễn phí, không có mã kích hoạt,
+   không có hạn dùng. Đã xóa mục đó khỏi tài liệu.
+
+ • AI DÙNG GIAO DIỆN TIẾNG ANH: trước đây khi có lỗi, thông báo vẫn
+   hiện tiếng Việt vì câu đó do máy chủ gửi xuống. Nay đã dịch.
+   Chế độ tiếng Việt không đổi gì (vẫn hiện câu chi tiết hơn, có kèm
+   số lần thử còn lại, ngày tháng...).
+
+ • Liên kết "Mã nguồn" ở chân màn hình nay cũng đổi theo ngôn ngữ.
+
+CÁCH CẬP NHẬT
+ Chép đè cả thư mục (TRỪ thư mục "data") rồi khởi động lại.
+ Bảo mọi người bấm Ctrl+F5 một lần.
+
+Phần mềm do Khuong Doan phát triển — https://khuongdoan.com/
+
+
+═══════════════════════════════════════════════════════════════
   TRẠM DỰ ÁN v4.2.0 — ĐỔI GIẤY PHÉP SANG AGPL-3.0
 ═══════════════════════════════════════════════════════════════
 

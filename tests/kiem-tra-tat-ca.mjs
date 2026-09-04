@@ -88,6 +88,7 @@ await sleep(400);
 cases += runTest("test-lich-gantt.mjs");
 cases += runTest("test-gop-xung-dot.mjs");
 cases += runTest("test-giay-phep.mjs");   // giấy phép + ghi danh tác giả phải còn đủ
+cases += runTest("test-song-ngu.mjs");    // từ điển Việt–Anh không được lệch khóa
 
 // ───────────────────────── 4. HTTPS ─────────────────────────
 h("4. HTTPS (chứng chỉ tự ký)");
@@ -137,6 +138,14 @@ for (const z of coGoi ? ["tram-du-an-noi-bo.zip", "tram-du-an-nas.zip"] : []) {
     ok(z + " kèm sẵn thư viện nodemailer (email nhắc việc)", coMail,
        "thiếu node_modules/nodemailer trong zip -> email im lặng không gửi được");
   }
+}
+
+// ── Huy hiệu số ca trên README phải khớp số thật (huy hiệu sai còn tệ hơn không có) ──
+{
+  const rm = readFileSync(path.join(ROOT, "README.md"), "utf8");
+  const m = rm.match(/ki%E1%BB%83m%20th%E1%BB%AD-([0-9]+)%20ca/);
+  ok("huy hiệu README ghi đúng số ca kiểm thử", m && Number(m[1]) === cases,
+     m ? "README ghi " + m[1] + " ca, thực tế " + cases : "không thấy huy hiệu kiểm thử trong README");
 }
 
 // ───────────────────────── Kết luận ─────────────────────────

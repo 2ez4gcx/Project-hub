@@ -1,5 +1,10 @@
 # Trạm Dự Án
 
+[![Giấy phép: AGPL-3.0](https://img.shields.io/badge/gi%E1%BA%A5y%20ph%C3%A9p-AGPL--3.0-blue)](LICENSE)
+[![Node.js 18+](https://img.shields.io/badge/Node.js-18%2B-5FA04E?logo=node.js&logoColor=white)](https://nodejs.org)
+[![Kiểm thử: 384 ca](https://img.shields.io/badge/ki%E1%BB%83m%20th%E1%BB%AD-384%20ca-success)](tests/)
+[![Bản mới nhất](https://img.shields.io/github/v/release/2ez4gcx/Project-hub?label=b%E1%BA%A3n%20m%E1%BB%9Bi%20nh%E1%BA%A5t)](https://github.com/2ez4gcx/Project-hub/releases/latest)
+
 **Phần mềm quản lý thi công cho công ty xây dựng — chạy trên máy công ty, dữ liệu không rời khỏi công ty.**
 
 Kiểu Asana nhưng làm cho ngành xây dựng: WBS theo giai đoạn, đường găng theo ngày làm việc

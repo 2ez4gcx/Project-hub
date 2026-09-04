@@ -1,0 +1,71 @@
+name: Báo lỗi
+description: Phần mềm chạy sai, báo lỗi, hoặc mất dữ liệu
+labels: ["lỗi"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Cảm ơn bạn đã báo lỗi.
+
+        ⚠️ **Lỗ hổng bảo mật thì ĐỪNG mở Issue công khai** — gửi riêng theo
+        [SECURITY.md](https://github.com/2ez4gcx/Project-hub/blob/main/SECURITY.md).
+
+        ⚠️ **Đừng dán ảnh chụp có dữ liệu thật của công ty** (tên khách, giá trị hợp đồng,
+        email nhân viên). Che lại hoặc mô tả bằng lời.
+
+  - type: dropdown
+    id: ban
+    attributes:
+      label: Bạn đang chạy bản nào?
+      options:
+        - "Chạy nội bộ (một máy Windows/macOS/Linux)"
+        - "Chạy trên NAS (Docker — Synology/QNAP)"
+        - "VPS + tên miền (theo HƯỚNG DẪN 3)"
+        - "Chưa rõ"
+    validations:
+      required: true
+
+  - type: input
+    id: phien_ban
+    attributes:
+      label: Phiên bản
+      description: Xem ở góc dưới thanh bên, hoặc trong cửa sổ máy chủ lúc khởi động.
+      placeholder: "ví dụ: 4.2.1"
+    validations:
+      required: true
+
+  - type: textarea
+    id: chuyen_gi
+    attributes:
+      label: Chuyện gì đã xảy ra
+      description: Bạn bấm gì, rồi thấy gì. Nói theo thứ tự thao tác là dễ tái hiện nhất.
+      placeholder: |
+        1. Vào tab "Dòng thời gian" của dự án X
+        2. Kéo thanh công việc sang phải 3 ngày
+        3. Bấm F5 thì ngày lại quay về như cũ
+    validations:
+      required: true
+
+  - type: textarea
+    id: mong_doi
+    attributes:
+      label: Bạn mong nó phải thế nào
+    validations:
+      required: true
+
+  - type: textarea
+    id: nhat_ky
+    attributes:
+      label: Cửa sổ máy chủ báo gì (nếu có)
+      description: |
+        20 dòng cuối của `data/security.log`, hoặc nội dung cửa sổ đen / tab Log của
+        container. Nhớ xóa những dòng có dữ liệu thật trước khi dán.
+      render: text
+
+  - type: checkboxes
+    id: da_thu
+    attributes:
+      label: Đã thử chưa
+      options:
+        - label: Bấm Ctrl+F5 một lần rồi thử lại
+        - label: Đã đọc "VẬN HÀNH & SỰ CỐ.txt" kèm trong gói

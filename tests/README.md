@@ -31,10 +31,13 @@ này, nên máy cá nhân và CI không bao giờ lệch nhau.
 | `test-restore.mjs` | Khôi phục dữ liệu từ snapshot |
 | `test-lich-gantt.mjs` | Logic lịch & CPM: kéo k ngày = k ngày, 4 loại phụ thuộc, lag, lịch làm việc, mốc |
 | `test-gop-xung-dot.mjs` | Gộp ba chiều khi hai người lưu cùng lúc — không được mất thao tác của ai |
+| `test-giay-phep.mjs` | Giấy phép AGPL còn nguyên văn, ghi danh tác giả còn đủ 5 chỗ, không sót dấu vết cơ chế kích hoạt đã gỡ |
+| `test-song-ngu.mjs` | Từ điển Việt–Anh cùng bộ khóa, bản en không dính tiếng Việt, thông báo lỗi máy chủ được dịch đúng ngữ cảnh |
 
 `test-lich-gantt.mjs` và `test-gop-xung-dot.mjs` không cần máy chủ: chúng trích thẳng hàm
 từ `Chạy nội bộ/ProjectManager.jsx` để chạy, nên nếu ai sửa thuật toán mà quên sửa test thì
-test hỏng ngay — đúng ý đồ. Các bộ còn lại (kể cả `test-chi-phi-qs.mjs`) đều gọi API thật.
+test hỏng ngay — đúng ý đồ. `test-giay-phep.mjs` và `test-song-ngu.mjs` cũng không cần máy chủ, chúng đọc thẳng file.
+Các bộ còn lại (kể cả `test-chi-phi-qs.mjs`) đều gọi API thật.
 
 `test-tai.mjs` là script **đo tải** (không nằm trong cổng kiểm soát), chạy tay khi đụng vào
 phần đồng bộ.

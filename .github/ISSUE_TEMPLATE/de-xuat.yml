@@ -1,0 +1,37 @@
+name: Đề xuất tính năng
+description: Gợi ý một tính năng hoặc cải tiến
+labels: ["đề xuất"]
+body:
+  - type: textarea
+    id: van_de
+    attributes:
+      label: Bạn đang gặp khó ở đâu
+      description: Mô tả CÔNG VIỆC THẬT ngoài công trường / văn phòng, đừng mô tả giải pháp trước.
+      placeholder: "Cuối tháng phải ngồi cộng tay khối lượng của 3 thầu phụ vì phần mềm chỉ cho xem từng nhà thầu."
+    validations:
+      required: true
+
+  - type: textarea
+    id: mong_muon
+    attributes:
+      label: Bạn hình dung phần mềm nên làm gì
+    validations:
+      required: true
+
+  - type: textarea
+    id: hien_tai
+    attributes:
+      label: Hiện tại bạn đang xoay xở thế nào
+      description: Xuất Excel rồi cộng tay? Ghi sổ riêng? Biết cách này giúp cân nhắc mức độ ưu tiên.
+
+  - type: dropdown
+    id: vai_tro
+    attributes:
+      label: Bạn làm vai trò gì
+      options:
+        - "Chỉ huy trưởng / Giám sát"
+        - "Kỹ sư QS / dự toán"
+        - "Kế toán"
+        - "Ban giám đốc"
+        - "Quản trị hệ thống (IT)"
+        - "Khác"

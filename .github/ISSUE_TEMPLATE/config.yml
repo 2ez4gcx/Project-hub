@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Lỗ hổng bảo mật (ĐỪNG mở Issue công khai)
+    url: https://github.com/2ez4gcx/Project-hub/blob/main/SECURITY.md
+    about: Gửi riêng cho tác giả theo hướng dẫn trong SECURITY.md.
+  - name: Câu hỏi cài đặt / vận hành
+    url: https://github.com/2ez4gcx/Project-hub/blob/main/README.md#d%C3%B9ng-ngay
+    about: Đọc ba file HƯỚNG DẪN kèm trong gói trước — phần lớn tình huống đã có sẵn ở đó.

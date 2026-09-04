@@ -8,7 +8,7 @@
 
    Không cần máy chủ: đọc thẳng file.
    Cách dùng:  node tests/test-giay-phep.mjs */
-import { readFileSync } from "fs";
+import { readFileSync, readdirSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -86,7 +86,28 @@ ok("README không còn giới thiệu phần mềm là MIT", !/mã nguồn mở 
 ok("README cảnh báo bản cũ vẫn theo MIT", RM.includes("v4.1.4") && RM.includes("MIT"));
 ok("có bản giải thích tiếng Việt và nó đã đổi theo", doc("docs", "Giay-phep-tieng-Viet.md").includes("AGPL-3.0-or-later"));
 
-// ══════════ 5. Hai bản phải khớp nhau ══════════
+// ══════════ 5. Không được sót dấu vết cơ chế KÍCH HOẠT đã gỡ ở v4.0.0 ══════════
+/* README, LICENSE và trang phát hành đều hứa "không mã kích hoạt". Nhưng bản NAS của
+   "VẬN HÀNH & SỰ CỐ.txt" đã sống sót qua nhiều lần phát hành với nguyên một mục bảo khách
+   đi xin MÃ GIA HẠN và vào "Cài đặt -> Gia hạn giấy phép" — màn hình không còn tồn tại.
+   Khách gặp sự cố mà đọc phải thì đi tìm thứ không có. Khóa lại để không tái diễn. */
+{
+  const CHET = ["mã gia hạn", "MÃ GIA HẠN", "Gia hạn giấy phép", "TDA1", "CHẾ ĐỘ CHỈ ĐỌC", "/api/license"];
+  const boQua = (f) => f.includes("CÓ GÌ MỚI") || f.includes("CHANGELOG");   // đây là lịch sử, được phép nhắc
+  for (const d of ["Chạy nội bộ", "Chạy trên NAS"]) {
+    for (const ten of readdirSync(path.join(ROOT, d)).filter((x) => /\.(txt|md)$/.test(x))) {
+      if (boQua(ten)) continue;
+      const s = doc(d, ten);
+      const dinh = CHET.filter((k) => s.includes(k));
+      ok("không còn vết cơ chế kích hoạt: " + d + "/" + ten, dinh.length === 0, "còn: " + dinh.join(", "));
+    }
+  }
+  const SRV2 = doc("Chạy nội bộ", "server.js");
+  ok("máy chủ không còn endpoint giấy phép nào", !SRV2.includes('"/api/license'));
+  ok("máy chủ vẫn tự dọn dấu vết giấy phép cũ trong dữ liệu khách", SRV2.includes("donDauVetGiayPhep"));
+}
+
+// ══════════ 6. Hai bản phải khớp nhau ══════════
 for (const f of [["LICENSE.txt"], ["DIEU-KHOAN-BO-SUNG.txt"], ["package.json"], ["config.json"], ["public", "manifest.json"]]) {
   ok("hai bản giống nhau: " + f.join("/"), doc("Chạy nội bộ", ...f) === doc("Chạy trên NAS", ...f));
 }

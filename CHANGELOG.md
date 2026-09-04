@@ -1,5 +1,61 @@
 # Lịch sử phiên bản — Trạm Dự Án
 
+## v4.2.1 — 04/09/2026 — SOÁT TOÀN BỘ REPO VÀ PHẦN SONG NGỮ
+
+### Lỗi: bản NAS vẫn hướng dẫn xin "mã gia hạn giấy phép"
+
+`Chạy trên NAS/VẬN HÀNH & SỰ CỐ.txt` bị bỏ quên từ trước v4.0.0. Nó vẫn còn nguyên một mục
+bảo khách gặp sự cố hãy **liên hệ tác giả xin MÃ GIA HẠN**, rồi vào *Cài đặt → Gia hạn giấy
+phép* dán mã bắt đầu bằng `TDA1...`. Toàn bộ cơ chế đó đã bị **gỡ khỏi mã nguồn ở v4.0.0**.
+
+Nghĩa là khách dùng bản NAS gặp trục trặc sẽ đi tìm một màn hình không tồn tại — và nó mâu
+thuẫn với chính lời hứa *"không mã kích hoạt"* in trên README, LICENSE và trang phát hành.
+Đã cắt mục đó, đánh số lại 10 → 9 mục, sửa mọi tham chiếu chéo.
+
+### Lỗi: người để English vẫn đọc thông báo lỗi tiếng Việt
+
+Từ điển giao diện song ngữ rất chỉn chu (624 khóa, hai bên khớp nhau tuyệt đối, không khóa
+nào thiếu). Nhưng **thông báo lỗi do máy chủ trả về thì luôn là tiếng Việt** — máy chủ không
+biết người dùng đang để ngôn ngữ nào — và máy trạm in thẳng ra. Người để English gặp lỗi sẽ
+đọc tiếng Việt đúng vào lúc họ đang bối rối nhất.
+
+Đã dịch ở máy trạm theo **mã lỗi** (trường `error` luôn có). Thứ tự dự phòng khác nhau theo
+ngôn ngữ: chế độ English lấy bản dịch → câu mặc định của chỗ gọi → cuối cùng mới đành lấy
+câu tiếng Việt; chế độ tiếng Việt vẫn ưu tiên câu của máy chủ vì nó cụ thể hơn (kèm số phút
+còn bị khóa, ngày của nhật ký…).
+
+Một bẫy đã tránh được: mã `invalid` được máy chủ dùng cho **hai ý khác hẳn nhau** — sai mật
+khẩu đăng nhập, và sai mật khẩu hiện tại khi đổi mật khẩu. Dịch theo mã sẽ ra câu sai nghĩa
+ở một trong hai chỗ, nên mã này bị cấm dịch; chỗ gọi dùng câu mặc định của chính nó, vốn
+đúng ngữ cảnh hơn. Bộ kiểm thử khóa luôn điều đó lại.
+
+Kiểm trên trình duyệt thật: chế độ Việt ra *"Email hoặc mật khẩu không đúng. Còn 2 lần thử."*,
+chế độ English ra *"Wrong email or password."*
+
+Liên kết **"Mã nguồn (AGPL-3.0)"** thêm ở v4.2.0 cũng chưa qua từ điển — đã sửa.
+
+### Kiểm thử
+
+Thêm `tests/test-song-ngu.mjs` — **14 ca**: hai bên cùng bộ khóa, bản en không dính dấu
+tiếng Việt, mã lỗi được dịch phải là mã máy chủ thật sự trả về, mã mang nhiều nghĩa thì phải
+qua danh sách đã-duyệt-bằng-mắt. Bổ sung vào `test-giay-phep.mjs` chốt chặn không cho sót
+dấu vết cơ chế kích hoạt trong bất kỳ tài liệu nào đi kèm gói.
+
+Cổng kiểm soát thêm một ca: **huy hiệu số ca trên README phải khớp số thật** — huy hiệu sai
+còn tệ hơn không có huy hiệu.
+
+345 → **384 ca**, 27 → **28 mục**.
+
+### Repo
+
+- README có huy hiệu giấy phép / Node / số ca kiểm thử / bản mới nhất.
+- Ba mẫu Issue tiếng Việt (báo lỗi, đề xuất, và lối dẫn sang SECURITY.md cho lỗ hổng bảo
+  mật) — kèm nhắc đừng dán ảnh có dữ liệu thật của công ty.
+- Mô tả repo trên GitHub còn ghi "MIT" → sửa thành AGPL-3.0; đặt trang chủ; tắt tab Projects
+  không dùng; thêm chủ đề `agpl`, `critical-path`.
+
+---
+
 ## v4.2.0 — 04/09/2026 — ĐỔI GIẤY PHÉP SANG AGPL-3.0
 
 > **Bản v4.1.4 trở về trước vẫn theo giấy phép MIT, vĩnh viễn.** Giấy phép đã trao không
