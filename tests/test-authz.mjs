@@ -1,5 +1,5 @@
 /* Test phân quyền server-side giai đoạn 1 (validateSharedWrite + /api/kv/rev) */
-const B = "http://localhost:3211";
+const B = process.env.TDA_BASE || "http://localhost:3211";
 let pass = 0, fail = 0;
 const ok = (name, cond, extra) => { if (cond) { pass++; console.log("  ✔ " + name); } else { fail++; console.log("  ✘ FAIL: " + name + (extra ? " — " + extra : "")); } };
 

@@ -5,7 +5,7 @@ import { readFileSync, writeFileSync } from "fs";
 import path from "path";
 
 const DATA_DIR = process.argv[2];
-const B = process.argv[3] || "http://localhost:3211";
+const B = process.argv[3] || process.env.TDA_BASE || "http://localhost:3211";
 if (!DATA_DIR) { console.error("Thiếu DATA_DIR"); process.exit(1); }
 
 let pass = 0, fail = 0;

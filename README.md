@@ -34,7 +34,10 @@ cd build && npm install && npm run build
 cd "Chạy nội bộ" && node server.js
 # (dữ liệu test riêng: DATA_DIR=/duong/dan/khac PORT=3211 SETUP_CODE=TEST123 node server.js)
 
-# Test (cần server test đang chạy như dòng trên)
+# Kiểm tra TẤT CẢ trước khi phát hành (tự bật/tắt server, 1 lệnh)
+node tests/kiem-tra-tat-ca.mjs
+
+# Hoặc chạy từng bộ (cần server test đang chạy như dòng trên)
 node tests/test-authz.mjs
 node tests/test-license.mjs /duong/dan/DATA_DIR
 
@@ -67,7 +70,7 @@ Tác giả: Khuong Doan. Repo private — không phân phối mã nguồn.
 - **Nhịp**: gộp thay đổi thành bản phát hành mỗi 2 tuần. Chỉ phát hành ngoài
   nhịp khi vá lỗi bảo mật hoặc lỗi mất dữ liệu.
 - **Mỗi bản phát hành**: bump version trong cả 2 package.json → `npm run build`
-  → chạy đủ 4 bộ test + đo tải nếu đụng đồng bộ → cập nhật CHANGELOG.md và
+  → chạy `node tests/kiem-tra-tat-ca.mjs` (+ đo tải nếu đụng đồng bộ) → cập nhật CHANGELOG.md và
   "CÓ GÌ MỚI.txt" → `npm run dong-goi` → commit → `git tag vX.Y.Z` → push
   (`git push --tags`) → chờ CI xanh (Node 20, Node 24, Docker).
 - **Thay đổi hành vi** (quyền, mặc định, luồng làm việc): phải nêu ở đầu

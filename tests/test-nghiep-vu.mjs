@@ -3,7 +3,7 @@
    Chạy SAU test-authz.mjs (dùng tài khoản boss/binh đã tạo), TRƯỚC test-license.mjs
    (test license phá trạng thái giấy phép của DATA_DIR).
    Cách dùng:  node tests/test-nghiep-vu.mjs [BASE_URL] */
-const B = process.argv[2] || "http://localhost:3211";
+const B = process.argv[2] || process.env.TDA_BASE || "http://localhost:3211";
 let pass = 0, fail = 0;
 const ok = (name, cond, extra) => { if (cond) { pass++; console.log("  ✔ " + name); } else { fail++; console.log("  ✘ FAIL: " + name + (extra ? " — " + extra : "")); } };
 const api = (path, opts = {}, tok) => fetch(B + path, { ...opts, headers: { "Content-Type": "application/json", ...(tok ? { Authorization: "Bearer " + tok } : {}), ...(opts.headers || {}) } }).then(async (r) => ({ status: r.status, body: await r.json().catch(() => ({})) }));
