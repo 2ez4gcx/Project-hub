@@ -146,7 +146,9 @@ Lỗ hổng bảo mật: xem [SECURITY.md](SECURITY.md) — đừng mở Issue c
 
 ## Giấy phép
 
-MIT — xem [LICENSE](LICENSE). Ai cũng được dùng, sửa và phân phối lại cho mục đích thương
-mại hay phi thương mại; điều kiện duy nhất là **giữ dòng ghi danh tác giả**.
+MIT — xem [LICENSE](LICENSE) (bản giải thích tiếng Việt:
+[docs/Giay-phep-tieng-Viet.md](docs/Giay-phep-tieng-Viet.md)). Ai cũng được dùng, sửa và
+phân phối lại cho mục đích thương mại hay phi thương mại; điều kiện duy nhất là
+**giữ dòng ghi danh tác giả**. Không hạn dùng thử, không mã kích hoạt, không thu thập dữ liệu.
 
 Phần mềm do **Khuong Doan** phát triển — <https://khuongdoan.com/>
