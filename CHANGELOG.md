@@ -1,5 +1,35 @@
 # Lịch sử phiên bản — Trạm Dự Án
 
+## v4.2.3 — 06/09/2026 — VÁ BA CẠNH CỦA "THÀNH VIÊN DỰ ÁN" (AUDIT LẦN 4)
+
+Audit lần 4 (`docs/danh-gia/2026-09-06 - Audit lan 4 (v4.2.2).md`, 7,3/10) xác nhận N1–N4 đã vá
+đúng, rồi đi vào các cạnh mà 28 ca của lần 3 không đi và tìm thấy ba lỗi nhỏ cùng vùng. Bản này vá
+cả ba, thêm tên hiển thị cho các trường trong "Nhật ký máy chủ", và khóa lại bằng
+`tests/test-hoi-quy-lan4.mjs`.
+
+### ⚠ THAY ĐỔI HÀNH VI
+- **Xóa một dự án đã giới hạn thành viên thì nó vẫn được giới hạn khi nằm trong thùng rác.**
+  Trước đây, nếu đó là dự án giới hạn cuối cùng, phần mềm coi như "không ai dùng tính năng" và
+  mọi người đọc được toàn bộ việc của dự án đã xóa qua thùng rác (F1). Nay người ngoài không thấy
+  mục đó; dự án mở đã xóa không đổi gì.
+
+### Lỗi đã vá
+- **F1 (trung bình)** — phạm vi dự án tắt hẳn khi dự án giới hạn duy nhất bị xóa. Xem trên.
+- **F2 (thấp)** — báo cáo ngày của người khác có **dòng không có id** (dữ liệu nhập tay / rất cũ)
+  xen dòng ẩn làm người bị giới hạn không lưu được (403). Nay dòng không id được giữ nguyên chỗ
+  như dòng bất biến, không nhân đôi.
+- **F3 (thấp)** — dòng báo cáo trỏ tới **việc đã xóa** của dự án ẩn (mục thùng rác của việc, hoặc
+  việc nằm trong dự án đã xóa) bị coi là dòng mở nên tên việc lộ ra. Nay tra dự án của việc cả
+  trong thùng rác.
+- **F4** — "Nhật ký máy chủ" hiện thô các trường `members`, `siteLoggers`, `lich`, `baseline`,
+  `name`, `comment`, `items`, `value`, `billed`, `paid`, "khóa kỳ", "gộp"… Đã có tên tiếng
+  Việt / tiếng Anh cho 26 trường và thực thể "hàng loạt".
+
+### Kiểm thử
+412 → **439 ca**, thêm `test-hoi-quy-lan4.mjs` (F1–F4) chạy ngay sau `test-hoi-quy-lan3.mjs`.
+
+---
+
 ## v4.2.2 — 06/09/2026 — VÁ BỐN LỖI CÒN LẠI CỦA AUDIT LẦN 3
 
 Báo cáo audit lần 3 (`docs/danh-gia/2026-09-06 - Audit lan 3 (v4.2.1).md`, điểm 7,1/10) xác

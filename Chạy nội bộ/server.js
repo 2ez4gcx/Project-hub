@@ -248,7 +248,12 @@ function phamViDuAn(me, st) {
   if (!me) return new Set();
   if (me.role === "owner" || me.isLeader) return null;
   const ds = Array.isArray(st && st.projects) ? st.projects : [];
-  if (!ds.some((p) => Array.isArray(p && p.members) && p.members.length)) return null;   // chưa ai dùng tính năng này
+  const rac = Array.isArray(st && st.trash) ? st.trash : [];
+  /* F1 (audit lần 4): dự án giới hạn đã xóa vào thùng rác vẫn tính là "đang dùng tính năng" —
+     nếu không, xóa dự án giới hạn duy nhất là phạm vi tắt hẳn và ai cũng đọc được việc của nó qua thùng rác. */
+  const dangDung = ds.some((p) => Array.isArray(p && p.members) && p.members.length)
+    || rac.some((e) => e && e.project && Array.isArray(e.project.members) && e.project.members.length);
+  if (!dangDung) return null;   // chưa ai dùng tính năng này
   const th = new Set();
   for (const p of ds) {
     if (!p || !p.id) continue;
@@ -271,7 +276,15 @@ function phamViDuAn(me, st) {
 function duAnCuaViec(st, taskId) {
   if (!taskId) return "";
   const tk = (st.tasks || []).find((x) => x && x.id === taskId);
-  return tk ? tk.projectId : "";
+  if (tk) return tk.projectId;
+  /* F3 (audit lần 4): việc đã xóa (mục thùng rác của việc, hoặc nằm trong dự án đã xóa) vẫn thuộc
+     dự án của nó — trước đây trả "" nên dòng báo cáo trỏ tới việc ẩn đã xóa bị coi là dòng mở. */
+  for (const e of (st.trash || [])) {
+    if (!e) continue;
+    if (e.kind === "task" && e.id === taskId) return e.projectId || "";
+    if (Array.isArray(e.tasks) && e.tasks.some((x) => x && x.id === taskId)) return e.id || "";
+  }
+  return "";
 }
 function locTheoPhamVi(st, thay) {
   if (!thay) return st;
@@ -333,13 +346,21 @@ function ghepTheoPhamVi(cur, inc, thay) {
            người gửi (theo id), dòng người gửi thêm mới nối vào cuối. */
         const gui = new Map(x.items.filter((it) => it && it.id).map((it) => [it.id, it]));
         const items = [];
+        /* F2 (audit lần 4): dòng KHÔNG có id (dữ liệu nhập tay / rất cũ) không khớp được theo id —
+           giữ nguyên chỗ như dòng bất biến, và bỏ bản sao y hệt trong bản gửi để không nhân đôi. */
+        const giuKhongId = new Set();
         for (const it of cu.items) {
           if (!it) continue;
           if (anDong(it)) { items.push(it); continue; }
-          if (it.id && gui.has(it.id)) { items.push(gui.get(it.id)); gui.delete(it.id); }
+          if (!it.id) { items.push(it); giuKhongId.add(JSON.stringify(it)); continue; }
+          if (gui.has(it.id)) { items.push(gui.get(it.id)); gui.delete(it.id); }
           // dòng hiện không còn trong bản gửi = người gửi đã xóa nó (chỉ hợp lệ với báo cáo của họ — luật 7 xét)
         }
-        for (const it of x.items) if (it && (!it.id || gui.has(it.id))) { items.push(it); if (it.id) gui.delete(it.id); }
+        for (const it of x.items) {
+          if (!it) continue;
+          if (!it.id) { if (!giuKhongId.has(JSON.stringify(it))) items.push(it); continue; }
+          if (gui.has(it.id)) { items.push(it); gui.delete(it.id); }
+        }
         return { ...x, items };
       });
       const idsMoi = new Set(ra.map((x) => x && x.id));

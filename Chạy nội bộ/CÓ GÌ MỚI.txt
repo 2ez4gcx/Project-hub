@@ -1,4 +1,33 @@
 ═══════════════════════════════════════════════════════════════
+  TRẠM DỰ ÁN v4.2.3 — VÁ BA CẠNH NHỎ CỦA "THÀNH VIÊN DỰ ÁN"
+═══════════════════════════════════════════════════════════════
+
+ ⚠ MỘT THỨ LÀM KHÁC BẢN CŨ
+
+ • Xóa một dự án đã giới hạn thành viên: dự án đó VẪN được giới hạn
+   khi nằm trong thùng rác. Trước đây nếu đó là dự án giới hạn cuối
+   cùng thì ai cũng xem được việc của nó qua thùng rác. Dự án mở đã
+   xóa không đổi gì.
+
+ LỖI ĐÃ SỬA
+
+ • Báo cáo ngày của người khác có dòng nhập tay (không có mã dòng)
+   xen với việc của dự án giới hạn làm người ngoài dự án không lưu
+   được gì. Đã sửa.
+ • Dòng báo cáo trỏ tới việc ĐÃ XÓA của dự án giới hạn vẫn lộ tên
+   việc với người ngoài. Đã ẩn.
+ • "Nhật ký máy chủ" (trong Lịch sử thay đổi) nay ghi rõ "đổi thành
+   viên dự án", "lưu kế hoạch gốc", "đã khóa kỳ nghiệm thu"… thay vì
+   tên trường kỹ thuật.
+
+CÁCH CẬP NHẬT
+ Chép đè cả thư mục (TRỪ thư mục "data") rồi khởi động lại.
+ Bảo mọi người bấm Ctrl+F5 một lần.
+
+Phần mềm do Khuong Doan phát triển — https://khuongdoan.com/
+
+
+═══════════════════════════════════════════════════════════════
   TRẠM DỰ ÁN v4.2.2 — VÁ BỐN LỖI CÒN LẠI CỦA ĐỢT AUDIT
 ═══════════════════════════════════════════════════════════════
 
