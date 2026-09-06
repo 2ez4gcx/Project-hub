@@ -44,6 +44,23 @@ Máy chủ chạy được ngay cả khi bỏ `npm install` — chỉ mất emai
 > **Trước khi mở ra Internet**, đọc mục 5 của HƯỚNG DẪN 3. Phần mềm được thiết kế cho mạng
 > nội bộ; đưa ra Internet cần thêm HTTPS, tường lửa và các bước siết bảo mật nêu trong đó.
 
+### Cập nhật lên bản mới
+
+Từ v5.0.0, gói phát hành có sẵn script cập nhật một nút. Thư mục `data` (dữ liệu, tài khoản,
+cấu hình) không bao giờ bị đụng tới.
+
+| Bản | Cách làm |
+|---|---|
+| `Chạy nội bộ/` (Windows) | Nhấp đúp **"Cập nhật phiên bản (Windows).bat"**: script sao lưu `data` thành `data-saoluu-<ngày>`, tải gói mới nhất từ [GitHub Releases](https://github.com/2ez4gcx/Project-hub/releases/latest), chép đè mã chương trình, rồi nhắc khởi động lại |
+| `Chạy trên NAS/` (Docker / Linux) | `sh cap-nhat.sh` rồi `docker compose up -d --build` (Synology: Container Manager → "Xây dựng lại") |
+| Không dùng script | Sao lưu `data` → giải nén gói mới → chép đè tất cả **trừ thư mục `data`** → khởi động lại |
+
+Sau khi khởi động lại: máy chủ tự chuẩn hóa dữ liệu cũ **một lần** (dòng "Di trú dữ liệu" trong
+`data/security.log`); mọi người bấm Ctrl+F5 một lần; Chủ sở hữu vào **Cài đặt → Sức khỏe máy chủ**
+để thấy phiên bản, snapshot, đĩa trống, email, PWA. "CÓ GÌ MỚI.txt" luôn mở đầu bằng những
+**thay đổi hành vi** của bản mới. Lỡ có gì lạ: tắt máy chủ, đổi tên `data-saoluu-<ngày>` lại
+thành `data`, chạy lại bản cũ.
+
 ---
 
 ## Giao diện

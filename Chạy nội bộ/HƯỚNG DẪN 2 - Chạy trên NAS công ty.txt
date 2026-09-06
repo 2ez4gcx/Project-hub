@@ -203,6 +203,12 @@ BẬT HTTPS TRONG MẠNG NỘI BỘ
 ══════════════════════════════════════════════════════════════════════
   CẬP NHẬT LÊN BẢN MỚI
 ══════════════════════════════════════════════════════════════════════
+  CÁCH NHANH (từ bản 5.0): SSH vào NAS rồi chạy
+      cd /volume1/docker/tram-du-an && sh cap-nhat.sh
+  Script tự làm bước 1 và 2 (sao lưu data thành data-saoluu-<ngày>,
+  tải gói mới nhất từ GitHub, chép đè TRỪ thư mục data). Sau đó làm
+  bước 3 (Rebuild). Cần NAS ra được Internet và có curl + unzip.
+
   1. Sao lưu thư mục  data  (hoặc chụp snapshot NAS).
   2. Chép đè các file mới vào /volume1/docker/tram-du-an,
      **TRỪ thư mục "data"**.
@@ -210,6 +216,9 @@ BẬT HTTPS TRONG MẠNG NỘI BỘ
      hoặc dòng lệnh:   docker compose up -d --build
   4. Bảo mọi người bấm  Ctrl + F5  một lần trong trình duyệt.
   5. Đọc "CÓ GÌ MỚI.txt" — phần đầu ghi rõ những THAY ĐỔI HÀNH VI.
+  6. Lần chạy đầu sau khi cập nhật, máy chủ tự chuẩn hóa dữ liệu cũ một
+     lần (dòng "Di trú dữ liệu" trong data/security.log). Chủ sở hữu vào
+     Cài đặt → Sức khỏe máy chủ để kiểm phiên bản, snapshot, đĩa, PWA.
 
 
 ══════════════════════════════════════════════════════════════════════

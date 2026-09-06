@@ -61,6 +61,20 @@ BƯỚC 4 — Mở phần mềm & tạo tài khoản Chủ sở hữu
   email + mật khẩu.
 
 
+------------------------------------------------------------------
+BƯỚC 5 — Cập nhật lên bản mới (khi có bản mới trên GitHub)
+------------------------------------------------------------------
+  • Cách nhanh (từ bản 5.0): SSH vào NAS, chạy
+        cd /volume1/docker/tram-du-an && sh cap-nhat.sh
+    Script tự sao lưu thư mục data (data-saoluu-<ngày>), tải gói mới
+    nhất, chép đè mã chương trình — không đụng data.
+  • Không dùng SSH: tải "tram-du-an-nas.zip" ở
+    https://github.com/2ez4gcx/Project-hub/releases/latest , giải nén,
+    kéo đè mọi file vào /volume1/docker/tram-du-an TRỪ thư mục data.
+  • Container Manager → dự án tram-du-an → "Xây dựng lại" (Rebuild).
+  • Bảo mọi người bấm Ctrl+F5 một lần. Chủ sở hữu vào Cài đặt →
+    Sức khỏe máy chủ để thấy phiên bản mới.
+
 ==================================================================
   GHI CHÚ QUAN TRỌNG
 ==================================================================

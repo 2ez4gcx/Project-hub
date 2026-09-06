@@ -211,6 +211,13 @@ TỰ CHẠY KHI BẬT MÁY (Windows)
   PHẦN E — CẬP NHẬT LÊN BẢN MỚI
 ══════════════════════════════════════════════════════════════════════
 
+  CÁCH NHANH (từ bản 5.0): tắt phần mềm rồi nhấp đúp file
+    "Cập nhật phiên bản (Windows).bat"
+  trong thư mục phần mềm. Script tự làm bước 2 và 3 bên dưới (sao lưu
+  data thành data-saoluu-<ngày>, tải gói mới nhất từ GitHub, chép đè
+  TRỪ thư mục data) rồi nhắc bạn khởi động lại. Cần có Internet.
+  Không có Internet thì làm tay theo 6 bước:
+
   1. Tắt phần mềm (đóng cửa sổ đen / Ctrl+C).
   2. SAO LƯU thư mục  data  ra chỗ khác (đề phòng).
   3. Giải nén gói mới, chép đè TẤT CẢ **TRỪ thư mục "data"**.
@@ -220,6 +227,11 @@ TỰ CHẠY KHI BẬT MÁY (Windows)
      để nạp lại giao diện mới.
   6. Đọc "CÓ GÌ MỚI.txt" — phần đầu luôn ghi những THAY ĐỔI HÀNH VI
      (thứ làm khác bản cũ) để bạn không bị bất ngờ.
+  7. Lần khởi động đầu sau khi cập nhật, máy chủ tự chuẩn hóa dữ liệu
+     cũ một lần (dòng "Di trú dữ liệu" trong data/security.log). Chủ
+     sở hữu vào Cài đặt → Sức khỏe máy chủ để thấy phiên bản, snapshot,
+     đĩa trống, email và PWA. Có gì lạ: tắt máy chủ, đổi tên thư mục
+     data-saoluu-<ngày> lại thành data, chạy lại bản cũ.
 
 
 ══════════════════════════════════════════════════════════════════════

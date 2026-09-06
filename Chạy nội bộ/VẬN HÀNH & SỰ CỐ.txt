@@ -1,7 +1,7 @@
 ═══════════════════════════════════════════════════════════════════════
   TRẠM DỰ ÁN — SỔ TAY VẬN HÀNH & XỬ LÝ SỰ CỐ
   Dành cho người quản trị phần mềm tại công ty (không cần biết lập trình)
-  Cập nhật: 17/08/2026 · Áp dụng từ bản 3.12
+  Cập nhật: 06/09/2026 · Áp dụng từ bản 5.0 (mục cập nhật phần mềm ở cuối)
 ═══════════════════════════════════════════════════════════════════════
 
 ┌─ VIỆC HẰNG NGÀY / HẰNG TUẦN ────────────────────────────────────────┐
@@ -127,3 +127,22 @@
   Ghi nhớ: dữ liệu của bạn nằm TRỌN trong thư mục "data".
   Sao lưu thư mục đó = sao lưu toàn bộ công ty.
 ═══════════════════════════════════════════════════════════════════════
+
+══════════════════════════════════════════════════════════════════════
+  CẬP NHẬT LÊN BẢN MỚI (từ bản 5.0)
+══════════════════════════════════════════════════════════════════════
+  • Windows (bản "Chạy nội bộ"): tắt phần mềm, nhấp đúp
+    "Cập nhật phiên bản (Windows).bat" — tự sao lưu data thành
+    data-saoluu-<ngày>, tải gói mới nhất từ GitHub, chép đè TRỪ data,
+    nhắc khởi động lại.
+  • NAS / Docker (bản "Chạy trên NAS"):  sh cap-nhat.sh  rồi
+    docker compose up -d --build  (Synology: Container Manager → Xây
+    dựng lại).
+  • Không có Internet: tải zip ở máy khác, giải nén, chép đè TRỪ data.
+  • Sau khi khởi động lại: máy chủ tự chuẩn hóa dữ liệu cũ MỘT LẦN
+    (dòng "Di trú dữ liệu" trong data/security.log); mọi người Ctrl+F5.
+  • Kiểm: Cài đặt → Sức khỏe máy chủ (phiên bản, snapshot, đĩa trống,
+    email, PWA / service worker).
+  • Quay lại bản cũ nếu cần: tắt máy chủ, đổi tên data-saoluu-<ngày>
+    thành data, chạy lại gói cũ. Dữ liệu ghi sau lúc cập nhật sẽ mất —
+    nên quyết định trong ngày đầu.
