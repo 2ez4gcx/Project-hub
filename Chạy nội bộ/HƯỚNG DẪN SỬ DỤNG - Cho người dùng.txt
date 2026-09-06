@@ -6,6 +6,8 @@
   File này dành cho người DÙNG phần mềm hằng ngày: Chỉ huy trưởng, kỹ sư
   hiện trường, QS, kế toán, tổ trưởng, nhân viên. Cài đặt và vận hành máy
   chủ xem "HƯỚNG DẪN 1/2/3" và "VẬN HÀNH & SỰ CỐ".
+  Bản CÓ HÌNH ẢNH minh họa từng màn hình (mở trên máy tính / điện thoại):
+    https://github.com/2ez4gcx/Project-hub/blob/main/docs/HUONG-DAN-SU-DUNG.md
 
   MỤC LỤC
    0. Đọc trong 2 phút
@@ -253,9 +255,11 @@
    • BẢNG KIỂM (loại Nghiệm thu / An toàn / Giấy phép): chọn mẫu có sẵn
      (nghiệm thu cốp pha, cốt thép, …), chấm từng mục Đạt / Không đạt /
      N/A, ghi chú. Mục KHÔNG ĐẠT tự tạo lỗi tồn đọng.
-   • Đính kèm PDF / ảnh. Người trong dự án, Chủ sở hữu, Lãnh đạo,
-     Teamlead xem được tệp.
-   • Sửa / xóa: người lập hoặc quản lý; xóa vào Thùng rác hồ sơ 90 ngày.
+   • Đính kèm PDF / ảnh. Ai xem được tệp: Chủ sở hữu, Lãnh đạo, Teamlead,
+     và người trong dự án khi Cài đặt bật "Chỉ người trong dự án xem được
+     tệp / biên bản / nhật ký".
+   • Biên bản đã lưu KHÔNG sửa được trong ứng dụng; lập sai thì xóa (vào
+     Thùng rác hồ sơ 90 ngày) rồi lập lại.
 
   Tab "An toàn (HSE)": ngày không tai nạn, số sự cố, sổ sự cố (lấy từ
   nhật ký), họp an toàn đầu giờ và giấy phép làm việc trong 7 ngày

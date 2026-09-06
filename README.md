@@ -42,8 +42,9 @@ Máy chủ chạy được ngay cả khi bỏ `npm install` — chỉ mất emai
 (phụ thuộc duy nhất là `nodemailer`). Gói zip phát hành đã kèm sẵn thư viện này.
 
 Đã cài xong và muốn biết **dùng thế nào** (vai trò, giao việc, duyệt, nhật ký thi công, BOQ, báo cáo ngày…):
-[HƯỚNG DẪN SỬ DỤNG — Cho người dùng](Chạy%20nội%20bộ/HƯỚNG%20DẪN%20SỬ%20DỤNG%20-%20Cho%20người%20dùng.txt)
-(có sẵn trong cả hai thư mục, gửi thẳng cho nhân viên).
+[Hướng dẫn sử dụng có hình ảnh](docs/HUONG-DAN-SU-DUNG.md) (35 ảnh màn hình theo từng bước), hoặc bản văn bản
+[HƯỚNG DẪN SỬ DỤNG — Cho người dùng.txt](Chạy%20nội%20bộ/HƯỚNG%20DẪN%20SỬ%20DỤNG%20-%20Cho%20người%20dùng.txt)
+kèm sẵn trong cả hai thư mục để gửi thẳng cho nhân viên.
 
 > **Trước khi mở ra Internet**, đọc mục 5 của HƯỚNG DẪN 3. Phần mềm được thiết kế cho mạng
 > nội bộ; đưa ra Internet cần thêm HTTPS, tường lửa và các bước siết bảo mật nêu trong đó.
