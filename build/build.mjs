@@ -31,6 +31,8 @@ copyFileSync(out, path.join(LOCAL, "public", "app.js"));
 copyFileSync(out, path.join(NAS, "public", "app.js"));
 copyFileSync(path.join(LOCAL, "ProjectManager.jsx"), path.join(NAS, "ProjectManager.jsx"));
 copyFileSync(path.join(LOCAL, "public", "shim.js"), path.join(NAS, "public", "shim.js"));
+copyFileSync(path.join(LOCAL, "public", "sw-register.js"), path.join(NAS, "public", "sw-register.js"));
+copyFileSync(path.join(LOCAL, "public", "sw.js"), path.join(NAS, "public", "sw.js"));
 
 // Đóng dấu HASH NỘI DUNG vào ?v= trong index.html — app.js/app.css được cache 1 năm
 // (immutable), nên nếu quên đổi ?v= sau khi build thì người dùng vẫn chạy bản CŨ.
@@ -39,14 +41,16 @@ const h8 = (p) => createHash("md5").update(readFileSync(p)).digest("hex").slice(
 const appHash = h8(out);
 const shimHash = h8(path.join(LOCAL, "public", "shim.js"));
 const cssHash = h8(path.join(LOCAL, "public", "app.css"));
+const swrHash = h8(path.join(LOCAL, "public", "sw-register.js"));
 for (const dir of [LOCAL, NAS]) {
   const ip = path.join(dir, "public", "index.html");
   let html = readFileSync(ip, "utf8");
   html = html.replace(/app\.js\?v=[^"']*/g, "app.js?v=" + appHash)
              .replace(/shim\.js\?v=[^"']*/g, "shim.js?v=" + shimHash)
-             .replace(/app\.css(\?v=[^"']*)?/g, "app.css?v=" + cssHash);
+             .replace(/app\.css(\?v=[^"']*)?/g, "app.css?v=" + cssHash)
+             .replace(/sw-register\.js\?v=[^"']*/g, "sw-register.js?v=" + swrHash);
   writeFileSync(ip, html);
 }
 const kb = Math.round(readFileSync(out).length / 1024);
 console.log("\n  ✔ Đã build app.js (" + kb + " KB, hash " + appHash + ") và chép vào cả hai bản (nội bộ + NAS).");
-console.log("  ✔ index.html đã cập nhật ?v= theo hash nội dung (app.js, shim.js, app.css).\n");
+console.log("  ✔ index.html đã cập nhật ?v= theo hash nội dung (app.js, shim.js, app.css, sw-register.js).\n");

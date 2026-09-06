@@ -12,7 +12,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, "..");
 const LOCAL = path.join(ROOT, "Chạy nội bộ");
 const NAS = path.join(ROOT, "Chạy trên NAS");
-const PORT = 3251, TLS_PORT = 3252, RESTORE_PORT = 3253;
+const PORT = 3251, TLS_PORT = 3252, RESTORE_PORT = 3253, DOCLAP_PORT = 3254;
 
 let pass = 0, fail = 0;
 const ok = (name, good, extra) => {
@@ -85,6 +85,7 @@ if (up) {
   cases += runTest("test-manh-me.mjs");
   cases += runTest("test-hoan-thien.mjs");
   cases += runTest("test-restore.mjs", [DATA, String(RESTORE_PORT)]);
+  cases += runTest("test-doc-lap.mjs", [String(DOCLAP_PORT)]);   // v5.1: kiểm đối kháng (tự dựng máy chủ riêng, không tài khoản)
 }
 try { srv.kill(); } catch {}
 await sleep(400);

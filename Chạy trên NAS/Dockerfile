@@ -1,4 +1,4 @@
-FROM node:20-alpine
+FROM node:24-alpine
 RUN apk add --no-cache tzdata
 ENV TZ=Asia/Ho_Chi_Minh
 WORKDIR /app
@@ -10,5 +10,6 @@ COPY . .
 ENV DATA_DIR=/app/data
 VOLUME ["/app/data"]
 EXPOSE 3000
-HEALTHCHECK --interval=60s --timeout=5s --start-period=15s CMD wget -q -O /dev/null http://localhost:3000/api/config || exit 1
+# Máy chủ tự chuyển HTTPS khi data/tls có chứng chỉ -> healthcheck thử cả hai giao thức (F12, re-audit 06/09)
+HEALTHCHECK --interval=60s --timeout=5s --start-period=15s CMD wget -q -O /dev/null --no-check-certificate https://localhost:3000/api/config || wget -q -O /dev/null http://localhost:3000/api/config || exit 1
 CMD ["node", "server.js"]

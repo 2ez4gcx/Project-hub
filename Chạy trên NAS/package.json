@@ -1,13 +1,13 @@
 {
   "name": "tram-du-an",
-  "version": "5.0.0",
+  "version": "5.1.0",
   "description": "Tram Du An - LAN/NAS project manager",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "nodemailer": "^9.0.5"
+    "nodemailer": "^9.1.1"
   },
   "engines": {
     "node": ">=18"

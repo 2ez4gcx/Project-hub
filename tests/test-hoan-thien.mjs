@@ -98,7 +98,7 @@ await ownerSave((st) => {
 }
 /* ══ 5. dataVersion + client-error + feedback + health + audit/tuan ══ */
 {
-  const st = await doc(OWNER); ok("khối chung mang dataVersion 5 sau khi lưu", st.dataVersion === 5, String(st.dataVersion));
+  const st = await doc(OWNER); ok("khối chung mang dataVersion 6 sau khi lưu", st.dataVersion === 6, String(st.dataVersion));
   let r = await api("/api/client-error", { method: "POST", body: J({ message: "TypeError: x is not a function", stack: "at abc", view: "P6A/list", rev: 1 }) }, NV);
   ok("/api/client-error nhận lỗi trình duyệt -> 200", r.status === 200, r.status);
   r = await api("/api/feedback", { method: "POST", body: J({ text: "   " }) }, NV); ok("góp ý rỗng -> 400", r.status === 400, r.status);
@@ -121,9 +121,13 @@ await ownerSave((st) => {
 }
 /* ══ 7. U6 thông báo trong app ══ */
 {
-  await ownerSave((st) => { st.tasks = st.tasks.map((x) => x.id === "h6h1" ? { ...x, assignees: [nvId], primaryAssigneeId: nvId, title: "Viec giao qua thong bao" } : x); });
+  /* v5.1 (N06): thông báo lọc theo phạm vi — giao việc ở dự án nv KHÔNG thuộc (P6H) thì nv không đọc được; dùng dự án mở P6A. */
+  await ownerSave((st) => { st.tasks = st.tasks.filter((x) => x.id !== "h6a3").concat([T("h6a3", "P6A", { assignees: [nvId], primaryAssigneeId: nvId, title: "Viec giao qua thong bao" })]); });
   let r = await api("/api/notifications", {}, NV);
-  ok("nv được giao việc -> có thông báo 'assign' chưa đọc", r.status === 200 && r.body.items.some((x) => x.type === "assign" && x.taskId === "h6h1") && r.body.unread > 0, J(r.body).slice(0, 160));
+  ok("nv được giao việc -> có thông báo 'assign' chưa đọc", r.status === 200 && r.body.items.some((x) => x.type === "assign" && x.taskId === "h6a3") && r.body.unread > 0, J(r.body).slice(0, 160));
+  await ownerSave((st) => { st.tasks = st.tasks.map((x) => x.id === "h6h1" ? { ...x, assignees: [nvId], primaryAssigneeId: nvId } : x); });
+  r = await api("/api/notifications", {}, NV);
+  ok("N06: giao việc ở dự án nv không thuộc -> nv KHÔNG thấy thông báo của dự án đó", !r.body.items.some((x) => x.taskId === "h6h1"), J(r.body.items.map((x) => x.taskId)));
   r = await api("/api/notifications/read", { method: "POST", body: J({ all: true }) }, NV);
   r = await api("/api/notifications", {}, NV); ok("đánh dấu đã đọc hết -> unread 0", r.body.unread === 0, String(r.body.unread));
   r = await api("/api/sitelogs", { method: "POST", body: J({ projectId: "P6A", projectName: "HT du an mo", date: "2026-08-05", work: "nop", trangThai: "danop" }) }, NV);

@@ -4,7 +4,7 @@
 #  1. Sao lưu thư mục data  ->  data-saoluu-YYYYMMDD-HHMM
 #  2. Tải gói mới nhất từ GitHub Releases
 #  3. Chép đè mã chương trình (KHÔNG đụng thư mục data)
-#  4. Nhắc khởi động lại (docker compose restart, hoặc chạy lại node server.js)
+#  4. Nhắc khởi động lại (docker compose up -d --build, hoặc chạy lại node server.js)
 #  Cần: curl, unzip. Chạy:  sh cap-nhat.sh
 # ============================================================
 set -e
@@ -37,7 +37,9 @@ echo " [4/4] Xong. Phiên bản mới:"
 grep '"version"' package.json
 echo
 echo " Khởi động lại máy chủ để chạy bản mới:"
-echo "   - Docker:   docker compose restart"
+echo "   - Docker:   docker compose up -d --build"
+echo "               (KHÔNG dùng 'compose restart': mã nằm trong image, restart vẫn chạy bản cũ)"
 echo "   - Node:     dừng tiến trình cũ rồi chạy lại  node server.js"
+echo " Kiểm: mở http://<địa chỉ>:3000/api/config phải thấy version mới."
 echo " Bảo mọi người bấm Ctrl+F5 một lần. Bản sao lưu dữ liệu: data-saoluu-$STAMP"
 echo

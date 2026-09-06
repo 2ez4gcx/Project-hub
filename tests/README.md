@@ -39,6 +39,7 @@ này, nên máy cá nhân và CI không bao giờ lệch nhau.
 | `test-gop-xung-dot.mjs` | Gộp ba chiều khi hai người lưu cùng lúc — không được mất thao tác của ai |
 | `test-giay-phep.mjs` | Giấy phép AGPL còn nguyên văn, ghi danh tác giả còn đủ 5 chỗ, không sót dấu vết cơ chế kích hoạt đã gỡ |
 | `test-song-ngu.mjs` | Từ điển Việt–Anh cùng bộ khóa, bản en không dính tiếng Việt, thông báo lỗi máy chủ được dịch đúng ngữ cảnh |
+| `test-doc-lap.mjs` | Kiểm đối kháng (v5.1, từ probe của đợt re-audit độc lập): tự dựng máy chủ riêng không tài khoản; đua khi cài đặt, thiếu rev, id trùng, việc lặp giả, tải tệp trong lúc duyệt, giả lỗi đĩa (507), phạm vi hồ sơ sau khi gỡ quyền / dự án vào thùng rác, reset mật khẩu vô hiệu phiên cũ, xung đột tài chính chỉ khi thật sự đụng, lọc thông báo, giới hạn góp ý, kiểm tĩnh đóng gói / Docker / PWA / lockfile |
 
 `test-lich-gantt.mjs` và `test-gop-xung-dot.mjs` không cần máy chủ: chúng trích thẳng hàm
 từ `Chạy nội bộ/ProjectManager.jsx` để chạy, nên nếu ai sửa thuật toán mà quên sửa test thì

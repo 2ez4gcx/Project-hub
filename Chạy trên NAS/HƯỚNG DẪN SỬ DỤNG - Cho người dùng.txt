@@ -1,6 +1,6 @@
 ══════════════════════════════════════════════════════════════════════
   TRẠM DỰ ÁN — HƯỚNG DẪN SỬ DỤNG (cho người dùng, không phải cài đặt)
-  Áp dụng từ bản 5.0 · Cập nhật 06/09/2026
+  Áp dụng từ bản 5.1 · Cập nhật 06/09/2026
 ══════════════════════════════════════════════════════════════════════
 
   File này dành cho người DÙNG phần mềm hằng ngày: Chỉ huy trưởng, kỹ sư
@@ -258,8 +258,11 @@
    • Đính kèm PDF / ảnh. Ai xem được tệp: Chủ sở hữu, Lãnh đạo, Teamlead,
      và người trong dự án khi Cài đặt bật "Chỉ người trong dự án xem được
      tệp / biên bản / nhật ký".
-   • Biên bản đã lưu KHÔNG sửa được trong ứng dụng; lập sai thì xóa (vào
-     Thùng rác hồ sơ 90 ngày) rồi lập lại.
+   • SỬA biên bản đã lưu (từ bản 5.1): nút bút chì cạnh biên bản — đổi
+     ngày / loại / số / ghi chú, điền tiếp bảng kiểm, thêm tệp. Người lập
+     hoặc quản lý sửa được; hai người cùng sửa thì người sau được báo
+     "vừa được … sửa", mở lại rồi sửa tiếp. Mục Không đạt thêm mới sẽ
+     sinh lỗi tồn đọng. Lập sai hẳn thì xóa (vào Thùng rác hồ sơ 90 ngày).
 
   Tab "An toàn (HSE)": ngày không tai nạn, số sự cố, sổ sự cố (lấy từ
   nhật ký), họp an toàn đầu giờ và giấy phép làm việc trong 7 ngày

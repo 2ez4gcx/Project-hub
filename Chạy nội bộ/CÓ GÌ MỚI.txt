@@ -1,3 +1,41 @@
+══════════════════════════════════════════════════════════════════════
+  TRẠM DỰ ÁN v5.1.0 — SỬA BIÊN BẢN SAU KHI LƯU + ĐÓNG 19 ĐIỂM RE-AUDIT
+══════════════════════════════════════════════════════════════════════
+
+ THAY ĐỔI HÀNH VI (đọc trước)
+
+ • Đổi mật khẩu bằng bất cứ cách nào (trong app, quản trị đặt lại, hay
+   công cụ reset-password.js) là MỌI phiên đăng nhập cũ của tài khoản
+   đó hết hiệu lực — điện thoại đang mở phải đăng nhập lại.
+ • Máy chủ không ghi được đĩa (đầy, mất quyền) sẽ báo lỗi rõ và KHÔNG
+   nhận thay đổi, thay vì "lưu giả" như trước. Thấy thông báo này thì
+   giữ nguyên trang và báo quản trị.
+ • Lần khởi động đầu, máy chủ dọn việc/dự án có id trùng (một lần).
+ • Docker: cập nhật phải "docker compose up -d --build" (restart không
+   nạp mã mới); image mới dùng Node 24.
+
+ CÓ GÌ MỚI (cho người dùng)
+
+ • SỬA BIÊN BẢN sau khi lưu: nút bút chì cạnh biên bản — đổi ngày,
+   loại, số, ghi chú, điền tiếp bảng kiểm, thêm tệp. Hai người cùng sửa
+   thì người sau được báo, không đè.
+ • Chế độ mở khi mất mạng (PWA) nay chạy thật (trước bị chính sách
+   bảo mật chặn im lặng). Kiểm ở Cài đặt → Sức khỏe máy chủ.
+ • Chi phí: hai người sửa hai dự án khác nhau không còn bị báo xung
+   đột nhầm — chỉ khi cùng sửa một dự án.
+ • Tải tệp lỗi được báo đúng tên tệp; bản nháp khi mất mạng tách theo
+   tài khoản.
+
+ KÍN HƠN (đợt re-audit độc lập, 19 điểm — chi tiết trong CHANGELOG.md)
+
+ • Chặn đua khi cài đặt lần đầu; thiếu số phiên bản, id trùng, số
+   phiên bản "tương lai" đều bị từ chối; việc lặp sinh ra phải là bản
+   sao của việc gốc đã xong; tải ảnh/tệp trong lúc duyệt không làm mất
+   dấu duyệt; người bị gỡ khỏi dự án hết quyền với hồ sơ của nó, kể cả
+   khi dự án trong thùng rác; thông báo lọc theo phạm vi hiện tại.
+ • Bộ đóng gói và Docker không bao giờ mang dữ liệu thật / bản sao lưu.
+ • 54 ca kiểm đối kháng mới chạy trong cổng kiểm soát (616 ca).
+
 ═══════════════════════════════════════════════════════════════
   TRẠM DỰ ÁN v5.0.0 — HOÀN THIỆN: ĐÓNG CẢ LỘ TRÌNH TRONG MỘT BẢN
 ═══════════════════════════════════════════════════════════════

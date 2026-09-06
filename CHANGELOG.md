@@ -1,5 +1,71 @@
 # Lịch sử phiên bản — Trạm Dự Án
 
+## v5.1.0 — 06/09/2026 — SỬA BIÊN BẢN SAU KHI LƯU + ĐÓNG 19 ĐIỂM CỦA ĐỢT RE-AUDIT ĐỘC LẬP
+
+Một đợt kiểm tra độc lập (probe chạy `requestHandler` thật trong máy ảo, giữ yêu cầu chưa gửi hết thân,
+giả lỗi đĩa, id trùng…) tìm ra 19 nhóm điểm mà 561 ca test đường thuận không bắt được. Bản đối chiếu và
+mức xếp lại ở `docs/danh-gia/2026-09-06 - Doi chieu bao cao reaudit v5.0.0.md`. Toàn bộ probe được chuyển
+thành `tests/test-doc-lap.mjs` (54 ca, tự dựng máy chủ riêng) và chạy trong cổng kiểm soát: đỏ trên v5.0.0,
+xanh từ bản này.
+
+### Tính năng mới
+- **Sửa biên bản sau khi lưu.** Nút bút chì cạnh mỗi biên bản: đổi ngày / loại / số / ghi chú, điền
+  tiếp bảng kiểm, thêm tệp. Có mốc `expectedUpdatedAt` — hai người cùng sửa thì người sau được báo "vừa
+  được … sửa". Mục Không đạt mới thêm mới sinh lỗi tồn đọng (không tạo trùng). Máy chủ đã có
+  `/api/records/update` từ v5.0.0 nhưng giao diện chưa gọi.
+- **PWA thật sự chạy.** Đoạn đăng ký service worker nằm nội tuyến trong `index.html` bị chính CSP
+  `script-src 'self'` chặn, nên chế độ mở khi mất mạng chưa từng hoạt động trên máy nào. Nay đăng ký qua
+  `public/sw-register.js` (có `?v=hash` như shim.js). Kiểm: Cài đặt → Sức khỏe máy chủ → dòng PWA.
+- **Xung đột tài chính chỉ khi thật sự đụng nhau (N02).** Trước đây hai người cùng thấy A và B, một
+  người sửa B, người kia sửa A vẫn bị 409 (bộ test Q6 chỉ phủ khi B bị ẩn theo phạm vi). Máy chủ nay giữ
+  lịch sử băm phần tài chính từng dự án theo rev (`bamTheoDuAn`, 30 lần/dự án): bản người gửi trùng với bản
+  họ đã tải nghĩa là họ không đụng, giữ bản máy chủ; chỉ khi họ sửa đúng dự án người khác vừa đổi mới 409.
+
+### Phân quyền và toàn vẹn dữ liệu (máy chủ)
+- **F01** Đua khi cài đặt lần đầu: yêu cầu `/api/setup` giữ thân, chờ chủ thật cài xong rồi gửi mã sai
+  vẫn 200 và ghi đè `accounts.json`. Nay chụp mã theo từng yêu cầu, kiểm lại "đã có tài khoản" sau khi đọc
+  thân và ngay trước khi ghi.
+- **F02** Khối dữ liệu thiếu `rev` → 400 `missing_rev` (trước đây bỏ qua đối chiếu phiên bản).
+- **F03** Nhánh việc lặp: nhân viên không có quyền giao việc gửi được việc "đã hoàn thành 100%, tự duyệt,
+  đổi dự án" chỉ cần trùng tiêu đề + chu kỳ. Nay nguồn phải đã xong, bản sinh phải là bản sao của nguồn và về
+  trạng thái đầu (`loiViecLapSinh`). Client sinh việc lặp cũng đặt lại ngày thực tế và việc con.
+- **F04** Id trùng / thiếu trong dự án, cột, việc → 400 `bad_shape`; `DATA_VERSION = 6` dọn dữ liệu cũ một
+  lần khi khởi động (giữ bản cuối, khớp Map của phân quyền).
+- **F05** Tải ảnh nhật ký / tệp biên bản: đọc LẠI bản ghi sau khi nhận xong tệp. Trước đây danh sách đọc
+  trước `await` được ghi lại → duyệt trong lúc tải là mất dấu duyệt, hai tệp song song chỉ giữ một.
+- **F06** Ghi đĩa hỏng (đầy đĩa, mất quyền ghi) → 507 `write_failed`, cache không đổi, thay đổi không "lưu
+  giả" nữa. `writeJsonAtomic` ném lỗi có mã, `safeHandler` dịch thành thông báo rõ.
+- **F07** Người lập đã bị gỡ khỏi dự án hết quyền xóa / sửa / khôi phục hồ sơ; dự án trong thùng rác vẫn
+  xét thành viên; dự án không xác định → từ chối mặc định (chỉ Chủ sở hữu / Lãnh đạo).
+- **F08** Phiên gắn với phiên bản mật khẩu: đổi mật khẩu bằng bất cứ đường nào — kể cả `reset-password.js`
+  chạy ngoài tiến trình — là mọi phiên cũ hết hiệu lực ở yêu cầu kế tiếp; phiên đang dùng đi theo mật khẩu mới.
+- **N01** `expectedRev` tài chính phải nguyên ≥ 0 và ≤ rev máy chủ; số "tương lai" → 409.
+- **N06** `/api/notifications` lọc theo phạm vi dự án hiện tại.
+- `/api/feedback` giới hạn 10 lần / người / giờ. Cảnh báo sức khỏe và tóm tắt tuần chỉ đánh dấu "đã gửi" sau
+  khi gửi thành công, lỗi thì thử lại sau một giờ.
+
+### Giao diện
+- **F09** Hàng đợi offline tách theo tài khoản (`pm_pending_v5:<id>`), đăng xuất không mang bản nháp sang
+  người sau.
+- **F10** Tải tệp biên bản / tệp công việc kiểm mã phản hồi từng tệp, báo đúng tên tệp lỗi.
+
+### Đóng gói và triển khai
+- **N05** `build/loai-tru.mjs`: loại `data-saoluu-*`, `accounts.json`/`sessions.json` ở bất kỳ đâu,
+  `*.bak-<ngày>`, `tls/`, `snapshots/`, `.env.*` — phòng khi đóng gói từ thư mục đã vận hành.
+- **N04** `cap-nhat.sh` hướng dẫn `docker compose up -d --build` (restart không nạp mã mới) và cách kiểm
+  `/api/config`.
+- **F11/F12** Dockerfile `node:24-alpine` (Node 20 hết hạn hỗ trợ 04/2026), `.dockerignore`, healthcheck thử
+  cả HTTPS lẫn HTTP; nodemailer 9.1.1; lockfile ghi đúng version. (Advisory GHSA mà báo cáo dẫn không tồn
+  tại; `npm audit` sạch — nâng cho gọn.)
+
+### Chưa làm (lộ trình)
+- **F13** Sao lưu đầy đủ kèm ảnh / tệp, manifest + checksum, nơi lưu ngoài máy chủ.
+
+### Cập nhật từ v5.0.0
+Chép đè trừ `data/` (hoặc script cập nhật). Lần khởi động đầu tự dọn id trùng (dòng "Di trú dữ liệu…
+dataVersion 6" trong `security.log`). Phiên đăng nhập cũ vẫn dùng được (được gắn phiên bản mật khẩu ở lần
+dùng đầu). Docker: `docker compose up -d --build` (image mới Node 24).
+
 ## v5.0.0 — 06/09/2026 — HOÀN THIỆN: ĐÓNG TOÀN BỘ LỘ TRÌNH TRONG MỘT BẢN
 
 Bản này gộp (1) 25 điểm của ba lượt "Kiểm tra toàn bộ" (nguyên là v4.3.0, chưa phát hành) và (2) toàn bộ

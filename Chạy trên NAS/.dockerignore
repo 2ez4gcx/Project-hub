@@ -1,0 +1,18 @@
+# Không đưa vào image (F12, re-audit 06/09): dữ liệu thật, bản sao lưu, bí mật, thư viện cài ở máy khác
+data
+data-saoluu*
+data-*
+snapshots
+tls
+.env
+.env.*
+node_modules
+*.log
+*.bak
+*.bak-*
+*.tmp
+*.pem
+*.pfx
+*.key
+accounts.json*
+sessions.json*

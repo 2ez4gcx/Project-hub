@@ -3,7 +3,7 @@
 [![Kiểm tra](https://github.com/2ez4gcx/Project-hub/actions/workflows/test.yml/badge.svg)](https://github.com/2ez4gcx/Project-hub/actions/workflows/test.yml)
 [![Giấy phép: AGPL-3.0](https://img.shields.io/badge/gi%E1%BA%A5y%20ph%C3%A9p-AGPL--3.0-blue)](LICENSE)
 [![Node.js 18+](https://img.shields.io/badge/Node.js-18%2B-5FA04E?logo=node.js&logoColor=white)](https://nodejs.org)
-[![Kiểm thử: 561 ca](https://img.shields.io/badge/ki%E1%BB%83m%20th%E1%BB%AD-561%20ca-success)](tests/)
+[![Kiểm thử: 616 ca](https://img.shields.io/badge/ki%E1%BB%83m%20th%E1%BB%AD-616%20ca-success)](tests/)
 [![Bản mới nhất](https://img.shields.io/github/v/release/2ez4gcx/Project-hub?label=b%E1%BA%A3n%20m%E1%BB%9Bi%20nh%E1%BA%A5t)](https://github.com/2ez4gcx/Project-hub/releases/latest)
 
 **Phần mềm quản lý thi công cho công ty xây dựng — chạy trên máy công ty, dữ liệu không rời khỏi công ty.**
@@ -138,7 +138,7 @@ trưởng duyệt (duyệt xong là khóa) · in theo mẫu NĐ 06/2021 · chụ
 
 **Chất lượng & an toàn** — punch list (vị trí, mức độ, nhà thầu, hạn khắc phục, ảnh
 trước/sau) · 8 mẫu bảng kiểm nghiệm thu Đạt/Không đạt/N-A, mục không đạt tự sinh lỗi tồn
-đọng · tab An toàn (HSE): ngày không tai nạn, sổ sự cố, họp an toàn đầu giờ, giấy phép làm việc.
+đọng · biên bản sửa được sau khi lưu, có chống ghi đè đồng thời · tab An toàn (HSE): ngày không tai nạn, sổ sự cố, họp an toàn đầu giờ, giấy phép làm việc.
 
 **Chi phí** — BOQ theo kỳ nghiệm thu (không lưu lũy kế, tính lại từ các kỳ) · phát sinh VO
 có trạng thái duyệt · khóa kỳ đã nộp Chủ đầu tư (chụp lại đơn giá) · ngân sách theo nhóm và

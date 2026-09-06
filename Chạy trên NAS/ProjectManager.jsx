@@ -35,7 +35,7 @@ const T = {
     e_conflict: "Người khác vừa lưu thay đổi. Hãy tải lại và thao tác lại.",
     e_email_exists: "Email này đã được dùng.",
     e_forbidden: "Bạn không có quyền làm việc này.",
-    e_sitelog_locked: "Nhật ký này đã được duyệt nên đang khóa — đề nghị Chỉ huy trưởng mở khóa.", e_wrong_current_password: "Mật khẩu hiện tại không đúng.", e_not_submitted: "Nhật ký chưa được nộp.", e_in_trash: "Nhật ký này đang trong thùng rác — khôi phục trước.", e_self_caps: "Không tự đổi quyền của chính mình — nhờ Chủ sở hữu cấp.", e_bad_shape: "Dữ liệu gửi lên sai cấu trúc — hãy tải lại trang (Ctrl+R).", e_missing_rev: "Thiếu số phiên bản tài chính — hãy tải lại trang (Ctrl+R).", e_bad_email: "Email không hợp lệ.", e_no_project: "Dự án không tồn tại (có thể vừa bị xóa) — hãy tải lại trang.",
+    e_sitelog_locked: "Nhật ký này đã được duyệt nên đang khóa — đề nghị Chỉ huy trưởng mở khóa.", e_wrong_current_password: "Mật khẩu hiện tại không đúng.", e_not_submitted: "Nhật ký chưa được nộp.", e_in_trash: "Nhật ký này đang trong thùng rác — khôi phục trước.", e_self_caps: "Không tự đổi quyền của chính mình — nhờ Chủ sở hữu cấp.", e_bad_shape: "Dữ liệu gửi lên sai cấu trúc — hãy tải lại trang (Ctrl+R).", e_missing_rev: "Thiếu số phiên bản dữ liệu — hãy tải lại trang (Ctrl+R).", e_write_failed: "Máy chủ không ghi được dữ liệu xuống đĩa (đĩa đầy hoặc mất quyền ghi) — thay đổi CHƯA được lưu. Báo quản trị kiểm tra máy chủ.", e_bad_email: "Email không hợp lệ.", e_no_project: "Dự án không tồn tại (có thể vừa bị xóa) — hãy tải lại trang.",
     e_forbidden_change: "Bạn không có quyền đổi mục này.",
     e_log_exists: "Ngày này đã có nhật ký thi công.",
     e_missing: "Còn thiếu thông tin bắt buộc.",
@@ -248,7 +248,7 @@ const T = {
     undatedHint: "việc chưa đặt ngày (không hiển thị trên sơ đồ)", ganttFiltered: "đang lọc — đường găng vẫn tính trên toàn dự án", cycleWarn: "Phụ thuộc vòng tròn — không tính được đường găng.",
     noTimelineData: "Chưa có công việc nào có ngày để vẽ. Hãy đặt Ngày bắt đầu và Hạn chót.",
     startDate: "Ngày bắt đầu", plannedDays: "Tiến độ dự kiến (ngày)", today2: "Hôm nay", statuses: { todo: "Cần làm", doing: "Đang làm", review: "Chờ phê duyệt", onhold: "On hold / Blocked", done: "Hoàn thành" }, statusLabel: "Trạng thái", approver: "Người phê duyệt", byLeader: "Lãnh đạo phê duyệt", byTeamlead: "Teamlead phê duyệt", approveBtn: "Phê duyệt", dailyReport: "Báo cáo ngày", todayReport: "Báo cáo hôm nay", myReports: "Của tôi", reportTracking: "Theo dõi nộp", submitReport: "Gửi báo cáo", reportSubmitted: "Đã gửi", reportMissing: "Chưa gửi", reportAddLine: "Thêm dòng", reportWhatDone: "Đã làm gì", reportPct: "% phần mình", reportIssue: "Vướng mắc / đề xuất", reportOf: "Báo cáo của", reportNone: "Chưa có báo cáo.", reportDeadlineNote: "Hạn nộp: trong 48 giờ kể từ 17:30 của ngày báo cáo.", reportSel: "Chọn công tác...", reportComment: "Bình luận báo cáo...", constructionSite: "Nhật ký thi công", siteTab: "Nhật ký", recordsTab: "Biên bản", addSiteLog: "Thêm nhật ký", siteDate: "Ngày", siteWeather: "Thời tiết", siteAM: "Sáng", sitePM: "Chiều", wSun: "Nắng", wRain: "Mưa", siteManpower: "Nhân lực", siteWork: "Hạng mục + khối lượng", siteEquip: "Thiết bị & vật tư", siteIssues: "Vướng mắc ảnh hưởng tiến độ", siteNext: "Kế hoạch ngày tiếp theo", sitePhotos: "Ảnh hiện trường", siteNoLogs: "Chưa có nhật ký.", siteAssign: "Chỉ định người lập", siteSave: "Lưu nhật ký", siteRequired: "Cần điền Hạng mục và ít nhất 1 ảnh.", sitePhotoFail: "Nhật ký đã lưu nhưng {n} ảnh KHÔNG tải lên được — mở lại nhật ký để thêm ảnh.", positionLabel: "Chức vụ", featuresTitle: "Tính năng", featuresHint: "Bật/tắt nhóm tính năng cho công ty này; tắt sẽ ẩn khỏi mọi người dùng.", presetLabel: "Cấu hình nhanh", presetFull: "Đầy đủ", presetTask: "Chỉ công việc", presetDesign: "Thiết kế", trashTitle: "Thùng rác", trashEmpty: "Thùng rác trống.", restore: "Khôi phục", deleteForever: "Xóa vĩnh viễn", movedToTrash: "Đã chuyển vào thùng rác", undo: "Hoàn tác", trashHint: "Dự án đã xóa được giữ ở đây; chỉ Chủ sở hữu mới xóa vĩnh viễn.", searchAll: "Tìm kiếm", searchAllPlaceholder: "Tìm công việc trong mọi dự án...", resultsFound: "kết quả", noResults: "Không tìm thấy công việc nào.", attachments: "Tệp đính kèm", posLeader: "Lãnh đạo", posStaff: "Nhân viên", posTeamlead: "Teamlead (trưởng bộ phận)", posDeputy: "Phó giám đốc", posCustom: "Tùy chỉnh", advancedPerms: "Tùy chỉnh nâng cao", recur: "Lặp lại", recurNone: "Không lặp", recurWeekly: "Hàng tuần", recurMonthly: "Hàng tháng",
-    records: "Biên bản", addRecord: "Thêm biên bản", noRecords: "Chưa có biên bản nào.", allTypes: "Tất cả loại", more: "khác", recDate: "Ngày", recType: "Loại biên bản", recNumber: "Số biên bản (tùy chọn)", recNumberPh: "Ví dụ: 06", recNote: "Ghi chú nội dung (bắt buộc)", recFiles: "Tệp (PDF / ảnh)", recFilesChosen: "tệp đã chọn", recFieldType: "Biên bản hiện trường", recMeetingType: "Biên bản họp", recDirectiveType: "Chỉ thị công trường", recSaving: "Đang lưu...", confirmDeleteRecord: "Xóa biên bản này (kèm các tệp)?", saveFailed: "Lưu thất bại.",
+    records: "Biên bản", addRecord: "Thêm biên bản", editRecord: "Sửa biên bản", recFilesFailed: "Không tải được {n} tệp", noRecords: "Chưa có biên bản nào.", allTypes: "Tất cả loại", more: "khác", recDate: "Ngày", recType: "Loại biên bản", recNumber: "Số biên bản (tùy chọn)", recNumberPh: "Ví dụ: 06", recNote: "Ghi chú nội dung (bắt buộc)", recFiles: "Tệp (PDF / ảnh)", recFilesChosen: "tệp đã chọn", recFieldType: "Biên bản hiện trường", recMeetingType: "Biên bản họp", recDirectiveType: "Chỉ thị công trường", recSaving: "Đang lưu...", confirmDeleteRecord: "Xóa biên bản này (kèm các tệp)?", saveFailed: "Lưu thất bại.",
     // dependencies
     dependencies: "Phụ thuộc", waitingOn: "Đang chờ", blocking: "Đang chặn",
     addDependency: "Thêm việc phải xong trước", dependsHint: "Việc này chỉ nên bắt đầu sau khi các việc “đang chờ” hoàn thành.",
@@ -362,7 +362,7 @@ const T = {
     e_conflict: "Someone else just saved a change. Reload and try again.",
     e_email_exists: "That email is already in use.",
     e_forbidden: "You are not allowed to do this.",
-    e_sitelog_locked: "This site log has been approved and is locked — ask the Site Manager to unlock it.", e_wrong_current_password: "The current password is incorrect.", e_not_submitted: "The site log has not been submitted yet.", e_in_trash: "This site log is in the trash — restore it first.", e_self_caps: "You cannot change your own permissions — ask the Owner.", e_bad_shape: "The data sent is malformed — reload the page (Ctrl+R).", e_missing_rev: "Missing the finance version number — reload the page (Ctrl+R).", e_bad_email: "Invalid email address.", e_no_project: "This project no longer exists (it may have just been deleted) — reload the page.",
+    e_sitelog_locked: "This site log has been approved and is locked — ask the Site Manager to unlock it.", e_wrong_current_password: "The current password is incorrect.", e_not_submitted: "The site log has not been submitted yet.", e_in_trash: "This site log is in the trash — restore it first.", e_self_caps: "You cannot change your own permissions — ask the Owner.", e_bad_shape: "The data sent is malformed — reload the page (Ctrl+R).", e_missing_rev: "Missing the data version number — reload the page (Ctrl+R).", e_write_failed: "The server could not write to disk (disk full or no write permission) — your change was NOT saved. Ask the administrator to check the server.", e_bad_email: "Invalid email address.", e_no_project: "This project no longer exists (it may have just been deleted) — reload the page.",
     e_forbidden_change: "You are not allowed to change this field.",
     e_log_exists: "A site log already exists for this date.",
     e_missing: "Some required information is missing.",
@@ -568,7 +568,7 @@ const T = {
     undatedHint: "task(s) without dates (hidden from chart)", ganttFiltered: "filtered view — critical path still computed on the whole project", cycleWarn: "Circular dependencies — cannot compute critical path.",
     noTimelineData: "No tasks with dates yet. Set Start date and Due date.",
     startDate: "Start date", plannedDays: "Planned duration (days)", today2: "Today", statuses: { todo: "To do", doing: "In progress", review: "Pending approval", onhold: "On hold / Blocked", done: "Done" }, statusLabel: "Status", approver: "Approver", byLeader: "Leader approves", byTeamlead: "Teamlead approves", approveBtn: "Approve", dailyReport: "Daily report", todayReport: "Today\u2019s report", myReports: "Mine", reportTracking: "Submission tracking", submitReport: "Submit report", reportSubmitted: "Submitted", reportMissing: "Not submitted", reportAddLine: "Add line", reportWhatDone: "What you did", reportPct: "My %", reportIssue: "Issues / suggestions", reportOf: "Report of", reportNone: "No report yet.", reportDeadlineNote: "Deadline: within 48h from 5:30 PM of the report day.", reportSel: "Select task...", reportComment: "Comment on report...", constructionSite: "Site log", siteTab: "Site log", recordsTab: "Records", addSiteLog: "Add log", siteDate: "Date", siteWeather: "Weather", siteAM: "AM", sitePM: "PM", wSun: "Sunny", wRain: "Rain", siteManpower: "Manpower", siteWork: "Work + quantity", siteEquip: "Equipment & materials", siteIssues: "Issues affecting progress", siteNext: "Next-day plan", sitePhotos: "Site photos", siteNoLogs: "No log yet.", siteAssign: "Assign loggers", siteSave: "Save log", siteRequired: "Fill Work and at least 1 photo.", sitePhotoFail: "Log saved but {n} photo(s) failed to upload — reopen the log to add them.", positionLabel: "Position", featuresTitle: "Features", featuresHint: "Enable/disable feature groups for this company; disabling hides them from everyone.", presetLabel: "Quick preset", presetFull: "Full", presetTask: "Tasks only", presetDesign: "Design", trashTitle: "Trash", trashEmpty: "Trash is empty.", restore: "Restore", deleteForever: "Delete forever", movedToTrash: "Moved to trash", undo: "Undo", trashHint: "Deleted projects are kept here; only the owner can delete forever.", searchAll: "Search", searchAllPlaceholder: "Search tasks across all projects...", resultsFound: "results", noResults: "No matching tasks.", attachments: "Attachments", posLeader: "Leader", posStaff: "Staff", posTeamlead: "Teamlead", posDeputy: "Deputy director", posCustom: "Custom", advancedPerms: "Advanced permissions", recur: "Repeat", recurNone: "No repeat", recurWeekly: "Weekly", recurMonthly: "Monthly",
-    records: "Records", addRecord: "Add record", noRecords: "No records yet.", allTypes: "All types", more: "more", recDate: "Date", recType: "Record type", recNumber: "Record no. (optional)", recNumberPh: "e.g. 06", recNote: "Content note (required)", recFiles: "Files (PDF / photos)", recFilesChosen: "file(s) chosen", recFieldType: "Site record", recMeetingType: "Meeting minutes", recDirectiveType: "Site directive", recSaving: "Saving...", confirmDeleteRecord: "Delete this record (with its files)?", saveFailed: "Save failed.",
+    records: "Records", addRecord: "Add record", editRecord: "Edit record", recFilesFailed: "{n} file(s) failed to upload", noRecords: "No records yet.", allTypes: "All types", more: "more", recDate: "Date", recType: "Record type", recNumber: "Record no. (optional)", recNumberPh: "e.g. 06", recNote: "Content note (required)", recFiles: "Files (PDF / photos)", recFilesChosen: "file(s) chosen", recFieldType: "Site record", recMeetingType: "Meeting minutes", recDirectiveType: "Site directive", recSaving: "Saving...", confirmDeleteRecord: "Delete this record (with its files)?", saveFailed: "Save failed.",
     dependencies: "Dependencies", waitingOn: "Waiting on", blocking: "Blocking",
     addDependency: "Add a prerequisite task", dependsHint: "This task should start after its “waiting on” tasks are done.",
     blocked: "Blocked", noDeps: "No dependencies.",
@@ -842,7 +842,8 @@ function normalizeFinance(f) {
     nganSach: obj(f.nganSach),  // { projectId: { nhóm chi phí: số tiền } }
     chiPhi: obj(f.chiPhi),      // { projectId: [khoản chi thực tế] }
     deNghi: obj(f.deNghi),      // { projectId: { kyId: đề nghị thanh toán } }
-    revTheoDuAn: obj(f.revTheoDuAn) };   // Q6: rev từng dự án (máy chủ tính, máy trạm chỉ mang theo)
+    revTheoDuAn: obj(f.revTheoDuAn),     // Q6: rev từng dự án (máy chủ tính, máy trạm chỉ mang theo)
+    bamTheoDuAn: obj(f.bamTheoDuAn) };   // N02 (v5.1): lịch sử băm từng dự án — máy chủ tính, máy trạm chỉ mang theo
 }
 const sumItems = (arr) => (arr || []).reduce((s, x) => s + (Number(x.amount) || 0), 0);
 // money input grouping (vi uses '.', en uses ',')
@@ -1054,7 +1055,7 @@ function ProjectManagerInner() {
   const [offlinePending, setOfflinePending] = useState(false); // còn thay đổi chưa gửi được lên máy chủ
   const pendingRef = useRef(null);
   const goc3Chieu = useRef(null);   // U5: bản đồng bộ gần nhất, dùng làm gốc khi gộp xung đột                              // { value } — bản chờ gửi
-  const PENDING_KEY = "pm_pending_v4";
+  const PENDING_KEY = "pm_pending_v5:" + (currentUserId || "anon");   // F09 (re-audit 06/09): tách theo tài khoản, không gửi nhầm bản nháp của người trước
   const [syncing, setSyncing] = useState(false);
 
   // server auth
@@ -1131,6 +1132,7 @@ function ProjectManagerInner() {
   };
   const doLogout = async () => {
     try { await api("/api/logout", { method: "POST" }); } catch {}
+    pendingRef.current = null; setOfflinePending(false);   // F09: bản chờ (nếu có) ở lại trong máy dưới khóa của tài khoản vừa thoát
     setToken(null); setAuthUser(null); setCurrentUserId(null); setAuthReady(true);
     setProjects([]); setSections([]); setTasks([]); setHistory([]); setActiveProject("dashboard");
   };
@@ -1541,7 +1543,8 @@ function ProjectManagerInner() {
     const toSpawn = tasks.filter((x) => x.status === "done" && x.recur && x.recur !== "none" && !x.recurSpawned);
     if (!toSpawn.length) return;
     const shift = (iso, rc) => { if (!iso) return ""; const d = new Date(iso + "T00:00:00"); if (isNaN(d.getTime())) return ""; if (rc === "weekly") d.setDate(d.getDate() + 7); else if (rc === "monthly") d.setMonth(d.getMonth() + 1); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
-    const next = toSpawn.map((x) => ({ ...x, id: uid(), status: "todo", completed: false, completedAt: null, approvedBy: "", workdone: 0, reminderSentKey: "", recurSpawned: false, startDate: shift(x.startDate, x.recur), dueDate: shift(x.dueDate, x.recur), comments: [], createdAt: Date.now() }));
+    const next = toSpawn.map((x) => ({ ...x, id: uid(), status: "todo", completed: false, completedAt: null, approvedBy: "", workdone: 0, reminderSentKey: "", recurSpawned: false, startDate: shift(x.startDate, x.recur), dueDate: shift(x.dueDate, x.recur), comments: [], createdAt: Date.now(),
+      actualStart: "", actualFinish: "", subtasks: (x.subtasks || []).map((sb) => ({ ...sb, done: false })) }));   // v5.1: kỳ mới bắt đầu sạch (ngày thực tế, việc con)
     setTasks((pp) => pp.map((x) => toSpawn.some((sp) => sp.id === x.id) ? { ...x, recurSpawned: true } : x).concat(next));
   }, [tasks, loaded]); // eslint-disable-line
   const reportDeadline = (dateISO) => new Date(dateISO + "T17:30:00").getTime() + 48 * 3600 * 1000;
@@ -2171,6 +2174,7 @@ function RecordsView({ t, lang, project, canEdit, onDefects, recordTypes }) {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(false);
+  const [editRec, setEditRec] = useState(null);     // v5.1: sửa biên bản đã lưu (điền tiếp bảng kiểm, thêm tệp)
   const [filter, setFilter] = useState("");
   const load = async () => { setLoading(true); const r = await api("/api/records?projectId=" + encodeURIComponent(project.id)); if (r.ok) setRecords(r.body.records || []); setLoading(false); };
   useEffect(() => { load(); }, [project.id]); // eslint-disable-line
@@ -2217,7 +2221,10 @@ function RecordsView({ t, lang, project, canEdit, onDefects, recordTypes }) {
                   {rec.note && <p className="text-sm text-slate-600 mt-1 whitespace-pre-wrap break-words">{rec.note}</p>}
                   {rec.createdBy && <p className="text-xs text-slate-500 mt-1">{rec.createdBy}</p>}
                 </div>
-                {canEdit && <button onClick={() => del(rec)} className="text-slate-500 hover:text-red-500 p-1 shrink-0" title={t.delete}><Trash2 size={15} /></button>}
+                {canEdit && <div className="flex items-center shrink-0">
+                  <button onClick={() => setEditRec(rec)} className="text-slate-500 hover:text-orange-600 p-1" title={t.editRecord}><Pencil size={15} /></button>
+                  <button onClick={() => del(rec)} className="text-slate-500 hover:text-red-500 p-1" title={t.delete}><Trash2 size={15} /></button>
+                </div>}
               </div>
               {rec.files.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-3">
@@ -2231,23 +2238,25 @@ function RecordsView({ t, lang, project, canEdit, onDefects, recordTypes }) {
         </div>
       )}
       {modal && <RecordModal t={t} lang={lang} project={project} recordTypes={recordTypes} onClose={() => setModal(false)} onSaved={() => { setModal(false); load(); }} onDefects={onDefects} />}
+      {editRec && <RecordModal t={t} lang={lang} project={project} recordTypes={recordTypes} rec={editRec} onClose={() => setEditRec(null)} onSaved={() => { setEditRec(null); load(); }} onDefects={onDefects} />}
       {racMo && <ThungRacHoSo t={t} lang={lang} project={project} loai="records" onClose={() => setRacMo(false)} onDoi={load} />}
     </div>
   );
 }
-function RecordModal({ t, lang, project, onClose, onSaved, onDefects, recordTypes }) {
+function RecordModal({ t, lang, project, onClose, onSaved, onDefects, recordTypes, rec }) {
+  const { message: antMessage } = AntApp.useApp();
   const now = new Date();
   const iso = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
-  const [date, setDate] = useState(iso);
-  const [type, setType] = useState(t.recFieldType);
-  const [number, setNumber] = useState("");
-  const [note, setNote] = useState("");
+  const [date, setDate] = useState(rec ? (rec.date || iso) : iso);
+  const [type, setType] = useState(rec ? (rec.type || t.recFieldType) : t.recFieldType);
+  const [number, setNumber] = useState(rec ? (rec.number || "") : "");
+  const [note, setNote] = useState(rec ? (rec.note || "") : "");
   const [files, setFiles] = useState([]);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   /* H2: bảng kiểm nghiệm thu — chỉ hiện khi chọn loại "Nghiệm thu nội bộ" */
   const [mauId, setMauId] = useState("");
-  const [bangKiem, setBangKiem] = useState([]);
+  const [bangKiem, setBangKiem] = useState(rec && Array.isArray(rec.checklist) ? rec.checklist.map((x) => ({ text: x.text || "", ketQua: x.ketQua || "", ghiChu: x.ghiChu || "" })) : []);
   const laNghiemThu = type === t.recAcceptType || type === t.recSafetyType || type === t.recPermitType;   // H3: an toàn cũng dùng bảng kiểm
   const chonMau = (id) => {
     setMauId(id);
@@ -2260,18 +2269,31 @@ function RecordModal({ t, lang, project, onClose, onSaved, onDefects, recordType
   const ketQuaTong = !bangKiem.length ? "" : soChuaCham ? "chua" : soKhongDat ? "khongdat" : "dat";
   const submit = async () => {
     if (busy) return; setBusy(true); setErr("");
-    const r = await api("/api/records", { method: "POST", body: JSON.stringify({ projectId: project.id, projectName: project.name, date, type, number, note, checklist: laNghiemThu ? bangKiem : undefined }) });
-    if (!r.ok) { setErr(loiMayChu(r, t, t.saveFailed)); setBusy(false); return; }
-    const rid = r.body.record.id;
+    let rid;
+    if (rec) {   // v5.1: sửa biên bản đã lưu — có mốc expectedUpdatedAt, người khác vừa sửa thì 409 stale
+      const r = await api("/api/records/update", { method: "POST", body: JSON.stringify({ id: rec.id, date, type, number, note, checklist: laNghiemThu ? bangKiem : undefined, expectedUpdatedAt: rec.updatedAt || rec.createdAt || 0 }) });
+      if (!r.ok) { setErr(loiMayChu(r, t, t.saveFailed)); setBusy(false); return; }
+      rid = rec.id;
+    } else {
+      const r = await api("/api/records", { method: "POST", body: JSON.stringify({ projectId: project.id, projectName: project.name, date, type, number, note, checklist: laNghiemThu ? bangKiem : undefined }) });
+      if (!r.ok) { setErr(loiMayChu(r, t, t.saveFailed)); setBusy(false); return; }
+      rid = r.body.record.id;
+    }
+    /* F10 (re-audit 06/09): kiểm mã phản hồi TỪNG tệp — trước đây tệp lỗi vẫn im lặng như đã lưu. */
+    const loi = [];
     for (const f of files) {
       try {
         const tok = getToken();
-        await fetch("/api/records/file?recordId=" + rid + "&filename=" + encodeURIComponent(f.name), { method: "POST", headers: { ...(tok ? { Authorization: "Bearer " + tok } : {}), "Content-Type": f.type || "application/octet-stream" }, body: f });
-      } catch {}
+        const up = await fetch("/api/records/file?recordId=" + rid + "&filename=" + encodeURIComponent(f.name), { method: "POST", headers: { ...(tok ? { Authorization: "Bearer " + tok } : {}), "Content-Type": f.type || "application/octet-stream" }, body: f });
+        if (!up.ok) loi.push(f.name);
+      } catch { loi.push(f.name); }
     }
     setBusy(false);
-    /* Mục KHÔNG ĐẠT thành lỗi tồn đọng — đây là chỗ nối bảng kiểm với punch list. */
-    if (laNghiemThu && soKhongDat && onDefects) onDefects(bangKiem.filter((x) => x.ketQua === "khongdat").map((x) => ({ title: x.text + (x.ghiChu ? " — " + x.ghiChu : ""), viTri: number || "", mucDo: "med" })));
+    if (loi.length) antMessage.error(t.recFilesFailed.replace("{n}", String(loi.length)) + ": " + loi.join(", "));
+    /* Mục KHÔNG ĐẠT thành lỗi tồn đọng — chỗ nối bảng kiểm với punch list. Khi sửa: chỉ mục MỚI không đạt (tránh tạo trùng). */
+    const daCo = new Set(rec && Array.isArray(rec.checklist) ? rec.checklist.filter((x) => x.ketQua === "khongdat").map((x) => x.text) : []);
+    const moiKhongDat = bangKiem.filter((x) => x.ketQua === "khongdat" && !daCo.has(x.text));
+    if (laNghiemThu && moiKhongDat.length && onDefects) onDefects(moiKhongDat.map((x) => ({ title: x.text + (x.ghiChu ? " — " + x.ghiChu : ""), viTri: number || "", mucDo: "med" })));
     onSaved();
   };
   const inp = "w-full mt-0.5 text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400";
@@ -2279,7 +2301,7 @@ function RecordModal({ t, lang, project, onClose, onSaved, onDefects, recordType
   const mauKQ = { dat: "#16a34a", khongdat: "#dc2626", na: "#64748b" };
   return (
     <AntModal open onCancel={onClose} width={laNghiemThu ? 640 : 480}
-      title={<span className="flex items-center gap-2"><ScrollText size={19} className="text-orange-500" />{t.addRecord}</span>}
+      title={<span className="flex items-center gap-2"><ScrollText size={19} className="text-orange-500" />{rec ? t.editRecord : t.addRecord}</span>}
       footer={<AntBtn type="primary" loading={busy} disabled={!note.trim() && !bangKiem.length} onClick={submit}>{busy ? t.recSaving : t.save}</AntBtn>}>
       <div className="space-y-3" style={{ maxHeight: "68vh", overflowY: "auto" }}>
         <label className="block"><span className="text-xs text-slate-500">{t.recDate}</span><input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inp} /></label>
@@ -5749,7 +5771,7 @@ function HistoryView({ t, lang, history, projects, canDelete, canAudit, onDelete
 /* ============================ TASK DETAIL ============================ */
 function TaskFiles({ t, lang, task, canEdit }) {
   const laLoi = task.kind === "defect";
-  const { modal: antModal } = AntApp.useApp();
+  const { modal: antModal, message: antMessage } = AntApp.useApp();
   const [files, setFiles] = useState([]);
   const [busy, setBusy] = useState(false);
   const load = async () => { const r = await api("/api/taskfiles?taskId=" + encodeURIComponent(task.id)); if (r.ok) setFiles(r.body.files || []); };
@@ -5757,15 +5779,18 @@ function TaskFiles({ t, lang, task, canEdit }) {
   const openFile = async (idx) => { try { const tok = getToken(); const r = await fetch("/api/taskfiles/file?taskId=" + encodeURIComponent(task.id) + "&idx=" + idx, { headers: tok ? { Authorization: "Bearer " + tok } : {} }); if (!r.ok) return; const blob = await r.blob(); const url = URL.createObjectURL(blob); window.open(url, "_blank"); setTimeout(() => URL.revokeObjectURL(url), 30000); } catch (e) {} };
   const upload = async (fileList, nhan) => {
     setBusy(true);
+    const loi = [];   // F10 (re-audit 06/09): báo đúng tệp nào không lên được
     for (const f0 of Array.from(fileList || [])) {
       const f = await nenAnh(f0);
       const ten = nhan ? nhan + "_" + f.name : f.name;   // TRUOC_ / SAU_ : nhìn tên tệp là biết ảnh nào
       try {
         const tok = getToken();
-        await fetch("/api/taskfiles/upload?taskId=" + encodeURIComponent(task.id) + "&filename=" + encodeURIComponent(ten), { method: "POST", headers: { ...(tok ? { Authorization: "Bearer " + tok } : {}), "Content-Type": f.type || "application/octet-stream" }, body: f });
-      } catch (e) {}
+        const up = await fetch("/api/taskfiles/upload?taskId=" + encodeURIComponent(task.id) + "&filename=" + encodeURIComponent(ten), { method: "POST", headers: { ...(tok ? { Authorization: "Bearer " + tok } : {}), "Content-Type": f.type || "application/octet-stream" }, body: f });
+        if (!up.ok) loi.push(f.name);
+      } catch (e) { loi.push(f.name); }
     }
     setBusy(false); load();
+    if (loi.length) antMessage.error(t.recFilesFailed.replace("{n}", String(loi.length)) + ": " + loi.join(", "));
   };
   const del = async (idx) => { if (!(await askDanger(antModal, t, lang === "vi" ? "Xóa tệp này?" : "Delete this file?"))) return; const tok = getToken(); await fetch("/api/taskfiles/delete?taskId=" + encodeURIComponent(task.id) + "&idx=" + idx, { method: "POST", headers: tok ? { Authorization: "Bearer " + tok } : {} }); load(); };
   return (

@@ -5,7 +5,7 @@ nhân viên. Cài đặt và vận hành máy chủ xem các file "HƯỚNG DẪ
 thuần (không hình, kèm sẵn trong gói để gửi cho nhân viên):
 [HƯỚNG DẪN SỬ DỤNG - Cho người dùng.txt](../Chạy%20nội%20bộ/HƯỚNG%20DẪN%20SỬ%20DỤNG%20-%20Cho%20người%20dùng.txt).
 
-Áp dụng từ bản 5.0 · Ảnh chụp từ dữ liệu mẫu (tên người, dự án, số tiền đều là bịa).
+Áp dụng từ bản 5.1 · Ảnh chụp từ dữ liệu mẫu (tên người, dự án, số tiền đều là bịa).
 
 **Mục lục**
 
@@ -264,8 +264,10 @@ Tab **Biên bản** (trong Nhật ký thi công) → **Thêm biên bản**:
   đọng khi lưu.
 - Đính kèm PDF / ảnh. Ai xem được tệp: Chủ sở hữu, Lãnh đạo, Teamlead, và người trong dự án khi Cài đặt
   bật "Chỉ người trong dự án xem được tệp / biên bản / nhật ký".
-- Biên bản đã lưu **không sửa được** trong ứng dụng; lập sai thì xóa (vào Thùng rác hồ sơ 90 ngày) rồi
-  lập lại.
+- **Sửa biên bản đã lưu** (từ bản 5.1): nút bút chì cạnh biên bản — đổi ngày / loại / số / ghi chú, điền
+  tiếp bảng kiểm, thêm tệp. Người lập hoặc quản lý sửa được; hai người cùng sửa thì người sau được báo
+  "vừa được … sửa", mở lại rồi sửa tiếp. Mục Không đạt thêm mới sẽ sinh lỗi tồn đọng. Lập sai hẳn thì
+  xóa (vào Thùng rác hồ sơ 90 ngày).
 
 ![Danh sách biên bản](anh/hd-13-bien-ban.png)
 

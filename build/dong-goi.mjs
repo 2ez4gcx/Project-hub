@@ -14,15 +14,11 @@ const root = path.join(here, "..");
 const OUT = path.join(root, "..", "files");
 
 /* Bản NAS không cần kèm thư viện vì Dockerfile tự chạy "npm ci --omit=dev" khi build. */
+import { skip as loaiTru } from "./loai-tru.mjs";
 let kemThuVien = false;
-const skip = (rel) => {
-  const r = rel.split(path.sep).join("/");
-  // rel của CHÍNH thư mục không có dấu "/" cuối, phải nhận cả hai dạng nếu không sẽ bỏ sót cả cây
-  if (r === "node_modules" || r.startsWith("node_modules/"))
-    return !(kemThuVien && (r === "node_modules" || r.startsWith("node_modules/nodemailer")));
-  return r === ".env" || r.startsWith("data/")
-    || r.endsWith(".log") || r.endsWith(".bak") || r.endsWith(".tmp");
-};
+/* N05 (re-audit 06/09): danh sách loại trừ nằm ở loai-tru.mjs (có test riêng) — chặn cả data-saoluu-*, accounts.json ở gốc,
+   *.bak-<ngày>, tls/, snapshots/... phòng khi đóng gói từ thư mục đã từng vận hành hoặc đã chạy script cập nhật. */
+const skip = (rel) => loaiTru(rel, kemThuVien);
 
 function collect(dir, base, out) {
   for (const name of readdirSync(dir)) {

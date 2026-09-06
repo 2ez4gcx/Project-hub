@@ -70,6 +70,7 @@ const DA_DUYET_DICH_CHUNG = {
   notfound: "đều là 'không thấy trong thùng rác'",
   scope_merge_failed: "cùng một sự cố, chỉ khác loại dữ liệu",
   sitelog_locked: "đều là 'nhật ký đã duyệt nên khóa' (sửa / thêm ảnh / xóa) — tách khỏi 'locked' của khóa đăng nhập 06/09",
+  missing_rev: "đều là 'thiếu số phiên bản' (tài chính expectedRev / khối chung rev, v5.1 F02) — client hiện chung một câu e_missing_rev",
 };
 const nhieuCau = Object.keys(soLanDung).filter((m) => soLanDung[m].size > 1);
 const chuaDuyet = nhieuCau.filter((m) => maDich.includes(m) && !DA_DUYET_DICH_CHUNG[m]);

@@ -87,7 +87,15 @@ function writeJsonAtomic(file, str) {
     try { if (fs.existsSync(file)) fs.copyFileSync(file, file + ".bak"); } catch {}
     fs.renameSync(tmp, file);
     return true;
-  } catch (e) { try { fs.writeFileSync(file, str); } catch {} return false; }
+  } catch (e) {
+    try { fs.writeFileSync(file, str); return true; }
+    catch (e2) {
+      /* F06 (re-audit 06/09): trước đây trả false và mọi hàm lưu bỏ qua -> API báo 200 dù đĩa không nhận (đầy, mất quyền
+         ghi), cache giữ giá trị "đã lưu" tới khi khởi động lại. Nay ném lỗi có mã: safeHandler trả 507, cache không đổi. */
+      const err = new Error("Không ghi được " + path.basename(file) + ": " + ((e2 && e2.code) || e2));
+      err.code = "WRITE_FAILED"; throw err;
+    }
+  }
 }
 function bearerOf(req) { return (req.headers["authorization"] || "").replace(/^Bearer\s+/i, "").trim(); }
 
@@ -402,7 +410,7 @@ function locTaiChinh(f, thay) {
     investorContracts: (f.investorContracts || []).filter((c) => c && (!c.projectId || thay.has(c.projectId))),   // N5: hợp đồng khung (không dự án) ai xem tài chính cũng thấy
     subContracts: (f.subContracts || []).filter((c) => c && (!c.projectId || thay.has(c.projectId))),
     boq: loc(f.boq), nganSach: loc(f.nganSach), chiPhi: loc(f.chiPhi), deNghi: loc(f.deNghi),
-    revTheoDuAn: loc(f.revTheoDuAn || {}) };   // Q6: không lộ id dự án ẩn qua bảng rev
+    revTheoDuAn: loc(f.revTheoDuAn || {}), bamTheoDuAn: loc(f.bamTheoDuAn || {}) };   // Q6 / N02: không lộ id dự án ẩn
 }
 function ghepTaiChinh(cur, inc, thay) {
   if (!thay) return inc;
@@ -714,24 +722,26 @@ function canhBaoSucKhoe(ra) {
 async function runHealthAlert() {
   const day = new Date().toISOString().slice(0, 10);
   const st = loadSchedState(); if (st.canhBaoNgay === day) return;
+  if (st.canhBaoThuLai && Date.now() < st.canhBaoThuLai) return;   // lần trước gửi lỗi -> chờ một giờ rồi thử lại
   const ra = sucKhoe(); const nghiem = ra.canhBao.filter((c) => !/email|Email/.test(c));   // thiếu email thì không gửi email được, chỉ ghi log
-  st.canhBaoNgay = day; saveSchedState(st);
-  if (!nghiem.length) return;
+  const xong = () => { st.canhBaoNgay = day; delete st.canhBaoThuLai; saveSchedState(st); };
+  if (!nghiem.length) return xong();
   slog("CẢNH BÁO SỨC KHỎE: " + nghiem.join(" | "));
-  const tr = buildTransport(); if (!tr) return;
-  const owners = loadAccounts().filter((a) => a.role === "owner").map((a) => a.email).filter(Boolean); if (!owners.length) return;
-  try { await tr.sendMail({ from: smtpFrom(), to: owners.join(","), subject: "[Cảnh báo] Trạm Dự Án — " + day, text: "Máy chủ Trạm Dự Án phát hiện:\n\n• " + nghiem.join("\n• ") + "\n\nXem chi tiết ở Cài đặt > Sức khỏe máy chủ.\n\n(Email tự động từ Trạm Dự Án)" }); } catch (e) { console.log("[health] LỖI gửi:", e.message); }
+  const tr = buildTransport(); if (!tr) return xong();
+  const owners = loadAccounts().filter((a) => a.role === "owner").map((a) => a.email).filter(Boolean); if (!owners.length) return xong();
+  try { await tr.sendMail({ from: smtpFrom(), to: owners.join(","), subject: "[Cảnh báo] Trạm Dự Án — " + day, text: "Máy chủ Trạm Dự Án phát hiện:\n\n• " + nghiem.join("\n• ") + "\n\nXem chi tiết ở Cài đặt > Sức khỏe máy chủ.\n\n(Email tự động từ Trạm Dự Án)" }); xong(); } catch (e) { console.log("[health] LỖI gửi:", e.message); st.canhBaoThuLai = Date.now() + 3600000; saveSchedState(st); }
 }
 /* A11: sáng thứ Hai gửi Chủ sở hữu + Lãnh đạo bản "ai sửa gì tuần qua" từ nhật ký kiểm toán. */
 async function runWeeklyAuditDigest() {
   const now = new Date(); if (now.getDay() !== 1 || now.getHours() < 7) return;
   const st = loadSchedState(); const wk = isoWeek(now); if (st.auditTuan === wk) return;
-  st.auditTuan = wk; saveSchedState(st);
-  const tt = tomTatAudit(7); if (!tt.tong) return;
-  const tr = buildTransport(); if (!tr) return;
-  const to = loadAccounts().filter((a) => a.role === "owner" || a.isLeader).map((a) => a.email).filter(Boolean); if (!to.length) return;
+  if (st.auditThuLai && Date.now() < st.auditThuLai) return;
+  const xong = () => { st.auditTuan = wk; delete st.auditThuLai; saveSchedState(st); };   // chỉ đánh dấu SAU khi gửi xong (re-audit 06/09)
+  const tt = tomTatAudit(7); if (!tt.tong) return xong();
+  const tr = buildTransport(); if (!tr) return xong();
+  const to = loadAccounts().filter((a) => a.role === "owner" || a.isLeader).map((a) => a.email).filter(Boolean); if (!to.length) return xong();
   const lines = tt.nguoi.map((r) => "• " + r.actor + ": " + r.so + " thay đổi — " + r.top.map((x) => x.loai.replace(":", " / ") + " ×" + x.so).join(", ") + (r.duAn.length ? " (" + r.duAn.map((d) => d.ten).join(", ") + ")" : ""));
-  try { await tr.sendMail({ from: smtpFrom(), to: to.join(","), subject: "[Tuần " + wk + "] Ai sửa gì — " + tt.tong + " thay đổi", text: "Nhật ký kiểm toán 7 ngày qua (" + tt.tong + " thay đổi):\n\n" + lines.join("\n") + "\n\nXem chi tiết: Lịch sử thay đổi > Nhật ký máy chủ.\n\n(Email tự động từ Trạm Dự Án)" }); } catch (e) { console.log("[audit-tuan] LỖI gửi:", e.message); }
+  try { await tr.sendMail({ from: smtpFrom(), to: to.join(","), subject: "[Tuần " + wk + "] Ai sửa gì — " + tt.tong + " thay đổi", text: "Nhật ký kiểm toán 7 ngày qua (" + tt.tong + " thay đổi):\n\n" + lines.join("\n") + "\n\nXem chi tiết: Lịch sử thay đổi > Nhật ký máy chủ.\n\n(Email tự động từ Trạm Dự Án)" }); xong(); } catch (e) { console.log("[audit-tuan] LỖI gửi:", e.message); st.auditThuLai = Date.now() + 3600000; saveSchedState(st); }
 }
 function saveSchedState(s) { writeJsonAtomic(SCHED_STATE, JSON.stringify(s)); }
 (function migrateSchedState() {
@@ -756,8 +766,9 @@ function loadFinance() {
       chiPhi: obj(f.chiPhi),       // Q2: sổ chi phí thực tế theo dự án
       deNghi: obj(f.deNghi),       // Q5: đề nghị thanh toán theo dự án
       revTheoDuAn: obj(f.revTheoDuAn),   // Q6: rev lần cuối đụng tới từng dự án
+      bamTheoDuAn: obj(f.bamTheoDuAn),   // N02: lịch sử băm phần dự án (xem ghepTaiChinhTheoDuAn)
       rev: Number(f.rev) || 0 };
-  } catch { return { investorContracts: [], subContracts: [], boq: {}, nganSach: {}, chiPhi: {}, deNghi: {}, revTheoDuAn: {}, rev: 0 }; }
+  } catch { return { investorContracts: [], subContracts: [], boq: {}, nganSach: {}, chiPhi: {}, deNghi: {}, revTheoDuAn: {}, bamTheoDuAn: {}, rev: 0 }; }
 }
 /* Q6: phần tài chính của một dự án = boq/nganSach/chiPhi/deNghi[pid] + các hợp đồng có projectId = pid ("" = hợp đồng khung). */
 function phanTaiChinh(f, pid) {
@@ -776,12 +787,29 @@ function revTheoDuAnMoi(cur, moi, newRev) {
   for (const pid of cacDuAnTaiChinh(cur, moi)) if (phanTaiChinh(cur, pid) !== phanTaiChinh(moi, pid)) r[pid] = newRev;
   return r;
 }
+const bamPhan = (str) => crypto.createHash("sha256").update(str).digest("hex").slice(0, 16);
+/* N02 (re-audit 06/09): lịch sử băm phần tài chính từng dự án — mỗi lần dự án đổi ở rev R ghi { rev: R, truoc: băm phần đó
+   TRƯỚC khi đổi } (giữ 30 lần gần nhất). Nhờ vậy khi một người gửi bản cũ, máy chủ biết phần dự án họ gửi có đúng là bản
+   họ đã tải (= không đụng vào) hay đã bị họ sửa — chỉ trường hợp sau mới là xung đột thật. */
+function bamTheoDuAnMoi(cur, moi, newRev) {
+  const o = (x) => (x && typeof x === "object" && !Array.isArray(x)) ? x : {};
+  const r = {}; for (const [pid, ds] of Object.entries(o(cur.bamTheoDuAn))) if (Array.isArray(ds)) r[pid] = ds.slice(-30);
+  for (const pid of cacDuAnTaiChinh(cur, moi)) { const a = phanTaiChinh(cur, pid), b = phanTaiChinh(moi, pid); if (a !== b) r[pid] = [...(r[pid] || []), { rev: newRev, truoc: bamPhan(a) }].slice(-30); }
+  return r;
+}
 function ghepTaiChinhTheoDuAn(cur, inc, expectedRev) {
   const revs = (cur && cur.revTheoDuAn) || {};
   const trung = [], doi = new Set();
   for (const pid of cacDuAnTaiChinh(cur, inc)) {
-    if (phanTaiChinh(cur, pid) === phanTaiChinh(inc, pid)) continue;
-    if ((Number(revs[pid]) || 0) > expectedRev) trung.push(pid); else doi.add(pid);
+    const pc = phanTaiChinh(cur, pid), pi = phanTaiChinh(inc, pid);
+    if (pc === pi) continue;
+    if ((Number(revs[pid]) || 0) > expectedRev) {
+      /* N02: người khác đã đổi dự án này sau lúc người này tải. Họ có sửa nó không? So băm phần họ gửi với băm phần dự án
+         đúng lúc họ tải (= "truoc" của lần đổi đầu tiên sau expectedRev). Trùng -> họ chỉ gửi lại bản cũ -> giữ bản máy chủ. */
+      const ls = (((cur && cur.bamTheoDuAn) || {})[pid] || []).filter((e) => e && e.rev > expectedRev).sort((a, b) => a.rev - b.rev);
+      if (ls.length && ls[0].truoc === bamPhan(pi)) continue;
+      trung.push(pid);
+    } else doi.add(pid);
   }
   if (trung.length) return { ok: false, trung };
   const o = (x) => (x && typeof x === "object" && !Array.isArray(x)) ? x : {};
@@ -813,12 +841,18 @@ function sachKhoiChung(x) {
   const laDT = (e) => e && typeof e === "object" && !Array.isArray(e);
   const ds = (a) => (Array.isArray(a) ? a.filter(laDT) : []);
   if (x.rev !== undefined && !(typeof x.rev === "number" && Number.isFinite(x.rev) && x.rev >= 0)) return null;
-  return { ...x,
+  const out = { ...x,
     projects: ds(x.projects), sections: ds(x.sections),
     tasks: ds(x.tasks).map((t) => ({ ...t, comments: ds(t.comments), subtasks: ds(t.subtasks), assignees: Array.isArray(t.assignees) ? t.assignees.filter((a) => typeof a === "string") : [] })),
     history: ds(x.history), trash: ds(x.trash),
     dailyReports: ds(x.dailyReports).map((r) => ({ ...r, items: ds(r.items), comments: ds(r.comments) })) };
+  /* F04 (re-audit 06/09): phân quyền tra theo Map(id) = bản CUỐI, nhưng mảng lưu cả hai bản -> client find() đọc bản
+     đầu (có thể là bản sửa trái quyền). Id phải có và duy nhất trong dự án / cột / việc; dữ liệu cũ đã được diTruDuLieu dọn. */
+  if (!idDuyNhat(out.projects) || !idDuyNhat(out.sections) || !idDuyNhat(out.tasks)) return null;
+  return out;
 }
+function idDuyNhat(a) { const th = new Set(); for (const e of a) { const id = e && e.id; if ((typeof id !== "string" && typeof id !== "number") || id === "" || th.has(String(id))) return false; th.add(String(id)); } return true; }
+function khuTrungId(a) { const m = new Map(); for (const e of a) { const id = e && e.id; if ((typeof id !== "string" && typeof id !== "number") || id === "") continue; m.set(String(id), e); } return [...m.values()]; }   // giữ bản CUỐI, khớp Map của phân quyền
 function sachTaiChinh(b) {
   if (!b || typeof b !== "object" || Array.isArray(b)) return null;
   const laDT = (e) => e && typeof e === "object" && !Array.isArray(e);
@@ -834,14 +868,15 @@ const LA_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 /* Hoàn thiện 06/09: số phiên bản CẤU TRÚC dữ liệu. Khi khởi động, máy chủ chuẩn hóa một lần (điền trường mặc định,
    lọc phần tử rác) — client không còn phải "sửa" dữ liệu cũ khi tải, hết lớp lỗi L1/UI-5 tận gốc.
    Tăng DATA_VERSION khi thêm trường mặc định mới cho việc/dự án. */
-const DATA_VERSION = 5;
+const DATA_VERSION = 6;   // 6 (v5.1.0): dọn id trùng / thiếu (F04) để luật "id duy nhất" không chặn dữ liệu cũ
 function diTruDuLieu() {
   try {
     const d = loadData(); if (!d[SHARED_KEY]) return;
     let st; try { st = JSON.parse(d[SHARED_KEY]); } catch { return; }
     if (!st || typeof st !== "object" || Array.isArray(st)) return;
     if (Number(st.dataVersion) >= DATA_VERSION) return;
-    const sach = sachKhoiChung(st); if (!sach) return;
+    for (const k of ["projects", "sections", "tasks"]) if (Array.isArray(st[k])) st[k] = khuTrungId(st[k]);   // F04: trước khi sachKhoiChung đòi id duy nhất
+    const sach = sachKhoiChung(st); if (!sach) { slog("LỖI di trú dữ liệu: khối dữ liệu chung sai cấu trúc"); return; }
     sach.tasks = sach.tasks.map(chuanHoaViecSS);
     sach.dataVersion = DATA_VERSION;
     d[SHARED_KEY] = JSON.stringify(sach); saveData(d); SHARED_REV_CACHE = null;
@@ -855,6 +890,20 @@ function diTruDuLieu() {
    dung" mọi việc và chặn họ lưu bất cứ gì sau mỗi lần nâng cấp — cho tới khi một người có quyền lưu trước.
    Thêm trường mặc định mới vào normalizeTask thì PHẢI thêm vào đây. */
 const TRANG_THAI_VIEC = ["todo", "doing", "review", "onhold", "done"];
+/* F03: bản sinh từ việc lặp = bản sao của nguồn đã hoàn thành, chỉ khác các trường máy tự đặt lại (khớp client, effect sinh việc lặp). */
+const VIEC_LAP_DAT_LAI = new Set(["id", "status", "completed", "completedAt", "approvedBy", "workdone", "reminderSentKey", "recurSpawned", "startDate", "dueDate", "comments", "createdAt", "actualStart", "actualFinish", "order", "assignedAt", "subtasks"]);
+function loiViecLapSinh(src0, moi0) {
+  const src = chuanHoaViecSS(src0), moi = chuanHoaViecSS(moi0);
+  const cung = (a, b) => JSON.stringify(a === undefined ? null : a) === JSON.stringify(b === undefined ? null : b);
+  if (!(src.status === "done" || src.completed)) return "Chỉ sinh được việc lặp từ việc đã hoàn thành.";
+  if (moi.status !== "todo" || moi.completed || moi.workdone !== 0 || moi.approvedBy || moi.recurSpawned || (moi.comments || []).length || moi.actualFinish) return "Việc lặp sinh ra phải ở trạng thái ban đầu (chưa làm, 0%, chưa duyệt).";
+  if (!cung((src.subtasks || []).map((x) => x && x.title), (moi.subtasks || []).map((x) => x && x.title))) return "Việc lặp sinh ra phải giữ nguyên danh sách việc con.";
+  for (const k of new Set([...Object.keys(src), ...Object.keys(moi)])) {
+    if (VIEC_LAP_DAT_LAI.has(k)) continue;
+    if (!cung(src[k], moi[k])) return "Việc lặp sinh ra phải giống việc gốc (trường '" + k + "').";
+  }
+  return "";
+}
 function chuanHoaViecSS(x) {
   if (!x || typeof x !== "object") return x;
   const assignees = Array.isArray(x.assignees) ? x.assignees : [];
@@ -988,12 +1037,12 @@ function validateSharedWrite(me, inc, curStr) {
       if (!id || !tk0) continue;
       const old0 = curTasks.get(id);
       if (!old0) {
-        // tạo việc mới: chỉ chấp nhận việc do máy tự sinh từ việc lặp (recur) —
-        // phải có việc gốc cùng tiêu đề + chu kỳ vừa được đánh dấu recurSpawned trong lần ghi này
-        const spawned = tk0.recur && tk0.recur !== "none" && !tk0.recurSpawned &&
-          arr(cur.tasks).some((src) => src && src.recur === tk0.recur && src.title === tk0.title && src.recurSpawned !== true &&
-            (incTasks.get(src.id) || {}).recurSpawned === true);
-        if (!spawned) return "Bạn không có quyền tạo công việc.";
+        /* tạo việc mới: chỉ chấp nhận việc do máy tự sinh từ việc lặp (recur). F03 (re-audit 06/09): trước đây chỉ so tiêu đề
+           + chu kỳ nên nhân viên gửi được việc "đã hoàn thành 100%, tự duyệt, đổi dự án". Nay: nguồn phải ĐÃ XONG và bản sinh
+           phải là bản sao của nguồn (cùng dự án, cột, người làm, ưu tiên, người duyệt...) đưa về trạng thái đầu. */
+        const src = tk0.recur && tk0.recur !== "none" && arr(cur.tasks).find((x) => x && x.id !== id && x.recur === tk0.recur && x.title === tk0.title && x.recurSpawned !== true && (incTasks.get(x.id) || {}).recurSpawned === true);
+        const loi = src ? loiViecLapSinh(src, tk0) : "Bạn không có quyền tạo công việc.";
+        if (loi) return loi;
         continue;
       }
       /* L1: so sánh SAU khi chuẩn hóa cả hai bên (xem chuanHoaViecSS) — trường mặc định client tự điền không phải "sửa". */
@@ -1158,9 +1207,12 @@ function canViewProjectFiles(me, projectId, shared) {
   if (!me) return false;
   if (me.role === "owner" || me.isLeader) return true;
   const sh0 = shared || sharedState();
-  const pr0 = (sh0.projects || []).find((x) => x.id === projectId);
+  /* F07b (re-audit 06/09): dự án trong THÙNG RÁC vẫn phải xét thành viên — trước đây không tìm thấy là Teamlead ngoài dự án
+     được cho qua; dự án không xác định (đã xóa hẳn / id lạ) thì từ chối mặc định, chỉ Chủ sở hữu / Lãnh đạo xem. */
+  const pr0 = (sh0.projects || []).find((x) => x && x.id === projectId) || (sh0.trash || []).map((e) => e && e.project).find((x) => x && x.id === projectId);
+  if (!pr0) return false;
   // A6: dự án đã khai thành viên -> chỉ thành viên (và Chủ sở hữu/Lãnh đạo) mới xem hồ sơ
-  if (pr0 && Array.isArray(pr0.members) && pr0.members.length && !pr0.members.includes(me.id)) return false;
+  if (Array.isArray(pr0.members) && pr0.members.length && !pr0.members.includes(me.id)) return false;
   if (me.isTeamlead) return true;
   if (!fileGateOn()) return true;
   const sh = sh0;
@@ -1184,6 +1236,8 @@ function canDeleteRecord(me, rec) {
   if (!me) return false;
   if (me.role === "owner" || me.isLeader) return true;
   if (!rec) return false;
+  /* F07a (re-audit 06/09): người lập đã bị gỡ khỏi dự án (hoặc dự án đã vào thùng rác) thì hết quyền xóa / sửa / khôi phục. */
+  if (!canRecordProject(me, rec.projectId)) return false;
   // Ưu tiên so theo ID người tạo; chỉ rơi về so theo tên/email với bản ghi cũ chưa có createdById
   // (so theo tên hiển thị có thể trùng giữa hai người khác nhau).
   if (rec.createdById) return rec.createdById === me.id;
@@ -1243,24 +1297,27 @@ function passwordProblem(pw) {
    bị đăng xuất giữa chừng). Tệp chỉ chứa băm — lộ tệp cũng không đăng nhập được. */
 const TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 ngày không hoạt động thì hết hạn
 const SESSIONS = path.join(DATA_DIR, "sessions.json");
-const tokens = new Map(); // băm(token) -> { id, exp }
+const tokens = new Map(); // băm(token) -> { id, exp, pv }
 const hashTok = (t) => crypto.createHash("sha256").update(String(t)).digest("hex");
+/* F08 (re-audit 06/09): phiên gắn với "phiên bản mật khẩu" (16 ký tự đầu của băm). Đổi mật khẩu bằng bất cứ đường nào —
+   kể cả công cụ reset-password.js chạy ngoài tiến trình — là mọi phiên cũ của tài khoản đó tự hết hiệu lực ở yêu cầu kế tiếp. */
+const pvOf = (hash) => String(hash || "").slice(0, 16);
 let sessionsDirty = false;
 function loadSessions() {
   try {
     const arr = JSON.parse(fs.readFileSync(SESSIONS, "utf8"));
     const now = Date.now();
-    for (const r of arr) if (r && r.h && r.id && r.exp > now) tokens.set(r.h, { id: r.id, exp: r.exp });
+    for (const r of arr) if (r && r.h && r.id && r.exp > now) tokens.set(r.h, { id: r.id, exp: r.exp, pv: r.pv || "" });
   } catch {}
 }
 function saveSessions() {
   if (!sessionsDirty) return;
   sessionsDirty = false;
-  try { writeJsonAtomic(SESSIONS, JSON.stringify([...tokens.entries()].map(([h, r]) => ({ h, id: r.id, exp: r.exp })))); } catch {}
+  try { writeJsonAtomic(SESSIONS, JSON.stringify([...tokens.entries()].map(([h, r]) => ({ h, id: r.id, exp: r.exp, pv: r.pv || "" })))); } catch {}
 }
-function newToken(id) {
+function newToken(id, hash) {
   const tok = crypto.randomBytes(24).toString("hex");
-  tokens.set(hashTok(tok), { id, exp: Date.now() + TOKEN_TTL_MS });
+  tokens.set(hashTok(tok), { id, exp: Date.now() + TOKEN_TTL_MS, pv: pvOf(hash) });
   if (tokens.size > 5000) { const arr = [...tokens.entries()].sort((a, b) => a[1].exp - b[1].exp); for (let i = 0; i < arr.length - 5000; i++) tokens.delete(arr[i][0]); }
   sessionsDirty = true; saveSessions();
   return tok;
@@ -1278,6 +1335,7 @@ function revokeTokens(accountId, exceptTok) {
 const MAX_FAILS = 5, FAIL_WINDOW_MS = 15 * 60 * 1000, LOCK_MS = 15 * 60 * 1000;
 const loginAttempts = new Map(); // key(ip|email) -> { count, first, lockUntil }
 const clientErrRate = new Map();  // userId -> { count, first } (giới hạn /api/client-error)
+const feedbackRate = new Map();   // userId -> { count, first } (giới hạn /api/feedback, 10 lần/giờ)
 function attemptKey(req, email) { return clientIp(req) + "|" + String(email || "").trim().toLowerCase(); }
 function lockedMinutes(key) {
   const r = loginAttempts.get(key);
@@ -1327,7 +1385,11 @@ function authOf(req) {
   const moi = Date.now() + TOKEN_TTL_MS;
   if (moi - rec.exp > 3600 * 1000) sessionsDirty = true;   // chỉ ghi đĩa khi hạn đổi đáng kể
   rec.exp = moi;                                           // gia hạn khi còn hoạt động
-  return loadAccounts().find((a) => a.id === rec.id) || null;
+  const acc = loadAccounts().find((a) => a.id === rec.id) || null;
+  if (!acc) return null;
+  if (rec.pv) { if (rec.pv !== pvOf(acc.hash)) { tokens.delete(key); sessionsDirty = true; saveSessions(); return null; } }   // F08: mật khẩu đã đổi -> phiên cũ hết hiệu lực
+  else { rec.pv = pvOf(acc.hash); sessionsDirty = true; }                                                              // phiên từ bản cũ: gắn từ lần này
+  return acc;
 }
 function readBody(req) {
   return new Promise((resolve) => {
@@ -1400,11 +1462,15 @@ const requestHandler = async (req, res) => {
     const accts = loadAccounts();
     if (accts.length > 0) return json(res, 403, { error: "already_setup" });
     ensureSetupCode();
+    const maLuc = SETUP_CODE;   // F01: chụp mã của ĐÚNG yêu cầu này — sau await mã có thể đã bị xóa vì người khác vừa cài xong
     const setupKey = attemptKey(req, "__setup__");
     const lmS = lockedMinutes(setupKey);
     if (lmS > 0) return json(res, 429, { error: "locked", message: "Nhập sai mã cài đặt quá nhiều lần. Thử lại sau " + lmS + " phút." });
     const { name, email, password, code } = await readBody(req);
-    if (SETUP_CODE && String(code || "").trim().toUpperCase() !== SETUP_CODE) {
+    /* F01 (re-audit 06/09): kiểm LẠI sau khi đọc thân. Yêu cầu giữ thân chờ tới khi chủ thật cài xong mới gửi thì trước
+       đây lọt qua (SETUP_CODE đã rỗng, không so mã) và ghi đè accounts.json bằng tài khoản của kẻ chờ. */
+    if (loadAccounts().length > 0) return json(res, 403, { error: "already_setup" });
+    if (maLuc && String(code || "").trim().toUpperCase() !== maLuc) {
       noteFail(setupKey);
       slog("SETUP bị từ chối (sai mã) từ " + clientIp(req));
       return json(res, 403, { error: "bad_code", message: "Mã cài đặt không đúng. Xem mã trong cửa sổ máy chủ (Terminal)." });
@@ -1417,10 +1483,11 @@ const requestHandler = async (req, res) => {
     if (pwErr) return json(res, 400, { error: "weak_password", message: pwErr });
     const salt = makeSalt();
     const acc = { id: uid(), name: String(name).trim(), email: String(email).trim().toLowerCase(), role: "owner", dept: "Lead", canAssign: true, canViewHistory: true, canViewFinance: true, canViewWorkload: true, canManageMembers: true, noReport: true, salt, hash: hashPw(password, salt) };
+    if (loadAccounts().length > 0) return json(res, 403, { error: "already_setup" });   // F01: chốt lần cuối ngay trước khi ghi
     saveAccounts([acc]);
     SETUP_CODE = "";
     slog("Tạo tài khoản CHỦ SỞ HỮU đầu tiên: " + acc.email + " từ " + clientIp(req));
-    const tok = newToken(acc.id);
+    const tok = newToken(acc.id, acc.hash);
     return json(res, 200, { token: tok, user: safe(acc) });
   }
   if (p === "/api/login" && req.method === "POST") {
@@ -1441,7 +1508,7 @@ const requestHandler = async (req, res) => {
     }
     clearFails(key);
     slog("Đăng nhập THÀNH CÔNG: " + acc.email + " từ " + clientIp(req));
-    const tok = newToken(acc.id);
+    const tok = newToken(acc.id, acc.hash);
     return json(res, 200, { token: tok, user: safe(acc) });
   }
 
@@ -1500,13 +1567,17 @@ const requestHandler = async (req, res) => {
     if (!rec) return json(res, 404, { error: "not_found" });
     if (!canRecordProject(me, rec.projectId)) return json(res, 403, { error: "forbidden" });
     let buf; try { buf = await readRawBody(req, 40 * 1024 * 1024); } catch { return json(res, 413, { error: "too_large", message: "Tệp quá lớn (tối đa 40MB)." }); }
-    const dir = path.join(UPLOADS, rec.folder || sanitizeName(rec.projectName || rec.projectId));
+    /* F05 (re-audit 06/09): đọc lại danh sách sau khi nhận xong tệp — hai lượt tải song song trước đây chỉ giữ tệp của lượt sau. */
+    const recs2 = loadRecords(); const rec2 = recs2.find((r) => r.id === rid);
+    if (!rec2 || rec2.deletedAt) return json(res, 404, { error: "not_found" });
+    if (!canRecordProject(me, rec2.projectId)) return json(res, 403, { error: "forbidden" });
+    const dir = path.join(UPLOADS, rec2.folder || sanitizeName(rec2.projectName || rec2.projectId));
     try { fs.mkdirSync(dir, { recursive: true }); } catch {}
-    const fname = uniqueName(dir, recBaseName(rec.date, rec.number, rec.type), extOf(origName, mime));
+    const fname = uniqueName(dir, recBaseName(rec2.date, rec2.number, rec2.type), extOf(origName, mime));
     try { fs.writeFileSync(path.join(dir, fname), buf); } catch { return json(res, 500, { error: "write_failed" }); }
-    rec.files = rec.files || []; rec.files.push({ name: fname, stored: path.join(rec.folder, fname), size: buf.length, mime });
-    saveRecords(recs);
-    return json(res, 200, { file: { name: fname, size: buf.length, mime, idx: rec.files.length - 1 } });
+    rec2.files = rec2.files || []; rec2.files.push({ name: fname, stored: path.join(rec2.folder, fname), size: buf.length, mime });
+    saveRecords(recs2);
+    return json(res, 200, { file: { name: fname, size: buf.length, mime, idx: rec2.files.length - 1 } });
   }
   if (p === "/api/records/file" && req.method === "GET") {
     const rid = u.searchParams.get("recordId") || ""; const idx = parseInt(u.searchParams.get("idx") || "-1", 10);
@@ -1735,13 +1806,21 @@ const requestHandler = async (req, res) => {
       return json(res, 409, { error: "sitelog_locked", message: "Nhật ký ngày " + rec.date + " đã được duyệt — không thêm ảnh được. Đề nghị Chỉ huy trưởng mở khóa." });
     }
     let buf; try { buf = await readRawBody(req, 40 * 1024 * 1024); } catch { return json(res, 413, { error: "too_large", message: "Ảnh quá lớn (tối đa 40MB)." }); }
-    const dir = path.join(NHATKY, rec.folder || sanitizeName(rec.projectName || rec.projectId), rec.date);
+    /* F05 (re-audit 06/09): đọc LẠI sau khi nhận xong tệp — trong lúc chờ thân, người khác có thể đã duyệt / xóa; ghi lại
+       danh sách đọc TRƯỚC await là đè mất dấu duyệt (về "đã nộp") hoặc mất ảnh của lượt tải song song. */
+    const logs2 = loadSiteLogs(); const rec2 = logs2.find((r) => r.id === rid);
+    if (!rec2 || rec2.deletedAt) return json(res, 404, { error: "not_found" });
+    if (!canRecordProject(me, rec2.projectId)) return json(res, 403, { error: "forbidden" });
+    if (rec2.trangThai === "daduyet" && !(me.role === "owner" || me.isLeader)) {
+      return json(res, 409, { error: "sitelog_locked", message: "Nhật ký ngày " + rec2.date + " vừa được duyệt — ảnh này chưa được thêm. Đề nghị Chỉ huy trưởng mở khóa." });
+    }
+    const dir = path.join(NHATKY, rec2.folder || sanitizeName(rec2.projectName || rec2.projectId), rec2.date);
     try { fs.mkdirSync(dir, { recursive: true }); } catch {}
-    const fname = uniqueName(dir, siteBaseName(rec.projectName || rec.folder, rec.date), extOf(origName, mime));
+    const fname = uniqueName(dir, siteBaseName(rec2.projectName || rec2.folder, rec2.date), extOf(origName, mime));
     try { fs.writeFileSync(path.join(dir, fname), buf); } catch { return json(res, 500, { error: "write_failed" }); }
-    rec.photos = rec.photos || []; rec.photos.push({ name: fname, stored: path.join(rec.folder || "", rec.date, fname), size: buf.length, mime });
-    saveSiteLogs(logs);
-    return json(res, 200, { photo: { name: fname, size: buf.length, mime, idx: rec.photos.length - 1 } });
+    rec2.photos = rec2.photos || []; rec2.photos.push({ name: fname, stored: path.join(rec2.folder || "", rec2.date, fname), size: buf.length, mime });
+    saveSiteLogs(logs2);
+    return json(res, 200, { photo: { name: fname, size: buf.length, mime, idx: rec2.photos.length - 1 } });
   }
   if (p === "/api/sitelogs/photo" && req.method === "GET") {
     const rid = u.searchParams.get("logId") || ""; const idx = parseInt(u.searchParams.get("idx") || "-1", 10);
@@ -1844,7 +1923,9 @@ const requestHandler = async (req, res) => {
     return json(res, 200, { entries: auditRead(limit, pid) }, req);
   }
   if (p === "/api/notifications" && req.method === "GET") {
-    const ds = (loadNotif()[me.id] || []).slice(0, 50);
+    /* N06 (re-audit 06/09): bị gỡ khỏi dự án thì không đọc lại được tên việc / tên dự án qua thông báo đã lưu. */
+    const thayTB = phamViDuAn(me, sharedState());
+    const ds = (loadNotif()[me.id] || []).filter((x) => !thayTB || !x.projectId || thayTB.has(x.projectId)).slice(0, 50);
     return json(res, 200, { items: ds, unread: ds.filter((x) => !x.read).length }, req);
   }
   if (p === "/api/notifications/read" && req.method === "POST") {
@@ -1862,6 +1943,8 @@ const requestHandler = async (req, res) => {
     return json(res, 200, { ok: true });
   }
   if (p === "/api/feedback" && req.method === "POST") {
+    { const now = Date.now(); const r0 = feedbackRate.get(me.id) || { count: 0, first: now }; if (now - r0.first > 3600000) { r0.count = 0; r0.first = now; } r0.count++; feedbackRate.set(me.id, r0);
+      if (r0.count > 10) return json(res, 429, { error: "too_many", message: "Bạn đã gửi quá nhiều góp ý trong một giờ — thử lại sau." }); }
     const b = await readBody(req); const text = String(b.text || "").trim().slice(0, 2000);
     if (!text) return json(res, 400, { error: "missing", message: "Chưa có nội dung góp ý." });
     slog("GÓP Ý từ " + me.email + " [" + String(b.view || "").slice(0, 40) + "]: " + text.replace(/\s+/g, " "));
@@ -1937,7 +2020,7 @@ const requestHandler = async (req, res) => {
     if (password) { a.salt = makeSalt(); a.hash = hashPw(password, a.salt); }
     if (!accts.some((x) => x.role === "owner")) return json(res, 400, { error: "need_owner" });
     saveAccounts(accts);
-    if (password) revokeTokens(a.id, a.id === me.id ? bearerOf(req) : null);
+    if (password) { if (a.id === me.id) { const cur = tokens.get(hashTok(bearerOf(req))); if (cur) { cur.pv = pvOf(a.hash); sessionsDirty = true; } } revokeTokens(a.id, a.id === me.id ? bearerOf(req) : null); }
     slog("Cập nhật tài khoản " + a.email + " bở" + "i " + me.email + (password ? " (đổi mật khẩu)" : ""));
     return json(res, 200, { account: safe(a) });
   }
@@ -1995,6 +2078,7 @@ const requestHandler = async (req, res) => {
     const pwErr = passwordProblem(newPassword);
     if (pwErr) return json(res, 400, { error: "weak_password", message: pwErr });
     a.salt = makeSalt(); a.hash = hashPw(newPassword, a.salt); saveAccounts(accts);
+    { const cur = tokens.get(hashTok(bearerOf(req))); if (cur) { cur.pv = pvOf(a.hash); sessionsDirty = true; } }   // F08: phiên đang dùng đi theo mật khẩu mới
     const revoked = revokeTokens(a.id, bearerOf(req));
     slog("Đổi mật khẩu của chính mình: " + a.email + " (thu hồi " + revoked + " phiên khác)");
     return json(res, 200, { ok: true });
@@ -2045,10 +2129,12 @@ const requestHandler = async (req, res) => {
     let body = sachTaiChinh(await readBody(req));
     if (!body) return json(res, 400, { error: "bad_shape", message: "Dữ liệu gửi lên sai cấu trúc — hãy tải lại trang (Ctrl+R)." });
     /* Fuzz 06/09: thiếu expectedRev là ghi đè không đối chiếu — một lần gọi tay với body {} xóa sạch tài chính. */
-    if (typeof body.expectedRev !== "number") return json(res, 400, { error: "missing_rev", message: "Thiếu số phiên bản tài chính (expectedRev) — hãy tải lại trang (Ctrl+R)." });
+    if (!Number.isInteger(body.expectedRev) || body.expectedRev < 0) return json(res, 400, { error: "missing_rev", message: "Thiếu số phiên bản tài chính (expectedRev) — hãy tải lại trang (Ctrl+R)." });
     // CAS chống ghi đè đồng thời (audit 17/08 F2): client gửi expectedRev = rev nó đã tải;
     // lệch với rev hiện tại -> 409 kèm rev mới, KHÔNG ghi đè thầm lặng bản của người khác.
     const curF = loadFinance();
+    /* N01 (re-audit 06/09): expectedRev "tương lai" làm mọi dự án trông như chưa ai đổi -> bản cũ đè bản mới. */
+    if (body.expectedRev > curF.rev) return json(res, 409, { error: "conflict", rev: curF.rev, projects: [], message: "Số phiên bản tài chính không hợp lệ — hãy tải lại trang (Ctrl+R)." });
     const newRev = curF.rev + 1;
     /* R8: người bị giới hạn phạm vi chỉ gửi lên phần họ thấy -> ghép lên bản đầy đủ, nếu
        không thì mỗi lần họ lưu là xóa sạch tài chính của dự án họ không nhìn thấy. */
@@ -2084,6 +2170,7 @@ const requestHandler = async (req, res) => {
       chiPhi: obj(body.chiPhi),            // Q2: sổ chi phí thực tế theo dự án
       deNghi: obj(body.deNghi),            // Q5: đề nghị thanh toán sinh từ kỳ nghiệm thu
       revTheoDuAn: revTheoDuAnMoi(curF, body, newRev),   // Q6
+      bamTheoDuAn: bamTheoDuAnMoi(curF, body, newRev),   // N02
       rev: newRev, updatedAt: Date.now() });
     /* R2: chỉ ghi vết SAU khi đã lưu thật. Trước đây ghi trước cả bước kiểm tra khóa kỳ nên
        một thay đổi bị từ chối (403) vẫn để lại dòng "đã sửa 20 → 99" trong audit.jsonl. */
@@ -2120,6 +2207,8 @@ const requestHandler = async (req, res) => {
     try { incoming = JSON.parse(value); } catch { return json(res, 400, { error: "bad_value", message: "Dữ liệu không phải JSON hợp lệ." }); }
     incoming = sachKhoiChung(incoming);
     if (!incoming) return json(res, 400, { error: "bad_shape", message: "Dữ liệu gửi lên sai cấu trúc — hãy tải lại trang (Ctrl+R)." });
+    /* F02 (re-audit 06/09): thiếu rev là bỏ qua đối chiếu phiên bản -> ghi đè thầm lặng. Client luôn gửi rev. */
+    if (typeof incoming.rev !== "number") return json(res, 400, { error: "missing_rev", message: "Thiếu số phiên bản dữ liệu (rev) — hãy tải lại trang (Ctrl+R)." });
     const d = loadData();
     {
       let curRev = null;
@@ -2169,7 +2258,8 @@ const requestHandler = async (req, res) => {
     if (JSON.stringify(incoming).length > 5 * 1024 * 1024) slog("CẢNH BÁO: khối dữ liệu chung đã " + Math.round(value.length / 1048576) + "MB — cân nhắc dọn lịch sử/thùng rác (trần cứng 8MB).");
     const prevStr = d[key] || "";
     incoming.dataVersion = DATA_VERSION;                 // giữ số phiên bản cấu trúc qua mỗi lần client lưu
-    d[key] = JSON.stringify(incoming); saveData(d);   // A6: lưu bản ĐÃ GHÉP, không phải bản client gửi
+    d[key] = JSON.stringify(incoming);                 // A6: lưu bản ĐÃ GHÉP, không phải bản client gửi
+    try { saveData(d); } catch (e) { d[key] = prevStr; SHARED_OBJ_CACHE = null; throw e; }   // F06: d là chính cache -> ghi hỏng phải trả lại bản cũ
     SHARED_REV_CACHE = (incoming && typeof incoming.rev === "number") ? incoming.rev : null;
     try { auditWrite(diffAudit(me, incoming, prevStr, clientIp(req), SHARED_REV_CACHE)); } catch {}
     try { notifyChanges(me, incoming, prevStr); } catch {}
@@ -2219,8 +2309,9 @@ function safeHandler(req, res) {
     .catch((err) => {
       try { slog("LỖI xử lý yêu cầu " + req.method + " " + req.url + ": " + (err && err.stack || err)); } catch {}
       try {
-        if (!res.headersSent) json(res, 500, { error: "server_error", message: "Máy chủ gặp lỗi khi xử lý yêu cầu này." });
-        else res.end();
+        if (res.headersSent) res.end();
+        else if (err && err.code === "WRITE_FAILED") json(res, 507, { error: "write_failed", message: "Máy chủ không ghi được dữ liệu xuống đĩa (đĩa đầy hoặc mất quyền ghi) — thay đổi CHƯA được lưu. Báo quản trị kiểm tra máy chủ." });
+        else json(res, 500, { error: "server_error", message: "Máy chủ gặp lỗi khi xử lý yêu cầu này." });
       } catch {}
     });
 }
