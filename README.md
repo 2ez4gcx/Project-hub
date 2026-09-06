@@ -258,5 +258,7 @@ cạnh; không được thay thế hay giấu đi. Xóa ghi danh là **chấm d�
 
 Phần mềm do **Khuong Doan** phát triển — <https://khuongdoan.com/>
 
+<sub>Phần mềm miễn phí và sẽ luôn như vậy. Nếu nó giúp ích cho công ty bạn và bạn muốn mời tác giả một ly cà phê, quét mã MoMo bên dưới. Không bắt buộc, không kèm quyền lợi gì thêm.</sub>
+
 <a href="docs/anh/ung-ho-momo.png"><img src="docs/anh/ung-ho-momo.png" alt="Ủng hộ tác giả qua MoMo" width="170"></a>
 
