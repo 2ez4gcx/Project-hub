@@ -41,6 +41,10 @@ cd "Chạy nội bộ" && npm install && node server.js
 Máy chủ chạy được ngay cả khi bỏ `npm install` — chỉ mất email nhắc việc và email sao lưu
 (phụ thuộc duy nhất là `nodemailer`). Gói zip phát hành đã kèm sẵn thư viện này.
 
+Đã cài xong và muốn biết **dùng thế nào** (vai trò, giao việc, duyệt, nhật ký thi công, BOQ, báo cáo ngày…):
+[HƯỚNG DẪN SỬ DỤNG — Cho người dùng](Chạy%20nội%20bộ/HƯỚNG%20DẪN%20SỬ%20DỤNG%20-%20Cho%20người%20dùng.txt)
+(có sẵn trong cả hai thư mục, gửi thẳng cho nhân viên).
+
 > **Trước khi mở ra Internet**, đọc mục 5 của HƯỚNG DẪN 3. Phần mềm được thiết kế cho mạng
 > nội bộ; đưa ra Internet cần thêm HTTPS, tường lửa và các bước siết bảo mật nêu trong đó.
 

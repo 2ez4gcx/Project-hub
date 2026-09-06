@@ -1,0 +1,409 @@
+══════════════════════════════════════════════════════════════════════
+  TRẠM DỰ ÁN — HƯỚNG DẪN SỬ DỤNG (cho người dùng, không phải cài đặt)
+  Áp dụng từ bản 5.0 · Cập nhật 06/09/2026
+══════════════════════════════════════════════════════════════════════
+
+  File này dành cho người DÙNG phần mềm hằng ngày: Chỉ huy trưởng, kỹ sư
+  hiện trường, QS, kế toán, tổ trưởng, nhân viên. Cài đặt và vận hành máy
+  chủ xem "HƯỚNG DẪN 1/2/3" và "VẬN HÀNH & SỰ CỐ".
+
+  MỤC LỤC
+   0. Đọc trong 2 phút
+   1. Vai trò và quyền — ai làm được gì
+   2. Công việc: tạo, sửa, theo dõi
+   3. Duyệt việc, quy tắc nghiệm thu, lỗi tồn đọng (punch list)
+   4. Dòng thời gian (Gantt), đường găng, kế hoạch gốc
+   5. Báo cáo ngày
+   6. Nhật ký thi công
+   7. Biên bản, bảng kiểm nghiệm thu, An toàn (HSE)
+   8. Chi phí: hợp đồng, BOQ, kỳ nghiệm thu, đề nghị thanh toán
+   9. Tổng quan, Khối lượng, Lịch sử, Thông báo, Tải báo cáo, Góp ý
+  10. Cài đặt (Chủ sở hữu) và quản lý thành viên
+  11. Dùng trên điện thoại, khi mất mạng
+  12. Câu hỏi thường gặp
+
+
+══════════════════════════════════════════════════════════════════════
+  0. ĐỌC TRONG 2 PHÚT
+══════════════════════════════════════════════════════════════════════
+
+  • Đăng nhập bằng email + mật khẩu do Chủ sở hữu tạo. Quên mật khẩu:
+    nhờ Chủ sở hữu (hoặc người có quyền "Tạo tài khoản") đặt lại trong
+    Quản lý thành viên.
+  • Màn hình: THANH BÊN trái (Tổng quan, Việc của tôi, Tìm kiếm, Báo cáo
+    ngày, Lịch sử, Chi phí, Khối lượng, Tải báo cáo, Cài đặt, Cộng tác,
+    Góp ý, Thùng rác, rồi danh sách DỰ ÁN); vùng chính bên phải. Trên
+    điện thoại thanh bên ẩn sau nút "Menu".
+  • Góc trên phải: chuông THÔNG BÁO (số chưa đọc), ô tìm trong dự án,
+    Lọc, Thêm việc. Góc dưới thanh bên: tên bạn (bấm để đổi mật khẩu /
+    đăng xuất), nhãn "Đã đồng bộ · giờ", chuyển Tiếng Việt / English.
+  • Mọi thay đổi tự lưu và tự đồng bộ cho mọi người sau vài giây —
+    không có nút Lưu cho công việc. Nhật ký, biên bản, chi phí có nút
+    Lưu riêng.
+  • Không thấy mục nào đó (Chi phí, Lịch sử, Khối lượng, Cài đặt…) là do
+    bạn chưa được cấp quyền, hoặc Chủ sở hữu đã tắt tính năng đó.
+
+
+══════════════════════════════════════════════════════════════════════
+  1. VAI TRÒ VÀ QUYỀN — AI LÀM ĐƯỢC GÌ
+══════════════════════════════════════════════════════════════════════
+
+  Ai cũng làm được (không cần quyền gì):
+   • Xem công việc của mọi dự án mình được vào; bình luận vào việc.
+   • Cập nhật % hoàn thành ở việc mình PHỤ TRÁCH CHÍNH; tick việc con.
+   • Nộp Báo cáo ngày của mình; đính kèm tệp / ảnh vào việc mình làm.
+   • Nhận thông báo, đổi mật khẩu của mình, góp ý.
+
+  Quyền do Chủ sở hữu cấp (Cài đặt → Quản lý thành viên):
+   • GIAO VIỆC: tạo / sửa / xóa công việc, giao người, đặt nhắc việc,
+     thêm cột (giai đoạn), tạo dự án, lập lỗi tồn đọng.
+   • CHI PHÍ: xem mục Chi phí. SỬA CHI PHÍ: nhập / sửa số liệu (bỏ tích
+     để Kế toán hay Lãnh đạo chỉ xem).
+   • LỊCH SỬ: xem Lịch sử thay đổi. KHỐI LƯỢNG: xem công suất từng người.
+   • TẠO TÀI KHOẢN: tạo tài khoản và phân quyền cho người khác (không tự
+     đổi quyền của chính mình). Đây là quyền tín nhiệm cao.
+   • TEAMLEAD: duyệt việc của bộ phận mình; Teamlead bộ phận "Site" còn
+     lập và duyệt Nhật ký thi công.
+   • LÃNH ĐẠO: duyệt việc cấp lãnh đạo, thấy MỌI dự án, lưu kế hoạch
+     gốc, đổi Thành viên dự án và Quy tắc nghiệm thu, mở khóa nhật ký
+     đã duyệt, xem Nhật ký máy chủ.
+   • MIỄN BÁO CÁO: không phải nộp Báo cáo ngày (kế toán, văn phòng…).
+   • Chủ sở hữu: toàn quyền, kể cả Cài đặt, Thùng rác, xóa vĩnh viễn.
+
+  Giới hạn theo dự án:
+   • THÀNH VIÊN DỰ ÁN (nút hình người ở tiêu đề dự án, Chủ sở hữu /
+     Lãnh đạo bấm): để trống = cả công ty thấy; chọn người = chỉ họ
+     (và Chủ sở hữu, Lãnh đạo) thấy dự án đó, kể cả tệp, nhật ký, biên
+     bản, chi phí của nó.
+   • CHỈ ĐỊNH NGƯỜI LẬP (tab Nhật ký thi công): ai được lập nhật ký /
+     biên bản của dự án. Teamlead Site trong dự án luôn được.
+
+
+══════════════════════════════════════════════════════════════════════
+  2. CÔNG VIỆC: TẠO, SỬA, THEO DÕI
+══════════════════════════════════════════════════════════════════════
+
+  Tạo việc (cần quyền Giao việc):
+   • Nút "Thêm việc" ở tiêu đề dự án, hoặc dòng "Thêm việc" cuối mỗi
+     nhóm trong Danh sách / Bảng.
+   • Nhập nhiều việc một lần: cuối Danh sách có "Nhập CSV" — mẫu cột
+     hiện ngay trong hộp thoại; dán từ Excel cũng được.
+   • Mẫu dự án: khi tạo dự án mới có sẵn mẫu (nhà phố, …) tạo luôn các
+     giai đoạn và việc chuẩn.
+
+  Chi tiết việc (bấm vào tên việc — mở ngăn bên phải):
+   • Tên, mô tả, nhãn (tags), việc con (tick xong).
+   • % HOÀN THÀNH: kéo thanh hoặc bấm 0/25/50/75/100. Chỉ người phụ
+     trách chính (dấu ★) hoặc người có quyền Giao việc mới sửa được.
+   • TRẠNG THÁI: Cần làm → Đang làm → Chờ phê duyệt → Hoàn thành;
+     "On hold / Blocked" khi bị vướng. Việc tự chuyển sang Đang làm
+     khi tới ngày bắt đầu.
+   • NGƯỜI LÀM: chọn nhiều người, một người là phụ trách chính (★).
+     Người phụ trách chính bị xóa tài khoản thì người còn lại thay.
+   • NGƯỜI PHÊ DUYỆT: Teamlead hoặc Lãnh đạo (xem mục 3).
+   • ƯU TIÊN: Thấp / Trung bình / Cao / Khẩn cấp.
+   • NGÀY: Ngày bắt đầu, Tiến độ dự kiến (ngày), Hạn chót — nhập 2 ô,
+     ô còn lại tự tính. "◆ Mốc" = việc không tốn ngày (bàn giao, họp).
+   • NGÀY THỰC TẾ: Bắt đầu / Kết thúc thực tế tự điền khi việc chuyển
+     Đang làm / Hoàn thành; sửa được nếu ngoài công trường khác. Từ đó
+     phần mềm biết việc trễ THẬT bao nhiêu ngày so với hạn.
+   • PHỤ THUỘC: tick các việc phải xong trước; mỗi liên kết chọn loại
+     FS (xong trước mới bắt đầu), SS (cùng bắt đầu), FF (cùng kết
+     thúc), SF (hiếm dùng) và độ trễ (ngày, âm = làm chồng). Việc bị
+     chặn có biểu tượng cảnh báo; vi phạm lịch tô đỏ trên Gantt.
+   • LẶP LẠI: hằng tuần / hằng tháng — khi xong, phần mềm tự tạo việc
+     kỳ sau.
+   • NHẮC VIỆC QUA EMAIL: trước hạn N giờ / ngày (cần máy chủ đã cấu
+     hình email).
+   • BÌNH LUẬN: ai cũng viết được, không sửa / xóa bình luận cũ.
+   • TỆP ĐÍNH KÈM: ảnh, PDF, Excel… tối đa 40 MB / tệp; ảnh tự thu nhỏ.
+
+  Cách xem một dự án (dải nút dưới tiêu đề):
+   • DANH SÁCH: nhóm theo giai đoạn (WBS) hoặc theo trạng thái (nút
+     Lọc → nhóm). Nhóm > 200 việc hiện dần ("Hiện thêm").
+   • BẢNG (Kanban): kéo thẻ giữa các cột để đổi trạng thái / giai đoạn.
+   • LỊCH: việc theo hạn chót trên lịch tháng; bấm ngày để xem hết.
+   • DÒNG THỜI GIAN: Gantt — mục 4.
+   • LỖI TỒN ĐỌNG và NHẬT KÝ THI CÔNG: mục 3, 6, 7.
+   • LỌC: theo người, ưu tiên, trạng thái, ẩn việc xong, tìm chữ.
+
+  Việc của tôi (thanh bên): mọi việc mình được giao ở mọi dự án, sắp
+  theo hạn, kèm việc đang chờ mình duyệt.
+  Tìm kiếm: tìm tên / mô tả việc trên toàn công ty.
+  Xóa việc: vào thùng rác 90 ngày (Chủ sở hữu khôi phục / xóa hẳn ở
+  Thùng rác). Xóa dự án cũng vậy.
+
+
+══════════════════════════════════════════════════════════════════════
+  3. DUYỆT VIỆC, QUY TẮC NGHIỆM THU, LỖI TỒN ĐỌNG
+══════════════════════════════════════════════════════════════════════
+
+  Luồng duyệt:
+   1. Người làm kéo % lên 100 → việc sang "Chờ phê duyệt" (không tự
+      Hoàn thành được, trừ khi người phụ trách chính chính là Teamlead
+      được chỉ định duyệt).
+   2. Người phê duyệt (Teamlead bộ phận, hoặc Lãnh đạo nếu việc đặt
+      "Lãnh đạo phê duyệt") mở việc → PHÊ DUYỆT hoặc TRẢ VỀ kèm lý do
+      (bắt buộc). Trả về: việc quay lại Đang làm, lý do thành bình
+      luận ⛔ và email cho người làm.
+   3. Việc Hoàn thành ghi tên người duyệt và giờ duyệt.
+
+  Quy tắc nghiệm thu của dự án (nút ☑ cạnh nút Thành viên dự án, Chủ
+  sở hữu / Lãnh đạo đặt):
+   • "Phải xong hết việc con mới được gửi duyệt".
+   • "Phải có ảnh / tệp đính kèm mới được gửi duyệt".
+   • "Người kiểm tra chất lượng (QC) được duyệt": chọn người → chỉ họ
+     (và Lãnh đạo) duyệt được việc của dự án, Teamlead không duyệt.
+   Ứng dụng báo ngay khi thiếu; máy chủ cũng kiểm nên không lách được.
+
+  Lỗi tồn đọng (punch list) — tab "Lỗi tồn đọng" trong dự án:
+   • "Ghi nhận lỗi": vị trí (tầng – trục – phòng), mô tả, mức độ, nhà
+     thầu chịu trách nhiệm, hạn khắc phục. Mở dòng lỗi để giao người,
+     đính ảnh trước / sau, bình luận.
+   • Vòng đời: Đang mở → Đã sửa – chờ xác nhận (nhà thầu báo xong) →
+     Đã xác nhận đóng (QC xác nhận). Quá hạn khắc phục tô đỏ. Lọc theo
+     vị trí / nhà thầu / trạng thái.
+   • Mục KHÔNG ĐẠT trong bảng kiểm nghiệm thu (mục 7) tự thành lỗi
+     tồn đọng.
+
+
+══════════════════════════════════════════════════════════════════════
+  4. DÒNG THỜI GIAN (GANTT), ĐƯỜNG GĂNG, KẾ HOẠCH GỐC
+══════════════════════════════════════════════════════════════════════
+
+   • Mỗi việc một thanh từ ngày bắt đầu tới hạn. Kéo thanh để dời cả
+     việc; kéo MÉP trái / phải để đổi ngày bắt đầu / hạn (cần quyền Giao
+     việc). Thang Ngày / Tuần / Tháng ở góc phải.
+   • ĐƯỜNG GĂNG (đỏ): chuỗi việc mà trễ 1 ngày là cả dự án trễ 1 ngày,
+     tính theo NGÀY LÀM VIỆC thật — đặt "Lịch làm việc" (ngày nghỉ hằng
+     tuần, ngày lễ) để Chủ nhật không bị tính là ngày thi công. Đường
+     nối vàng = phụ thuộc; đỏ nét đứt = lịch đang vi phạm phụ thuộc.
+   • KẾ HOẠCH GỐC (Chủ sở hữu / Lãnh đạo bấm "Lưu kế hoạch gốc"): chụp
+     lại lịch hiện tại làm mốc. Sau đó mỗi việc có thanh xám mảnh (kế
+     hoạch) và số "+N ngày trễ". Lưu lần nữa thì bản cũ được giữ (BL0,
+     BL1…, tối đa 10) — ô chọn bản để so.
+   • Thanh XANH mảnh = thực tế (từ ngày bắt đầu thực tế tới ngày kết
+     thúc thực tế, hoặc tới hôm nay nếu chưa xong).
+   • Dòng chú giải hiện "KH đến hôm nay / Thực tế / SPI": SPI < 1 là
+     đang chậm so với kế hoạch gốc. Dưới biểu đồ là ĐƯỜNG S kế hoạch –
+     thực tế theo tuần.
+   • Trên điện thoại Gantt hiện dạng thẻ (tên, ngày, %, Găng); xoay
+     ngang hoặc dùng máy tính để kéo thanh.
+
+
+══════════════════════════════════════════════════════════════════════
+  5. BÁO CÁO NGÀY
+══════════════════════════════════════════════════════════════════════
+
+   • Thanh bên → Báo cáo ngày → tab "Của tôi". Phần mềm tự liệt kê các
+     việc mình đang làm; với việc mình phụ trách chính, ô "% phần mình"
+     ghi thẳng vào % hoàn thành của việc. Thêm dòng cho việc khác bằng
+     "Chọn công tác…". Ghi "Đã làm gì" và "Vướng mắc / đề xuất".
+   • Bấm "Gửi báo cáo". Hạn nộp: trong 48 giờ kể từ 17:30 của ngày báo
+     cáo. Chỉ chính mình sửa được báo cáo của mình; người khác chỉ bình
+     luận.
+   • Tab "Theo dõi nộp" (quản lý): lưới người × ngày, ✓ đã gửi, ✕ chưa.
+     Bấm vào để đọc và bình luận; người được bình luận nhận thông báo.
+   • Người được đặt "Miễn báo cáo" không xuất hiện trong lưới.
+
+
+══════════════════════════════════════════════════════════════════════
+  6. NHẬT KÝ THI CÔNG
+══════════════════════════════════════════════════════════════════════
+
+  Ai: Chủ sở hữu, Lãnh đạo, Teamlead bộ phận Site trong dự án, và người
+  được "Chỉ định người lập". Mỗi dự án mỗi ngày MỘT nhật ký — người thứ
+  hai bấm thêm cùng ngày sẽ được mở đúng bản đang có để bổ sung.
+
+  Lập nhật ký (tab Nhật ký thi công → "Thêm nhật ký"):
+   • Ngày; thời tiết sáng / chiều, nhiệt độ, giờ mưa, giờ ngừng việc.
+   • Bảng NHÂN LỰC (tổ đội × số người × giờ), bảng MÁY MÓC (tên × số
+     lượng × giờ), bảng KHỐI LƯỢNG thi công trong ngày — chọn hạng mục
+     từ BOQ để số cộng dồn được sang mục Chi phí (cột "Thi công (NK)").
+   • Ô chữ: Hạng mục + khối lượng (bắt buộc), Nhân lực, Thiết bị & vật
+     tư, Vướng mắc ảnh hưởng tiến độ, Kế hoạch ngày tiếp theo. Bấm nút
+     micro để nói thay vì gõ (Chrome trên điện thoại).
+   • SỰ CỐ / MẤT AN TOÀN: tick nếu có — mức độ, mô tả, khắc phục, người
+     liên quan. Sự cố đi thẳng vào tab An toàn (HSE).
+   • Ý kiến giám sát / chỉ đạo tại hiện trường.
+   • ẢNH: bắt buộc ít nhất 1. "Chụp ảnh" mở thẳng camera sau; ảnh tự
+     thu nhỏ trước khi gửi. Ảnh thêm sau khi duyệt bị khóa.
+
+  Trạng thái: NHÁP ("Lưu nháp") → ĐÃ NỘP ("Nộp nhật ký") → CHỈ HUY
+  TRƯỞNG ĐÃ DUYỆT ("Duyệt nhật ký" — Chủ sở hữu / Lãnh đạo / Teamlead
+  Site). Đã duyệt = khóa sửa. Chỉ Chủ sở hữu / Lãnh đạo "mở khóa"; họ
+  sửa bản đã duyệt thì con dấu giữ nguyên nhưng ghi rõ ai sửa lúc nào
+  (Nhật ký máy chủ). Người duyệt nhận thông báo khi có nhật ký nộp;
+  người lập nhận thông báo khi được duyệt / mở khóa.
+
+  Lưu ý: mở một nhật ký mà người khác vừa sửa xong thì khi bấm Lưu sẽ
+  được báo "vừa được … sửa — mở lại bản mới rồi bổ sung", không đè.
+  Xóa nhật ký: vào "Thùng rác hồ sơ" 90 ngày (khôi phục được).
+
+
+══════════════════════════════════════════════════════════════════════
+  7. BIÊN BẢN, BẢNG KIỂM NGHIỆM THU, AN TOÀN (HSE)
+══════════════════════════════════════════════════════════════════════
+
+  Tab "Biên bản" (trong Nhật ký thi công) → "Thêm biên bản":
+   • Loại: Biên bản hiện trường, Biên bản họp, Chỉ thị, Nghiệm thu nội
+     bộ, An toàn đầu giờ, Giấy phép làm việc — Chủ sở hữu thêm loại
+     riêng của công ty trong Cài đặt.
+   • Số hiệu: để trống thì tự cấp "BB-01/2026" tăng dần theo dự án.
+   • BẢNG KIỂM (loại Nghiệm thu / An toàn / Giấy phép): chọn mẫu có sẵn
+     (nghiệm thu cốp pha, cốt thép, …), chấm từng mục Đạt / Không đạt /
+     N/A, ghi chú. Mục KHÔNG ĐẠT tự tạo lỗi tồn đọng.
+   • Đính kèm PDF / ảnh. Người trong dự án, Chủ sở hữu, Lãnh đạo,
+     Teamlead xem được tệp.
+   • Sửa / xóa: người lập hoặc quản lý; xóa vào Thùng rác hồ sơ 90 ngày.
+
+  Tab "An toàn (HSE)": ngày không tai nạn, số sự cố, sổ sự cố (lấy từ
+  nhật ký), họp an toàn đầu giờ và giấy phép làm việc trong 7 ngày
+  (lấy từ biên bản loại tương ứng).
+
+
+══════════════════════════════════════════════════════════════════════
+  8. CHI PHÍ: HỢP ĐỒNG, BOQ, KỲ NGHIỆM THU, ĐỀ NGHỊ THANH TOÁN
+══════════════════════════════════════════════════════════════════════
+
+  Cần quyền "Chi phí" (xem) và "Sửa chi phí" (nhập). Chọn dự án ở ô
+  "Dự án:" phía trên; để "Tất cả dự án" xem bảng tổng hợp.
+
+  CHỦ ĐẦU TƯ: hợp đồng (số, giá trị), phụ lục, các đợt ĐỀ NGHỊ THANH
+  TOÁN đã gửi và các đợt CĐT ĐÃ TRẢ. THẦU PHỤ / NCC: hợp đồng thầu phụ
+  gắn với hợp đồng CĐT, các đợt đã trả. Hợp đồng không gắn dự án = hợp
+  đồng khung, ai xem chi phí cũng thấy.
+
+  BOQ & KHỐI LƯỢNG:
+   • Thêm hạng mục từng dòng, hoặc "Nhập từ Excel (CSV)": dán các cột
+     STT, Tên, ĐVT, KL hợp đồng, Đơn giá. Dòng chỉ có tên = dòng nhóm
+     (Phần I, II…).
+   • Liên kết mỗi hạng mục với công việc → nút gợi ý KL kỳ này từ %
+     tiến độ (trung bình có trọng số theo số ngày của việc).
+   • KỲ NGHIỆM THU: "Kỳ mới", đặt ngày chốt, nhập KL kỳ này từng hạng
+     mục; bảng tự tính LK trước / Lũy kế / % / Giá trị thực hiện.
+     "Xuất CSV kỳ này" ra bảng nghiệm thu mở bằng Excel.
+   • KHÓA KỲ khi đã nộp Chủ đầu tư: số liệu và đơn giá của kỳ đó bị
+     chốt (đổi đơn giá sau này chỉ áp cho kỳ sau). Mở khóa phải ghi lý
+     do — có vết trong Nhật ký máy chủ, kể cả ai mở và lúc nào.
+   • PHÁT SINH (VO): "Thêm phát sinh" → dòng VO-01… trạng thái Đề xuất
+     / Đã duyệt / Từ chối; chỉ VO đã duyệt tính vào giá trị hợp đồng.
+   • Cột "Thi công (NK)": khối lượng cộng dồn từ nhật ký thi công (dòng
+     có gắn hạng mục) — so với Lũy kế nghiệm thu để biết còn bao nhiêu
+     chưa nghiệm thu. Cột "Đã đề nghị TT": lũy kế các kỳ đã lập đề
+     nghị thanh toán.
+   • ĐỀ NGHỊ THANH TOÁN (khung dưới thanh kỳ): số đề nghị, ngày, % giữ
+     lại bảo hành, % khấu trừ tạm ứng, % VAT, và CÁCH TÍNH VAT (trên giá
+     trị sau giữ lại & khấu trừ, hoặc trên giá trị kỳ) — chọn theo mẫu
+     của công ty. Số "Còn phải thanh toán" là số đưa vào hồ sơ.
+   • Đường S giá trị: kế hoạch (theo tiến độ việc) so với nghiệm thu.
+
+  CHI PHÍ THỰC TẾ: ngân sách theo nhóm (vật tư, nhân công, máy, thầu
+  phụ, chung, khác), sổ chi phí thực tế (ngày, nhóm, mô tả, số tiền,
+  chứng từ, NCC), cam kết thầu phụ, lãi gộp tạm tính.
+  DÒNG TIỀN: thu vào / chi ra / ròng theo tháng, lũy kế.
+
+  Nhiều người cùng làm: QS sửa dự án A và Kế toán ghi dự án B cùng lúc
+  đều được lưu. Chỉ khi hai người cùng sửa MỘT dự án, người sau được
+  báo "xung đột" kèm tên dự án — tải lại rồi nhập lại phần của mình.
+
+
+══════════════════════════════════════════════════════════════════════
+  9. TỔNG QUAN, KHỐI LƯỢNG, LỊCH SỬ, THÔNG BÁO, TẢI BÁO CÁO, GÓP Ý
+══════════════════════════════════════════════════════════════════════
+
+   • TỔNG QUAN: tổng việc, đã xong, quá hạn, tiến độ; phân bổ theo
+     người; theo ưu tiên; việc sắp tới hạn theo dự án. Chủ sở hữu /
+     Lãnh đạo có thêm thẻ "Sức khỏe vận hành (30 ngày)": % nhật ký nộp
+     đúng hạn, % báo cáo ngày đúng hạn, số kỳ nghiệm thu tháng này, việc
+     hoàn thành 30 ngày.
+   • KHỐI LƯỢNG: số việc đang mở của mỗi người — đỏ = quá tải.
+   • LỊCH SỬ THAY ĐỔI: "Lịch sử ứng dụng" (ai giao việc, đổi hạn, %,
+     trả về…) và "Nhật ký máy chủ" (Chủ sở hữu / Lãnh đạo): mọi thay
+     đổi do máy chủ ghi, không ai xóa được — kể cả chi phí, khóa / mở
+     khóa kỳ, duyệt nhật ký. Đầu trang có "Ai sửa gì 7 ngày qua".
+   • THÔNG BÁO (chuông): được giao việc, việc bị trả về, việc chờ mình
+     duyệt, nhật ký chờ duyệt / đã duyệt / mở khóa, việc quá hạn, bình
+     luận vào báo cáo của mình. Bấm vào để mở đúng chỗ; mở chuông là
+     đánh dấu đã đọc.
+   • TẢI BÁO CÁO: xuất báo cáo dự án (hoặc toàn bộ) dạng HTML in được /
+     lưu PDF từ trình duyệt.
+   • GÓP Ý: viết điều gì làm bạn phải mở Excel / Zalo thay vì phần mềm
+     — Chủ sở hữu nhận qua email và tệp góp ý trên máy chủ.
+
+
+══════════════════════════════════════════════════════════════════════
+  10. CÀI ĐẶT (CHỦ SỞ HỮU) VÀ QUẢN LÝ THÀNH VIÊN
+══════════════════════════════════════════════════════════════════════
+
+  Cài đặt:
+   • Quản lý thành viên: tạo tài khoản (tên, email, mật khẩu ≥ 8 ký tự
+     có chữ và số, bộ phận), tick quyền (mục 1), đặt lại mật khẩu, gỡ
+     tài khoản (phần mềm tự gỡ người đó khỏi dự án / việc).
+   • Tính năng: bật / tắt từng nhóm (Chi phí, Báo cáo ngày, Nhật ký,
+     Biên bản, Lỗi tồn đọng, Lịch sử, Nhắc nhở & Email, các kiểu xem…)
+     hoặc chọn cấu hình nhanh Đầy đủ / Chỉ công việc / Thiết kế.
+   • Tên phần mềm, địa chỉ mở phần mềm (in trong email).
+   • Loại biên bản riêng của công ty (mỗi dòng một loại).
+   • Email gửi đi (SMTP) cho nhắc việc, sao lưu, cảnh báo; email nhận
+     sao lưu hằng tuần (thứ Bảy).
+   • Sức khỏe máy chủ: phiên bản, kích thước dữ liệu, snapshot gần
+     nhất, đĩa trống, email, sao lưu, PWA — có cảnh báo khi cần.
+  Trong dự án: Thành viên dự án, Quy tắc nghiệm thu, Chỉ định người lập
+  nhật ký (mục 1, 3, 6).
+  Thùng rác: khôi phục / xóa vĩnh viễn việc và dự án đã xóa (90 ngày).
+
+
+══════════════════════════════════════════════════════════════════════
+  11. DÙNG TRÊN ĐIỆN THOẠI, KHI MẤT MẠNG
+══════════════════════════════════════════════════════════════════════
+
+   • Mở địa chỉ phần mềm bằng Chrome / Safari; "Thêm vào màn hình
+     chính" để có biểu tượng như app. Nút "Menu" mở thanh bên.
+   • Danh sách, BOQ, Gantt hiện dạng thẻ cho vừa màn hình. Nhật ký thi
+     công: chụp ảnh thẳng từ camera, nói thay gõ bằng nút micro.
+   • MẤT MẠNG: nhãn góc dưới đổi thành "CHƯA LƯU — mất kết nối". Thay
+     đổi được giữ trong máy và tự gửi khi có mạng — giữ trang mở tới
+     khi thấy "Đã đồng bộ". Nếu trên máy chủ đã có bản mới hơn, phần
+     mềm báo thay đổi ngoại tuyến bị bỏ để bạn nhập lại.
+   • Máy chủ chạy HTTPS thì trang mở được cả khi mất mạng (chỉ để xem).
+
+
+══════════════════════════════════════════════════════════════════════
+  12. CÂU HỎI THƯỜNG GẶP
+══════════════════════════════════════════════════════════════════════
+
+  Tôi không kéo được % hoàn thành?
+   → Chỉ người phụ trách chính (★) hoặc người có quyền Giao việc sửa
+     được. Nhờ người giao việc đặt bạn làm phụ trách chính.
+  Bấm gửi duyệt bị báo "chưa có ảnh / còn việc con"?
+   → Dự án có Quy tắc nghiệm thu. Đính ảnh / tick xong việc con trước.
+  Tôi không thấy một dự án mà đồng nghiệp thấy?
+   → Dự án đó đã giới hạn Thành viên dự án. Nhờ Chủ sở hữu / Lãnh đạo
+     thêm bạn vào.
+  Nhật ký báo "đã được duyệt — khóa sửa"?
+   → Nhờ Chủ sở hữu / Lãnh đạo mở khóa (có vết), sửa xong nộp lại.
+  Lưu nhật ký / biên bản báo "vừa được … sửa"?
+   → Người khác vừa lưu trước bạn. Đóng, mở lại bản mới rồi bổ sung.
+  Lưu chi phí báo "xung đột" kèm tên dự án?
+   → Hai người cùng sửa một dự án. Tải lại (Ctrl+R) rồi nhập lại phần
+     của bạn; số của người kia đã được giữ.
+  Tôi chuyển việc sang dự án khác bị từ chối?
+   → Dự án đích nằm ngoài phạm vi của bạn (Thành viên dự án).
+  Quên mật khẩu?
+   → Chủ sở hữu (hoặc người có quyền Tạo tài khoản) đặt lại trong
+     Quản lý thành viên. Chủ sở hữu quên: xem "BẢO MẬT - Quên mật khẩu
+     quản trị".
+  Email nhắc việc không tới?
+   → Máy chủ chưa cấu hình email gửi đi, hoặc email bị chặn spam. Chủ
+     sở hữu xem Cài đặt → Sức khỏe máy chủ.
+  Muốn biết ai đã sửa số này?
+   → Lịch sử thay đổi → Nhật ký máy chủ (Chủ sở hữu / Lãnh đạo), lọc
+     theo dự án; tài chính và nhật ký thi công đều có vết.
+  Đổi sang tiếng Anh?
+   → Nút "English" cuối thanh bên.
+
+  Góp ý về hướng dẫn này: nút "Góp ý" trong phần mềm.
+
+Phần mềm do Khuong Doan phát triển — https://khuongdoan.com/
+Mã nguồn (AGPL-3.0): https://github.com/2ez4gcx/Project-hub
