@@ -71,7 +71,7 @@ ok("có ghi ai duyệt và khi nào", !!lg.duyetBoi && lg.duyetLuc > 0, JSON.str
 
 // ── sau khi duyệt thì khóa sửa với người thường ──
 r = await api("/api/sitelogs", { method: "POST", body: JSON.stringify({ ...NOI_DUNG, id: lid, work: "Sửa lén sau khi đã duyệt" }) }, AN);
-ok("nhật ký đã duyệt -> teamlead KHÔNG sửa được nữa", r.status === 409 && r.body.error === "locked", r.status + " " + JSON.stringify(r.body).slice(0, 60));
+ok("nhật ký đã duyệt -> teamlead KHÔNG sửa được nữa", r.status === 409 && r.body.error === "sitelog_locked", r.status + " " + JSON.stringify(r.body).slice(0, 60));
 lg = (await logs(OWNER)).find((x) => x.id === lid);
 ok("nội dung không bị đổi", !lg.work.includes("Sửa lén"), lg.work);
 

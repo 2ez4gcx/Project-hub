@@ -1,5 +1,140 @@
 # Lịch sử phiên bản — Trạm Dự Án
 
+## v5.0.0 — 06/09/2026 — HOÀN THIỆN: ĐÓNG TOÀN BỘ LỘ TRÌNH TRONG MỘT BẢN
+
+Bản này gộp (1) 25 điểm của ba lượt "Kiểm tra toàn bộ" (nguyên là v4.3.0, chưa phát hành) và (2) toàn bộ
+lộ trình hoàn thiện (`docs/LO-TRINH-HOAN-THIEN.md`): mọi mục nghiệp vụ còn mở từ audit năm vai trò,
+ba nợ thiết kế, vận hành không cần tác giả, và vòng phản hồi người dùng. Không còn mục nào trong danh sách
+"còn để ngỏ" — lần đầu tiên kể từ tháng 7. Quy tắc làm việc để giữ được như vậy: `docs/QUY-TAC-HOAN-CHINH.md`.
+
+### Nghiệp vụ mới
+- **P4 Kế hoạch – thực tế.** Việc có *Bắt đầu thực tế* / *Kết thúc thực tế* riêng, tự điền khi chuyển
+  Đang làm / Hoàn thành (sửa được, người được giao cũng ghi được). Gantt vẽ thanh thực tế mảnh dưới thanh
+  kế hoạch; chi tiết việc hiện "+N ngày trễ thật" so với hạn.
+- **P3 Kế hoạch gốc nhiều bản + SPI + đường S.** Mỗi lần "Lưu kế hoạch gốc" cất bản cũ (BL0, BL1…, tối đa
+  10) — chọn bản để so trên Gantt. Thanh chú giải hiện *KH đến hôm nay / Thực tế / SPI*; dưới Gantt là đường S
+  kế hoạch – thực tế theo tuần.
+- **Q4 Chuỗi khối lượng.** BOQ có thêm hai cột: *Thi công (NK)* — cộng dồn khối lượng ghi trong nhật ký thi
+  công (dòng có gắn hạng mục), và *Đã đề nghị TT* — lũy kế các kỳ đã lập đề nghị thanh toán. Gợi ý KL kỳ
+  này tính trung bình **có trọng số** theo số ngày của từng việc.
+- **H4 Quy tắc nghiệm thu theo dự án** (nút cạnh "Thành viên dự án"): phải xong hết việc con và/hoặc phải
+  có ảnh-tệp mới được gửi duyệt; chỉ định QC — chỉ QC (hoặc Lãnh đạo) duyệt. Máy chủ và ứng dụng cùng kiểm.
+- **Q6 Không còn "gõ xong mất" ở tài chính.** Rev theo từng dự án: QS sửa dự án A và Kế toán ghi dự án B
+  cùng lúc thì cả hai đều được lưu; chỉ khi hai người cùng sửa một dự án mới báo 409 kèm tên dự án.
+- **U6 Thông báo trong app do máy chủ sinh** (được giao việc, bị trả về, nhật ký cần duyệt, nhật ký được
+  duyệt / mở khóa, quá hạn mỗi sáng) — có đọc/chưa đọc, đọc mỗi 30 giây, không cần HTTPS hay email.
+- **H6** Loại biên bản cấu hình trong Cài đặt; số biên bản để trống thì tự cấp BB-NN/NĂM theo dự án.
+- **VAT** chọn cách tính ngay trên đề nghị thanh toán: trên giá trị sau giữ lại & khấu trừ (như cũ) hoặc
+  trên giá trị kỳ (giữ lại, khấu trừ trừ sau VAT).
+- **Q9/U4 Điện thoại:** BOQ và Gantt hiện dạng thẻ dưới 640 px (nhập KL kỳ ngay trên thẻ).
+- **A11** "Ai sửa gì 7 ngày qua" ở đầu Nhật ký máy chủ; email tóm tắt sáng thứ Hai cho Chủ sở hữu / Lãnh đạo.
+- **N5** Hợp đồng không gắn dự án (hợp đồng khung) hiện với mọi người xem tài chính. **N6** Người bị giới hạn
+  gộp được mục lịch sử mới nhất của mình. **N7** Nhật ký kiểm toán xoay theo tháng, không xóa.
+- **A2** Danh sách nhóm > 200 việc hiện dần ("Hiện thêm").
+
+### Ba nợ thiết kế đã trả
+- **F-4** Nhật ký thi công và biên bản có chống ghi đè đồng thời: sửa trên bản đã cũ → 409, hiện tên người
+  vừa sửa, không đè.
+- **Xóa tài khoản** gỡ id khỏi thành viên dự án, người lập nhật ký, người được giao, phụ trách chính (có vết
+  audit); dự án giới hạn không bị mở toang khi người cuối bị xóa.
+- **Quyền "Tạo tài khoản"**: giữ thiết kế (được phân quyền cho người khác), đã ghi rõ là quyền tín nhiệm cao
+  và không tự đổi quyền của mình (từ v4.3.0).
+
+### Vận hành không cần tác giả
+- **Số phiên bản cấu trúc dữ liệu (dataVersion) + di trú ở máy chủ khi khởi động** — hết lớp lỗi "client và
+  máy chủ hiểu khác nhau về mặc định" (L1, UI-5) tận gốc.
+- **Lỗi trình duyệt ngoài công trường** được gửi về security.log (`/api/client-error`, giới hạn 30 dòng /
+  người / giờ) — màn hình trắng ở công trường nhìn thấy được từ NAS.
+- **Sức khỏe máy chủ** trong Cài đặt (`/api/health`): kích thước dữ liệu, snapshot gần nhất, đĩa trống,
+  email, sao lưu; cảnh báo email mỗi ngày một lần khi snapshot > 2 ngày, dữ liệu > 6 MB, đĩa < 500 MB.
+- **Cập nhật một nút:** "Cập nhật phiên bản (Windows).bat" và `cap-nhat.sh` (NAS): sao lưu data, tải gói
+  mới nhất, chép đè, nhắc khởi động lại.
+- **Service worker** (chỉ HTTPS / localhost): mở được app khi mất mạng; không bao giờ chặn /api.
+- **Máy chủ nghe cả IPv6.** Trước đây chỉ nghe 0.0.0.0 nên trên chính máy chủ, Edge / Chrome mở `http://localhost:3000`
+  báo "localhost refused to connect" (trình duyệt phân giải localhost thành ::1). Phát hiện khi diễn tập nâng cấp bằng
+  Edge trên bản sao dữ liệu thật; máy không có IPv6 thì Node tự về IPv4 như cũ.
+
+### Người thật dùng
+- **Nút Góp ý** (sidebar) — một câu hỏi: "điều gì làm bạn phải mở Excel / Zalo thay vì phần mềm"; lưu
+  data/gop-y.jsonl + email Chủ sở hữu.
+- **Thẻ "Sức khỏe vận hành (30 ngày)"** trên Tổng quan cho Chủ sở hữu / Lãnh đạo: % nhật ký nộp đúng hạn,
+  % báo cáo ngày đúng hạn, số kỳ nghiệm thu tháng này, việc hoàn thành 30 ngày.
+
+### Kiểm thử
+Thêm `test-hoan-thien.mjs` (39 ca cho toàn bộ phần trên); `test-nghiep-vu.mjs` cập nhật ca CAS tài chính
+theo ngữ nghĩa xung đột theo dự án. Tổng **559 ca**.
+
+## (gộp vào v5.0.0) Kiểm tra toàn bộ: 25 điểm vá
+
+Thay cho vòng lặp audit → vá → audit, bản này là kết quả của một lượt **kiểm tra toàn bộ theo bất biến**
+(`docs/danh-gia/2026-09-06 - Kiem tra toan bo (v4.2.3).md`): (1) năm bất biến — không rò rỉ, không ghi
+đè dữ liệu ẩn, không từ chối sai, quyền đúng vai trò, audit không giả — chạy cho mọi vai trò trên mọi
+trạng thái; (2) ma trận 28 endpoint × quyền × phạm vi × trạng thái; (3) fuzz 979 yêu cầu méo; (4) thử
+giao diện thật trong trình duyệt với dữ liệu gãy tham chiếu, bốn vai trò; (5) kiểm tra tĩnh từ điển, mã
+lỗi, trường audit. Tìm 24 điểm, vá hết, khóa bằng hai bộ test mới (`test-hoi-quy-lan5.mjs`,
+`test-manh-me.mjs`).
+
+### ⚠ THAY ĐỔI HÀNH VI
+- **Chỉ Chủ sở hữu / Lãnh đạo đổi được danh sách "Thành viên dự án"** (K7). Trước đây giao diện đã ẩn
+  nút này với người khác nhưng máy chủ không chặn: gọi API là mở toang dự án giới hạn hoặc đá người
+  khác ra khỏi dự án.
+- **Người có quyền "Tạo tài khoản" không tự đổi quyền của chính mình** (K6) — trước đây tự cấp được
+  quyền xem/sửa chi phí. Vẫn phân quyền được cho người khác; Chủ sở hữu không đổi gì.
+- **Teamlead cũng phải là thành viên dự án mới xem / tải tệp công việc của dự án đã giới hạn** (K2),
+  giống biên bản và nhật ký.
+- **Người lập biên bản / nhật ký đã bị loại khỏi dự án thì không sửa / khôi phục hồ sơ đó nữa** (K11).
+- **Lưu tài chính bắt buộc gửi kèm số phiên bản (expectedRev)** — một lần gọi tay với body rỗng trước
+  đây xóa sạch tài chính. Ứng dụng luôn gửi; chỉ ảnh hưởng script tự viết.
+- **Biên bản / nhật ký chỉ lập được cho dự án đang có thật** (kể cả Chủ sở hữu).
+
+### Lỗi đã vá (máy chủ)
+- **G1 (cao)** — người tài chính bị giới hạn dự án không lưu được gì khi dự án ẩn có kỳ đã khóa
+  (kiểm khóa kỳ chạy trước bước ghép phạm vi ở `/api/finance`).
+- **K1 (cao)** — người bị giới hạn (có quyền giao việc) tạo dự án mới: máy chủ trả 200 nhưng ghép
+  rớt im lặng, mất dự án + cột + việc + lịch sử.
+- **K3 (cao)** — `/api/sitelogs` sửa nhật ký theo id nhưng xét quyền theo projectId client khai: ai
+  ghi được nhật ký ở một dự án sửa được nhật ký của mọi dự án nếu biết id; bản trong thùng rác cũng
+  sửa được.
+- **K7 (cao)** — xem "Thay đổi hành vi".
+- **K2, K5, K4, K6, K25, I1** (trung bình) — teamlead xem tệp việc của dự án ẩn; sửa nhật ký đã duyệt
+  không có vết (nay ghi ai sửa lúc nào + dòng audit, kéo về nháp qua đường lưu cũng có vết); ngân
+  sách / sổ chi phí / đề nghị thanh toán không có audit; tự cấp quyền; thông báo sai khi chuyển việc
+  sang dự án ngoài phạm vi; mục lịch sử "đã xóa dự án" / "đã xóa vĩnh viễn" lộ tên dự án ẩn.
+- **K8, K11** (thấp) — dòng báo cáo trỏ tới việc ẩn đã xóa vĩnh viễn; người bị loại khỏi dự án.
+- **Fuzz** — 37 chỗ trả 500 với body `null`; Chủ sở hữu (hoặc client lỗi) ghi được `value` là
+  `null` / mảng / chuỗi, mảng có phần tử rác, rev chuỗi hoặc 1e308 (khóa ghi vĩnh viễn) làm mọi trình
+  duyệt vỡ khi tải về; tài chính nhận BOQ/hợp đồng/chi phí sai cấu trúc; tài khoản với email không hợp
+  lệ hoặc tên là object; cài đặt nhận chuỗi vào chỗ đối tượng. Nay máy chủ chỉ lưu đúng cấu trúc, trả
+  400 có mã (`bad_shape`, `bad_email`, `missing_rev`, `no_project`) và tác vụ nền ghi lỗi vào
+  security.log thay vì nuốt im lặng.
+- **Nhật ký máy chủ hết nhiễu**: mở dữ liệu cũ, client điền giá trị mặc định cho việc (loại việc,
+  mốc, ưu tiên…) rồi ghi lại — trước đây mỗi việc cũ sinh một dòng "đổi loại việc (trống) → task".
+- **L1 (cao, có từ lâu)** — cũng vì client điền trường mặc định rồi gửi lại nguyên khối: nếu dữ liệu
+  trên máy chủ còn thiếu các trường ấy (dữ liệu cũ, hoặc bản trước chưa có trường như `tags`, `kind`,
+  `milestone`, `approver`), luật phân quyền tưởng **nhân viên thường "sửa nội dung" mọi việc** và trả
+  403 "không có quyền sửa nội dung công việc này (trường 'tags')" cho **mọi** lần lưu của họ — cho tới
+  khi một người có quyền giao việc lưu trước. Nay máy chủ chuẩn hóa cả hai bên đúng như client trước
+  khi so (`chuanHoaViecSS`); thêm trường mặc định mới vào `normalizeTask` thì phải thêm vào đó.
+
+### Lỗi đã vá (giao diện)
+- Lịch sử thay đổi hiện "undefined", "NaN ngày trước", "Invalid Date" khi mục thiếu trường; việc có
+  ngày không hợp lệ hiện "NaN/NaN"; dự án không tên hiện trống (nay "(dự án chưa đặt tên)"); phụ
+  thuộc tới việc đã xóa hiện "Việc chưa đặt tên" (nay "(việc đã xóa)"); nhập CSV không có nhãn lịch sử.
+- **Người phụ trách chính đã bị xóa tài khoản** thì không ai cập nhật được % hoàn thành — nay bất kỳ
+  người được giao nào cũng cập nhật được.
+- Ô quyền của chính mình bị khóa với người quản lý tài khoản (khớp máy chủ); điều kiện mật khẩu khi
+  tạo tài khoản khớp máy chủ (8 ký tự, có chữ và số).
+- Tiếng Anh: nhật ký đã duyệt bị khóa và sai mật khẩu hiện tại có mã lỗi riêng
+  (`sitelog_locked`, `wrong_current_password`) nên hiện đúng tiếng Anh thay vì tiếng Việt.
+
+### Kiểm thử
+439 → **520 ca**, thêm `test-hoi-quy-lan5.mjs` (bất biến + 15 điểm), `test-manh-me.mjs` (chịu lỗi,
+dữ liệu cũ) và `test-tu-dien-audit.mjs` (tĩnh: trường audit / action lịch sử / mã lỗi mới phải có bản
+dịch và projectId). `test-nghiep-vu.mjs` gửi kèm expectedRev. Quy tắc làm việc để không vá đi vá lại:
+`docs/QUY-TAC-HOAN-CHINH.md`.
+
+---
+
 ## v4.2.3 — 06/09/2026 — VÁ BA CẠNH CỦA "THÀNH VIÊN DỰ ÁN" (AUDIT LẦN 4)
 
 Audit lần 4 (`docs/danh-gia/2026-09-06 - Audit lan 4 (v4.2.2).md`, 7,3/10) xác nhận N1–N4 đã vá

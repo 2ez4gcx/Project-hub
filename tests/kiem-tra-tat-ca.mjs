@@ -81,6 +81,9 @@ if (up) {
   cases += runTest("test-hoi-quy-lan2.mjs");
   cases += runTest("test-hoi-quy-lan3.mjs");
   cases += runTest("test-hoi-quy-lan4.mjs");
+  cases += runTest("test-hoi-quy-lan5.mjs");
+  cases += runTest("test-manh-me.mjs");
+  cases += runTest("test-hoan-thien.mjs");
   cases += runTest("test-restore.mjs", [DATA, String(RESTORE_PORT)]);
 }
 try { srv.kill(); } catch {}
@@ -91,6 +94,7 @@ cases += runTest("test-lich-gantt.mjs");
 cases += runTest("test-gop-xung-dot.mjs");
 cases += runTest("test-giay-phep.mjs");   // giấy phép + ghi danh tác giả phải còn đủ
 cases += runTest("test-song-ngu.mjs");    // từ điển Việt–Anh không được lệch khóa
+cases += runTest("test-tu-dien-audit.mjs"); // trường audit / action lịch sử / mã lỗi mới phải có bản dịch và projectId
 
 // ───────────────────────── 4. HTTPS ─────────────────────────
 h("4. HTTPS (chứng chỉ tự ký)");

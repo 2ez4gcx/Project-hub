@@ -45,7 +45,7 @@ ok("tải xuống: nội dung đúng từng byte", body === PAYLOAD, JSON.string
 
 // ---- round-trip finance/BOQ + gate ----
 const boq = { P1: { items: [{ id: "x1", stt: "1", ten: "Round-trip", donVi: "m2", laNhom: false, khoiLuong: 10.5, donGia: 123456, taskIds: [] }], kys: [{ id: "k1", soKy: 1, denNgay: "2026-08-17", kl: { x1: 4.5 } }] } };
-r = await api("/api/finance", { method: "POST", body: JSON.stringify({ investorContracts: [], subContracts: [], boq }) }, OWNER);
+r = await api("/api/finance", { method: "POST", body: JSON.stringify({ investorContracts: [], subContracts: [], boq, expectedRev: (await api("/api/finance", {}, OWNER)).body.rev }) }, OWNER);
 ok("lưu finance kèm BOQ", r.status === 200);
 const f = await api("/api/finance", {}, OWNER);
 const it = ((f.body.boq || {}).P1 || {}).items || [];
@@ -56,10 +56,14 @@ ok("thành viên không có quyền tài chính -> 403", r.status === 403);
 // ---- CAS tài chính (audit 17/08 F2): bản cũ không được ghi đè bản mới ----
 const rv1 = f.body.rev;
 ok("GET finance trả về rev", typeof rv1 === "number" && rv1 > 0, "rev=" + rv1);
-r = await api("/api/finance", { method: "POST", body: JSON.stringify({ ...f.body, expectedRev: rv1 }) }, OWNER);
+/* Q6 (hoàn thiện 06/09): xung đột xét THEO DỰ ÁN — hai lần ghi cùng đụng dự án P1 sau khi tải thì bản cũ mới bị 409;
+   bản cũ đụng dự án khác thì được ghép (xem test-hoan-thien.mjs). */
+const doiP1 = (dg) => ({ ...f.body, boq: { ...f.body.boq, P1: { ...f.body.boq.P1, items: f.body.boq.P1.items.map((x) => ({ ...x, donGia: dg })) } } });
+r = await api("/api/finance", { method: "POST", body: JSON.stringify({ ...doiP1(200000), expectedRev: rv1 }) }, OWNER);
 ok("lưu với expectedRev đúng -> OK, rev tăng", r.status === 200 && r.body.rev === rv1 + 1);
-r = await api("/api/finance", { method: "POST", body: JSON.stringify({ ...f.body, expectedRev: rv1 }) }, OWNER);
-ok("bản STALE (expectedRev cũ) -> 409, không mất dữ liệu người khác", r.status === 409 && r.body.rev === rv1 + 1);
+r = await api("/api/finance", { method: "POST", body: JSON.stringify({ ...doiP1(300000), expectedRev: rv1 }) }, OWNER);
+const fSau = await api("/api/finance", {}, OWNER);
+ok("bản STALE (expectedRev cũ) cùng đụng P1 -> 409, không mất dữ liệu người khác", r.status === 409 && r.body.rev === rv1 + 1 && fSau.body.boq.P1.items[0].donGia === 200000, r.status + " " + JSON.stringify(r.body).slice(0, 80));
 
 console.log("\n  KẾT QUẢ: " + pass + " pass, " + fail + " fail");
 process.exitCode = fail ? 1 : 0; // exit tự nhiên — process.exit đua với keep-alive socket gây abort libuv trên Node 24/Windows

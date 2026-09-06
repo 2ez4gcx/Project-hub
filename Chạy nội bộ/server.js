@@ -286,7 +286,17 @@ function duAnCuaViec(st, taskId) {
   }
   return "";
 }
-function locTheoPhamVi(st, thay) {
+/* K8 (kiểm tra toàn bộ 06/09): một dòng báo cáo là "ẩn" với người này khi việc nó trỏ tới thuộc dự án ngoài
+   phạm vi, HOẶC việc đó đã bị xóa vĩnh viễn (không tra được dự án) mà báo cáo không phải của chính họ — dòng
+   ấy vẫn mang tên việc của một dự án có thể đang ẩn. Dòng không trỏ tới việc nào thì mở. Dùng chung cho
+   lọc (locTheoPhamVi) và ghép (ghepTheoPhamVi) để dòng bị ẩn luôn được giữ nguyên chỗ khi họ lưu. */
+function dongAnBaoCao(st, baoCao, it, thay, meId) {
+  if (!it || !it.taskId) return false;
+  const pid = duAnCuaViec(st, it.taskId);
+  if (pid) return !thay.has(pid);
+  return !(baoCao && meId && baoCao.memberId === meId);
+}
+function locTheoPhamVi(st, thay, meId) {
   if (!thay) return st;
   const trong = (pid) => !pid || thay.has(pid);
   return {
@@ -294,13 +304,21 @@ function locTheoPhamVi(st, thay) {
     projects: (st.projects || []).filter((p) => p && thay.has(p.id)),
     sections: (st.sections || []).filter((x) => x && trong(x.projectId)),
     tasks: (st.tasks || []).filter((x) => x && trong(x.projectId)),
-    history: (st.history || []).filter((x) => x && trong(x.projectId)),
+    history: (() => {
+      /* I1 (kiểm tra toàn bộ 06/09): mục "đã xóa dự án" / "đã xóa vĩnh viễn" của client cũ không mang projectId,
+         chỉ mang tên -> lộ tên dự án ẩn. Lọc thêm theo TÊN của các dự án ngoài phạm vi (đang sống hoặc trong
+         thùng rác). Client mới đã gắn projectId cho hai loại mục này. */
+      const tenAn = new Set();
+      for (const p of (st.projects || [])) if (p && p.id && !thay.has(p.id) && p.name) tenAn.add(p.name);
+      for (const e of (st.trash || [])) if (e && e.id && e.project && !thay.has(e.id)) { if (e.name) tenAn.add(e.name); if (e.project.name) tenAn.add(e.project.name); }
+      return (st.history || []).filter((x) => x && trong(x.projectId) && !(!x.projectId && x.projectName && tenAn.has(x.projectName)));
+    })(),
     /* R9: bản ghi báo cáo ngày dùng `items` (mỗi dòng có taskId), KHÔNG có `lines` và
        không mang projectId — bộ lọc cũ viết theo `lines` nên luôn đúng, tức là không lọc gì.
        Nay tra dự án qua taskId; dòng nào thuộc dự án ngoài phạm vi thì cắt khỏi báo cáo. */
     dailyReports: (st.dailyReports || []).map((x) => {
       if (!x || !Array.isArray(x.items)) return x;
-      return { ...x, items: x.items.filter((it) => trong(duAnCuaViec(st, it && it.taskId))) };
+      return { ...x, items: x.items.filter((it) => !dongAnBaoCao(st, x, it, thay, meId)) };
     }),
     /* N4 (audit lần 3): mục DỰ ÁN trong thùng rác không mang projectId nên trước đây lọt qua
        trong(undefined) — người ngoài dự án thấy tên dự án giới hạn đã xóa. Nay: mục công việc
@@ -310,7 +328,7 @@ function locTheoPhamVi(st, thay) {
 }
 /* Ghép phần người bị hạn chế gửi lên (đã lọc) trở lại bản đầy đủ: giữ nguyên mọi bản ghi
    thuộc dự án họ KHÔNG thấy, và chặn việc họ tự tạo bản ghi cho dự án ngoài phạm vi. */
-function ghepTheoPhamVi(cur, inc, thay) {
+function ghepTheoPhamVi(cur, inc, thay, meId) {
   if (!thay) return inc;
   const dsach = (x) => (Array.isArray(x) ? x : []);
   const trong = (pid) => !pid || thay.has(pid);
@@ -326,9 +344,14 @@ function ghepTheoPhamVi(cur, inc, thay) {
        [mục MỚI của người gửi, giữ thứ tự họ gửi] + [nguyên văn lịch sử máy chủ].
        Mục "mới" = id chưa có trên máy chủ. Cắt 500 giống hành vi máy trạm. */
     history: (() => {
-      const daCo = new Set(dsach(cur.history).map((x) => x && x.id));
+      const goc = dsach(cur.history);
+      const daCo = new Set(goc.map((x) => x && x.id));
       const moi = dsach(inc.history).filter((x) => x && x.id && !daCo.has(x.id) && trong(x.projectId));
-      return [...moi, ...dsach(cur.history)].slice(0, 500);
+      /* N6: client gộp mục mới nhất của chính mình bằng cách sửa tại chỗ (trong 2 phút) — nhận bản sửa của mục đầu
+         nếu người gửi cũng gửi nó (luật 6 vẫn xét đúng tên người). */
+      const dauInc = goc[0] && dsach(inc.history).find((x) => x && x.id === goc[0].id);
+      const conLai = (dauInc && JSON.stringify(dauInc) !== JSON.stringify(goc[0]) && trong(dauInc.projectId)) ? [dauInc, ...goc.slice(1)] : goc;
+      return [...moi, ...conLai].slice(0, 500);
     })(),
     /* R9: khi ghép lại, giữ nguyên các DÒNG thuộc dự án ngoài phạm vi (người gửi không
        nhìn thấy chúng nên cũng không được vô tình xóa mất). */
@@ -338,7 +361,7 @@ function ghepTheoPhamVi(cur, inc, thay) {
         if (!x || !Array.isArray(x.items)) return x;
         const cu = banCu.get(x.id);
         if (!cu || !Array.isArray(cu.items)) return x;                    // báo cáo mới của chính người gửi
-        const anDong = (it) => !trong(duAnCuaViec(cur, it && it.taskId));
+        const anDong = (it) => dongAnBaoCao(cur, cu, it, thay, meId);
         if (!cu.items.some(anDong)) return x;                             // không có dòng ẩn -> nhận nguyên bản gửi
         /* N1 (audit lần 3): ghép kiểu [dòng gửi] + [dòng ẩn] làm ĐỔI THỨ TỰ khi dòng ẩn vốn đứng
            trước -> luật 7 coi là "sửa báo cáo của người khác" và từ chối MỌI lần lưu của người
@@ -376,17 +399,18 @@ function locTaiChinh(f, thay) {
   if (!thay) return f;
   const loc = (o) => Object.fromEntries(Object.entries(o || {}).filter(([pid]) => thay.has(pid)));
   return { ...f,
-    investorContracts: (f.investorContracts || []).filter((c) => c && thay.has(c.projectId)),
-    subContracts: (f.subContracts || []).filter((c) => c && thay.has(c.projectId)),
-    boq: loc(f.boq), nganSach: loc(f.nganSach), chiPhi: loc(f.chiPhi), deNghi: loc(f.deNghi) };
+    investorContracts: (f.investorContracts || []).filter((c) => c && (!c.projectId || thay.has(c.projectId))),   // N5: hợp đồng khung (không dự án) ai xem tài chính cũng thấy
+    subContracts: (f.subContracts || []).filter((c) => c && (!c.projectId || thay.has(c.projectId))),
+    boq: loc(f.boq), nganSach: loc(f.nganSach), chiPhi: loc(f.chiPhi), deNghi: loc(f.deNghi),
+    revTheoDuAn: loc(f.revTheoDuAn || {}) };   // Q6: không lộ id dự án ẩn qua bảng rev
 }
 function ghepTaiChinh(cur, inc, thay) {
   if (!thay) return inc;
   const an = (o) => Object.fromEntries(Object.entries(o || {}).filter(([pid]) => !thay.has(pid)));
   const hien = (o) => Object.fromEntries(Object.entries(o || {}).filter(([pid]) => thay.has(pid)));
   const hd = (side) => [
-    ...(cur[side] || []).filter((c) => c && !thay.has(c.projectId)),        // phần ẩn: giữ nguyên
-    ...(inc[side] || []).filter((c) => c && thay.has(c.projectId)),         // phần gửi: chỉ nhận trong phạm vi
+    ...(cur[side] || []).filter((c) => c && c.projectId && !thay.has(c.projectId)),        // phần ẩn: giữ nguyên
+    ...(inc[side] || []).filter((c) => c && (!c.projectId || thay.has(c.projectId))),      // phần gửi: trong phạm vi hoặc hợp đồng khung (N5)
   ];
   return { ...inc,
     investorContracts: hd("investorContracts"), subContracts: hd("subContracts"),
@@ -395,10 +419,31 @@ function ghepTaiChinh(cur, inc, thay) {
     chiPhi: { ...an(cur.chiPhi), ...hien(inc.chiPhi) },
     deNghi: { ...an(cur.deNghi), ...hien(inc.deNghi) } };
 }
+/* U6: thông báo trong app do MÁY CHỦ sinh (giao việc, trả về, nộp/duyệt nhật ký, quá hạn) — data/notifications.json,
+   mỗi người tối đa 100 mục; client đọc /api/notifications và đánh dấu đã đọc. */
+const NOTIF = path.join(DATA_DIR, "notifications.json");
+function loadNotif() { try { const o = JSON.parse(fs.readFileSync(NOTIF, "utf8")); return (o && typeof o === "object") ? o : {}; } catch { return {}; } }
+function saveNotif(o) { writeJsonAtomic(NOTIF, JSON.stringify(o)); }
+function themThongBao(userIds, tb) {
+  const ids = [...new Set((userIds || []).filter(Boolean))]; if (!ids.length) return;
+  const all = loadNotif(); const now = Date.now();
+  for (const uid3 of ids) {
+    const ds = Array.isArray(all[uid3]) ? all[uid3] : [];
+    if (tb.khoa && ds.some((x) => x.khoa === tb.khoa)) continue;          // cùng khóa (vd quá hạn theo ngày) thì không lặp
+    ds.unshift({ id: uid(), ts: now, read: false, ...tb });
+    all[uid3] = ds.slice(0, 100);
+  }
+  saveNotif(all);
+}
+function thongBaoNopNhatKy(rec, me) {
+  const pr = projectOf(rec.projectId); const mem = pr && Array.isArray(pr.members) && pr.members.length ? pr.members : null;
+  const ids = loadAccounts().filter((a) => a.id !== me.id && (a.role === "owner" || a.isLeader || (a.isTeamlead && (a.dept || "") === "Site" && (!mem || mem.includes(a.id))))).map((a) => a.id);
+  themThongBao(ids, { type: "sitelog", text: (me.name || me.email) + " đã nộp nhật ký ngày " + rec.date + (rec.projectName ? " — " + rec.projectName : "") + ", chờ duyệt", projectId: rec.projectId, logId: rec.id });
+}
 function auditWrite(entries) {
   if (!entries || !entries.length) return;
   try {
-    try { const st = fs.statSync(AUDIT); if (st.size > AUDIT_MAX_BYTES) fs.renameSync(AUDIT, AUDIT + ".1"); } catch {}
+    /* N7: mỗi tháng một tệp audit-YYYY-MM.jsonl, không bao giờ xóa; audit.jsonl (+ .1) của các bản cũ vẫn đọc được. */
     /* R10: trước đây cắt im lặng ở 300 dòng — nhập CSV 350 việc thì 50 việc không có vết nào.
        Nay vẫn giới hạn để một thao tác không sinh hàng vạn dòng, nhưng ghi thêm MỘT dòng
        tổng kết cho phần bị gộp, để không bao giờ có thay đổi biến mất khỏi nhật ký. */
@@ -412,21 +457,44 @@ function auditWrite(entries) {
         projectId: d.projectId || "",
       }]);
     }
-    fs.appendFileSync(AUDIT, ghi.map((e) => JSON.stringify(e)).join("\n") + "\n");
+    fs.appendFileSync(auditFileThang(), ghi.map((e) => JSON.stringify(e)).join("\n") + "\n");
   } catch {}
 }
-function auditRead(limit, projectId) {
-  try {
-    const txt = fs.readFileSync(AUDIT, "utf8");
-    const lines = txt.split("\n").filter(Boolean);
-    const out = [];
+function auditFileThang(d) { d = d || new Date(); return path.join(DATA_DIR, "audit-" + d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + ".jsonl"); }
+/* Các tệp audit, MỚI NHẤT trước: audit-YYYY-MM.jsonl (giảm dần) rồi audit.jsonl và audit.jsonl.1 của bản cũ. */
+function auditFiles() {
+  let thang = [];
+  try { thang = fs.readdirSync(DATA_DIR).filter((f) => /^audit-\d{4}-\d{2}\.jsonl$/.test(f)).sort().reverse().map((f) => path.join(DATA_DIR, f)); } catch {}
+  return [...thang, AUDIT, AUDIT + ".1"].filter((f) => { try { return fs.existsSync(f); } catch { return false; } });
+}
+function auditRead(limit, projectId, tuTs) {
+  const out = [];
+  for (const f of auditFiles()) {
+    let lines; try { lines = fs.readFileSync(f, "utf8").split("\n").filter(Boolean); } catch { continue; }
     for (let i = lines.length - 1; i >= 0 && out.length < limit; i--) {
-      try { const e = JSON.parse(lines[i]); if (!projectId || e.projectId === projectId) out.push(e); } catch {}
+      try { const e = JSON.parse(lines[i]); if (tuTs && !(e.ts >= tuTs)) return out; if (!projectId || e.projectId === projectId) out.push(e); } catch {}
     }
-    return out;
-  } catch { return []; }
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+/* A11: tóm tắt "ai sửa gì" trong N ngày qua — cho màn Nhật ký máy chủ và email đầu tuần. */
+function tomTatAudit(soNgay) {
+  const tu = Date.now() - soNgay * 86400000;
+  const ds = auditRead(20000, "", tu);
+  const theoNguoi = {};
+  for (const e of ds) {
+    const k = e.actor || "?"; const r = (theoNguoi[k] = theoNguoi[k] || { actor: k, so: 0, theoLoai: {}, duAn: {} });
+    r.so++; const loai = (e.entity || "?") + ":" + (e.field || "?"); r.theoLoai[loai] = (r.theoLoai[loai] || 0) + 1;
+    if (e.projectName || e.projectId) { const pn = e.projectName || e.projectId; r.duAn[pn] = (r.duAn[pn] || 0) + 1; }
+  }
+  const nguoi = Object.values(theoNguoi).sort((a, b) => b.so - a.so).map((r) => ({ actor: r.actor, so: r.so,
+    top: Object.entries(r.theoLoai).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([k, v]) => ({ loai: k, so: v })),
+    duAn: Object.entries(r.duAn).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([k, v]) => ({ ten: k, so: v })) }));
+  return { soNgay, tu, tong: ds.length, nguoi };
 }
 // so sánh hai bản dữ liệu chung và sinh các dòng nhật ký
+const MAC_DINH_VIEC = { kind: "task", milestone: false, completed: false, workdone: 0, priority: "medium", assignees: [], primaryAssigneeId: null, dependsOn: [], approver: "teamlead", description: "", startDate: "", dueDate: "", duration: null, sectionId: "", status: "todo", actualStart: "", actualFinish: "" };
 function diffAudit(me, inc, curStr, ip, rev) {
   let cur; try { cur = JSON.parse(curStr || "{}") || {}; } catch { cur = {}; }
   const arr = (x) => (Array.isArray(x) ? x : []);
@@ -457,7 +525,7 @@ function diffAudit(me, inc, curStr, ip, rev) {
   for (const [id, p] of curP) if (!incP.has(id)) add("project", id, p.name, "xóa", p.name, "", id);
 
   // công việc — các trường quan trọng
-  const FIELDS = ["title", "status", "workdone", "startDate", "dueDate", "duration", "priority", "assignees", "primaryAssigneeId", "dependsOn", "approver", "completed", "description", "sectionId", "milestone", "kind", "defect"];
+  const FIELDS = ["title", "status", "workdone", "startDate", "dueDate", "duration", "priority", "assignees", "primaryAssigneeId", "dependsOn", "approver", "completed", "description", "sectionId", "milestone", "kind", "defect", "actualStart", "actualFinish"];
   const curT = new Map(arr(cur.tasks).map((x) => [x && x.id, x]));
   const incT = new Map(arr(inc.tasks).map((x) => [x && x.id, x]));
   for (const [id, tk] of incT) {
@@ -466,6 +534,9 @@ function diffAudit(me, inc, curStr, ip, rev) {
     for (const f of FIELDS) {
       const a = old[f], b = tk[f];
       if (JSON.stringify(a === undefined ? null : a) === JSON.stringify(b === undefined ? null : b)) continue;
+      /* Thử giao diện 06/09: client chuẩn hóa việc cũ (điền kind "task", milestone false, ...) rồi ghi lại — không phải
+         người dùng đổi gì, trước đây mỗi việc cũ sinh một dòng "đổi loại việc (trống) → task" làm nhiễu nhật ký. */
+      if ((a === undefined || a === null) && MAC_DINH_VIEC[f] !== undefined && JSON.stringify(b) === JSON.stringify(MAC_DINH_VIEC[f])) continue;
       add("task", id, tk.title, f, short(a), short(b), tk.projectId);
     }
     const oc = arr(old.comments).length, nc = arr(tk.comments).length;
@@ -549,6 +620,39 @@ function diffAuditFinance(me, inc, cur, ip, rev) {
     }
     for (const [id, k] of ka) if (!kb.has(id)) add("boq", id, "Kỳ " + k.soKy, "xóa kỳ nghiệm thu", "", "", pid);
   }
+  /* K4 (kiểm tra toàn bộ 06/09): ngân sách, sổ chi phí, đề nghị thanh toán trước đây KHÔNG có vết nào
+     (chú thích Q1/Q2/Q5 ở trên nói có, mã thì không). */
+  const o = (x) => (x && typeof x === "object" && !Array.isArray(x)) ? x : {};
+  const tenKy = (pid, kyId) => { const k = arr((boqI[pid] || {}).kys).concat(arr((boqC[pid] || {}).kys)).find((x) => x && x.id === kyId); return "Kỳ " + (k ? k.soKy : kyId); };
+  const nsI = o(inc.nganSach), nsC = o(cur.nganSach);
+  for (const pid of new Set([...Object.keys(nsI), ...Object.keys(nsC)])) {
+    const A = o(nsC[pid]), B = o(nsI[pid]);
+    for (const nhom of new Set([...Object.keys(A), ...Object.keys(B)])) {
+      if (Number(A[nhom] || 0) === Number(B[nhom] || 0)) continue;
+      add("nganSach", pid + "/" + nhom, nhom, "sửa ngân sách", String(A[nhom] || 0), String(B[nhom] || 0), pid);
+    }
+  }
+  const cpI = o(inc.chiPhi), cpC = o(cur.chiPhi);
+  for (const pid of new Set([...Object.keys(cpI), ...Object.keys(cpC)])) {
+    const A = new Map(arr(cpC[pid]).map((x) => [x && x.id, x])), B = new Map(arr(cpI[pid]).map((x) => [x && x.id, x]));
+    for (const [id, x] of B) {
+      const old = A.get(id);
+      if (!old) { add("chiPhi", id, x.moTa || x.nhom || "", "thêm chi phí", "", String(x.soTien || 0), pid); continue; }
+      if (JSON.stringify(old) !== JSON.stringify(x)) add("chiPhi", id, x.moTa || x.nhom || "", "sửa chi phí", String(old.soTien || 0), String(x.soTien || 0), pid);
+    }
+    for (const [id, x] of A) if (!B.has(id)) add("chiPhi", id, x.moTa || x.nhom || "", "xóa chi phí", String(x.soTien || 0), "", pid);
+  }
+  const dnI = o(inc.deNghi), dnC = o(cur.deNghi);
+  for (const pid of new Set([...Object.keys(dnI), ...Object.keys(dnC)])) {
+    const A = o(dnC[pid]), B = o(dnI[pid]);
+    for (const kyId of new Set([...Object.keys(A), ...Object.keys(B)])) {
+      if (JSON.stringify(A[kyId] || null) === JSON.stringify(B[kyId] || null)) continue;
+      const a = o(A[kyId]), b = o(B[kyId]);
+      const doi = [...new Set([...Object.keys(a), ...Object.keys(b)])].filter((k) => JSON.stringify(a[k]) !== JSON.stringify(b[k]));
+      const ke = (obj) => doi.map((k) => k + "=" + String(obj[k] === undefined ? "" : obj[k])).join(", ").slice(0, 120);
+      add("deNghi", pid + "/" + kyId, tenKy(pid, kyId), "sửa đề nghị thanh toán", ke(a), ke(b), pid);
+    }
+  }
   return out;
 }
 
@@ -584,7 +688,51 @@ function saveData(d) {
 // (Trước đây scheduler load data.json -> await gửi email -> save lại bản CŨ, có thể đè mất
 // thay đổi người dùng vừa lưu qua /api/kv trong lúc email đang gửi; đồng thời ghi data.json mỗi phút.)
 const SCHED_STATE = path.join(DATA_DIR, "sched-state.json");
-function loadSchedState() { try { const s = JSON.parse(fs.readFileSync(SCHED_STATE, "utf8")); return { remindersSent: s.remindersSent || {}, backupWeek: s.backupWeek || "", digestDay: s.digestDay || "" }; } catch { return { remindersSent: {}, backupWeek: "", digestDay: "" }; } }
+function loadSchedState() { try { const s = JSON.parse(fs.readFileSync(SCHED_STATE, "utf8")); return { remindersSent: s.remindersSent || {}, backupWeek: s.backupWeek || "", digestDay: s.digestDay || "", canhBaoNgay: s.canhBaoNgay || "", auditTuan: s.auditTuan || "" }; } catch { return { remindersSent: {}, backupWeek: "", digestDay: "", canhBaoNgay: "", auditTuan: "" }; } }
+/* Hoàn thiện 06/09: sức khỏe máy chủ cho quản trị viên không phải tác giả — đọc được ở Cài đặt và /api/health. */
+function sucKhoe() {
+  const kb = (f) => { try { return fs.statSync(f).size; } catch { return 0; } };
+  let snapshotMoiNhat = null; try { const dirs = fs.readdirSync(SNAPSHOT_DIR).filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort(); snapshotMoiNhat = dirs[dirs.length - 1] || null; } catch {}
+  let diaTrongBytes = null; try { const st = fs.statfsSync(DATA_DIR); diaTrongBytes = Number(st.bavail) * Number(st.bsize); } catch {}
+  const st = loadSchedState(); const cfg = loadConfig();
+  const ra = { version: APP_VERSION, uptimeGio: Math.round(process.uptime() / 360) / 10, dataBytes: kb(DATA), financeBytes: kb(FINANCE), sharedRev: sharedRev(),
+    snapshotMoiNhat, snapshotTuoiNgay: snapshotMoiNhat ? Math.floor((Date.now() - Date.parse(snapshotMoiNhat + "T00:00:00")) / 86400000) : null,
+    diaTrongBytes, emailSanSang: !!(nodemailer && (process.env.SMTP_HOST || (cfg.smtp && cfg.smtp.host))), saoLuuTuan: st.backupWeek || "", emailSaoLuu: (cfg.backup && cfg.backup.email) || "", https: !!TLS, node: process.version };
+  ra.canhBao = canhBaoSucKhoe(ra);
+  return ra;
+}
+function canhBaoSucKhoe(ra) {
+  const out = [];
+  if (ra.dataBytes > 6 * 1024 * 1024) out.push("Khối dữ liệu chung đã " + Math.round(ra.dataBytes / 1048576) + " MB (trần 8 MB) — dọn thùng rác / lịch sử hoặc tách dự án cũ.");
+  if (ra.snapshotTuoiNgay != null && ra.snapshotTuoiNgay > 2) out.push("Snapshot gần nhất đã " + ra.snapshotTuoiNgay + " ngày — kiểm tra máy chủ có chạy liên tục không.");
+  if (ra.snapshotTuoiNgay == null) out.push("Chưa có snapshot nào trong data/snapshots.");
+  if (ra.diaTrongBytes != null && ra.diaTrongBytes < 500 * 1024 * 1024) out.push("Đĩa chứa dữ liệu chỉ còn " + Math.round(ra.diaTrongBytes / 1048576) + " MB trống.");
+  if (!ra.emailSanSang) out.push("Chưa cấu hình email — nhắc việc, sao lưu hằng tuần và cảnh báo sẽ không gửi được.");
+  else if (!ra.emailSaoLuu) out.push("Chưa đặt email nhận sao lưu hằng tuần (Cài đặt).");
+  return out;
+}
+async function runHealthAlert() {
+  const day = new Date().toISOString().slice(0, 10);
+  const st = loadSchedState(); if (st.canhBaoNgay === day) return;
+  const ra = sucKhoe(); const nghiem = ra.canhBao.filter((c) => !/email|Email/.test(c));   // thiếu email thì không gửi email được, chỉ ghi log
+  st.canhBaoNgay = day; saveSchedState(st);
+  if (!nghiem.length) return;
+  slog("CẢNH BÁO SỨC KHỎE: " + nghiem.join(" | "));
+  const tr = buildTransport(); if (!tr) return;
+  const owners = loadAccounts().filter((a) => a.role === "owner").map((a) => a.email).filter(Boolean); if (!owners.length) return;
+  try { await tr.sendMail({ from: smtpFrom(), to: owners.join(","), subject: "[Cảnh báo] Trạm Dự Án — " + day, text: "Máy chủ Trạm Dự Án phát hiện:\n\n• " + nghiem.join("\n• ") + "\n\nXem chi tiết ở Cài đặt > Sức khỏe máy chủ.\n\n(Email tự động từ Trạm Dự Án)" }); } catch (e) { console.log("[health] LỖI gửi:", e.message); }
+}
+/* A11: sáng thứ Hai gửi Chủ sở hữu + Lãnh đạo bản "ai sửa gì tuần qua" từ nhật ký kiểm toán. */
+async function runWeeklyAuditDigest() {
+  const now = new Date(); if (now.getDay() !== 1 || now.getHours() < 7) return;
+  const st = loadSchedState(); const wk = isoWeek(now); if (st.auditTuan === wk) return;
+  st.auditTuan = wk; saveSchedState(st);
+  const tt = tomTatAudit(7); if (!tt.tong) return;
+  const tr = buildTransport(); if (!tr) return;
+  const to = loadAccounts().filter((a) => a.role === "owner" || a.isLeader).map((a) => a.email).filter(Boolean); if (!to.length) return;
+  const lines = tt.nguoi.map((r) => "• " + r.actor + ": " + r.so + " thay đổi — " + r.top.map((x) => x.loai.replace(":", " / ") + " ×" + x.so).join(", ") + (r.duAn.length ? " (" + r.duAn.map((d) => d.ten).join(", ") + ")" : ""));
+  try { await tr.sendMail({ from: smtpFrom(), to: to.join(","), subject: "[Tuần " + wk + "] Ai sửa gì — " + tt.tong + " thay đổi", text: "Nhật ký kiểm toán 7 ngày qua (" + tt.tong + " thay đổi):\n\n" + lines.join("\n") + "\n\nXem chi tiết: Lịch sử thay đổi > Nhật ký máy chủ.\n\n(Email tự động từ Trạm Dự Án)" }); } catch (e) { console.log("[audit-tuan] LỖI gửi:", e.message); }
+}
 function saveSchedState(s) { writeJsonAtomic(SCHED_STATE, JSON.stringify(s)); }
 (function migrateSchedState() {
   if (fs.existsSync(SCHED_STATE)) return;
@@ -607,8 +755,39 @@ function loadFinance() {
       nganSach: obj(f.nganSach),   // Q2: ngân sách chi phí theo dự án
       chiPhi: obj(f.chiPhi),       // Q2: sổ chi phí thực tế theo dự án
       deNghi: obj(f.deNghi),       // Q5: đề nghị thanh toán theo dự án
+      revTheoDuAn: obj(f.revTheoDuAn),   // Q6: rev lần cuối đụng tới từng dự án
       rev: Number(f.rev) || 0 };
-  } catch { return { investorContracts: [], subContracts: [], boq: {}, nganSach: {}, chiPhi: {}, deNghi: {}, rev: 0 }; }
+  } catch { return { investorContracts: [], subContracts: [], boq: {}, nganSach: {}, chiPhi: {}, deNghi: {}, revTheoDuAn: {}, rev: 0 }; }
+}
+/* Q6: phần tài chính của một dự án = boq/nganSach/chiPhi/deNghi[pid] + các hợp đồng có projectId = pid ("" = hợp đồng khung). */
+function phanTaiChinh(f, pid) {
+  const o = (x) => (x && typeof x === "object" && !Array.isArray(x)) ? x : {};
+  return JSON.stringify({ b: o(f.boq)[pid] || null, n: o(f.nganSach)[pid] || null, c: o(f.chiPhi)[pid] || null, d: o(f.deNghi)[pid] || null,
+    i: (f.investorContracts || []).filter((c) => c && (c.projectId || "") === pid), s: (f.subContracts || []).filter((c) => c && (c.projectId || "") === pid) });
+}
+function cacDuAnTaiChinh(a, b) {
+  const o = (x) => (x && typeof x === "object" && !Array.isArray(x)) ? x : {};
+  const ds = new Set();
+  for (const f of [a, b]) { for (const k of ["boq", "nganSach", "chiPhi", "deNghi"]) Object.keys(o(f[k])).forEach((p) => ds.add(p)); for (const side of ["investorContracts", "subContracts"]) (f[side] || []).forEach((c) => c && ds.add(c.projectId || "")); }
+  return [...ds];
+}
+function revTheoDuAnMoi(cur, moi, newRev) {
+  const r = { ...((cur && cur.revTheoDuAn) || {}) };
+  for (const pid of cacDuAnTaiChinh(cur, moi)) if (phanTaiChinh(cur, pid) !== phanTaiChinh(moi, pid)) r[pid] = newRev;
+  return r;
+}
+function ghepTaiChinhTheoDuAn(cur, inc, expectedRev) {
+  const revs = (cur && cur.revTheoDuAn) || {};
+  const trung = [], doi = new Set();
+  for (const pid of cacDuAnTaiChinh(cur, inc)) {
+    if (phanTaiChinh(cur, pid) === phanTaiChinh(inc, pid)) continue;
+    if ((Number(revs[pid]) || 0) > expectedRev) trung.push(pid); else doi.add(pid);
+  }
+  if (trung.length) return { ok: false, trung };
+  const o = (x) => (x && typeof x === "object" && !Array.isArray(x)) ? x : {};
+  const lay = (k) => { const out = {}; for (const pid of new Set([...Object.keys(o(cur[k])), ...Object.keys(o(inc[k]))])) { const src = doi.has(pid) ? o(inc[k]) : o(cur[k]); if (pid in src) out[pid] = src[pid]; } return out; };
+  const hd = (side) => [...(cur[side] || []).filter((c) => c && !doi.has(c.projectId || "")), ...(inc[side] || []).filter((c) => c && doi.has(c.projectId || ""))];
+  return { ok: true, body: { ...inc, boq: lay("boq"), nganSach: lay("nganSach"), chiPhi: lay("chiPhi"), deNghi: lay("deNghi"), investorContracts: hd("investorContracts"), subContracts: hd("subContracts") } };
 }
 function saveFinance(f) { writeJsonAtomic(FINANCE, JSON.stringify(f)); }
 // ---- Cache rev của khối dữ liệu chung (phục vụ /api/kv/rev, tránh parse cả file mỗi lần poll) ----
@@ -626,6 +805,72 @@ function sharedRev() {
    (thêm mới/cập nhật thông thường luôn được phép để không chặn nhầm thao tác hợp lệ,
    ví dụ client tự sinh việc lặp lại hoặc tự dọn thùng rác quá 90 ngày). */
 const TRASH_TTL_MS = 90 * 86400000; // khớp với auto-prune phía client
+/* Fuzz 06/09: máy chủ chỉ lưu đúng CẤU TRÚC. Trước đây Chủ sở hữu (hoặc một client lỗi) gửi value "null",
+   "[]", projects là chuỗi, mảng có phần tử null... là được 200 và mọi trình duyệt đang mở đều vỡ khi tải về;
+   rev = 1e308 thì không ai ghi được nữa. Mọi mảng chỉ giữ phần tử là đối tượng; rev phải là số hữu hạn. */
+function sachKhoiChung(x) {
+  if (!x || typeof x !== "object" || Array.isArray(x)) return null;
+  const laDT = (e) => e && typeof e === "object" && !Array.isArray(e);
+  const ds = (a) => (Array.isArray(a) ? a.filter(laDT) : []);
+  if (x.rev !== undefined && !(typeof x.rev === "number" && Number.isFinite(x.rev) && x.rev >= 0)) return null;
+  return { ...x,
+    projects: ds(x.projects), sections: ds(x.sections),
+    tasks: ds(x.tasks).map((t) => ({ ...t, comments: ds(t.comments), subtasks: ds(t.subtasks), assignees: Array.isArray(t.assignees) ? t.assignees.filter((a) => typeof a === "string") : [] })),
+    history: ds(x.history), trash: ds(x.trash),
+    dailyReports: ds(x.dailyReports).map((r) => ({ ...r, items: ds(r.items), comments: ds(r.comments) })) };
+}
+function sachTaiChinh(b) {
+  if (!b || typeof b !== "object" || Array.isArray(b)) return null;
+  const laDT = (e) => e && typeof e === "object" && !Array.isArray(e);
+  const ds = (a) => (Array.isArray(a) ? a.filter(laDT) : []);
+  const obj = (x) => (laDT(x) ? x : {});
+  const boq = {};
+  for (const [pid, bp] of Object.entries(obj(b.boq))) if (laDT(bp)) boq[pid] = { ...bp, items: ds(bp.items), kys: ds(bp.kys) };
+  const theoDuAn = (o, mang) => { const r = {}; for (const [pid, v] of Object.entries(obj(o))) { if (mang) { if (Array.isArray(v)) r[pid] = ds(v); } else if (laDT(v)) r[pid] = v; } return r; };
+  return { ...b, investorContracts: ds(b.investorContracts), subContracts: ds(b.subContracts), boq,
+    nganSach: theoDuAn(b.nganSach, false), chiPhi: theoDuAn(b.chiPhi, true), deNghi: theoDuAn(b.deNghi, false) };
+}
+const LA_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+/* Hoàn thiện 06/09: số phiên bản CẤU TRÚC dữ liệu. Khi khởi động, máy chủ chuẩn hóa một lần (điền trường mặc định,
+   lọc phần tử rác) — client không còn phải "sửa" dữ liệu cũ khi tải, hết lớp lỗi L1/UI-5 tận gốc.
+   Tăng DATA_VERSION khi thêm trường mặc định mới cho việc/dự án. */
+const DATA_VERSION = 5;
+function diTruDuLieu() {
+  try {
+    const d = loadData(); if (!d[SHARED_KEY]) return;
+    let st; try { st = JSON.parse(d[SHARED_KEY]); } catch { return; }
+    if (!st || typeof st !== "object" || Array.isArray(st)) return;
+    if (Number(st.dataVersion) >= DATA_VERSION) return;
+    const sach = sachKhoiChung(st); if (!sach) return;
+    sach.tasks = sach.tasks.map(chuanHoaViecSS);
+    sach.dataVersion = DATA_VERSION;
+    d[SHARED_KEY] = JSON.stringify(sach); saveData(d); SHARED_REV_CACHE = null;
+    slog("Di trú dữ liệu chung lên dataVersion " + DATA_VERSION + " (" + sach.tasks.length + " việc đã chuẩn hóa, " + sach.projects.length + " dự án)");
+    console.log("   Dữ liệu: đã chuẩn hóa lên phiên bản cấu trúc " + DATA_VERSION + ".");
+  } catch (e) { slog("LỖI di trú dữ liệu: " + (e && e.message)); }
+}
+/* L1 (audit lượt 3, 06/09): bản sao phía máy chủ của normalizeTask ở client. Client CHUẨN HÓA mọi việc khi tải
+   (điền tags/subtasks/comments/kind/milestone/approver/... mặc định) rồi gửi lại nguyên khối; nếu bản trên máy chủ
+   còn thiếu các trường ấy (dữ liệu cũ, hoặc bản trước chưa có trường) thì luật 5b tưởng nhân viên thường "sửa nội
+   dung" mọi việc và chặn họ lưu bất cứ gì sau mỗi lần nâng cấp — cho tới khi một người có quyền lưu trước.
+   Thêm trường mặc định mới vào normalizeTask thì PHẢI thêm vào đây. */
+const TRANG_THAI_VIEC = ["todo", "doing", "review", "onhold", "done"];
+function chuanHoaViecSS(x) {
+  if (!x || typeof x !== "object") return x;
+  const assignees = Array.isArray(x.assignees) ? x.assignees : [];
+  const primary = x.primaryAssigneeId || (assignees.length ? assignees[0] : null);
+  const workdone = typeof x.workdone === "number" ? x.workdone : (x.completed ? 100 : 0);
+  const status = TRANG_THAI_VIEC.includes(x.status) ? x.status : ((x.completed || workdone >= 100) ? "done" : (workdone > 0 ? "doing" : "todo"));
+  return { subtasks: [], comments: [], tags: [], ...x, assignees, primaryAssigneeId: primary, workdone,
+    reminderLead: x.reminderLead == null ? null : x.reminderLead, reminderSentKey: x.reminderSentKey || "", recur: x.recur || "none", recurSpawned: !!x.recurSpawned,
+    startDate: x.startDate || "", duration: x.duration || null, milestone: !!x.milestone,
+    kind: x.kind === "defect" ? "defect" : "task",
+    defect: x.kind === "defect" ? { viTri: (x.defect && x.defect.viTri) || "", mucDo: (x.defect && x.defect.mucDo) || "med", nhaThau: (x.defect && x.defect.nhaThau) || "" } : undefined,
+    status, approver: x.approver === "leader" ? "leader" : "teamlead",
+    dependsOn: Array.isArray(x.dependsOn) ? x.dependsOn.filter((d) => typeof d === "string" ? !!d : !!(d && d.id)) : [],
+    assignedAt: x.assignedAt || null, completedAt: x.completedAt || null, completed: status === "done",
+    actualStart: x.actualStart || "", actualFinish: x.actualFinish || "" };   // P4
+}
 function validateSharedWrite(me, inc, curStr) {
   if (!me) return "Chưa đăng nhập.";
   if (me.role === "owner") return null; // Chủ sở hữu: toàn quyền
@@ -646,6 +891,12 @@ function validateSharedWrite(me, inc, curStr) {
     if (!pr || !pr.id) continue;
     const old = curProjById.get(pr.id);
     if (!sameJson(pr.baseline, old ? old.baseline : undefined) && !me.isLeader) return "Chỉ Lãnh đạo / Chủ sở hữu mới được lưu kế hoạch gốc.";
+    /* K7 (kiểm tra toàn bộ 06/09): danh sách thành viên dự án là hàng rào phạm vi — giao diện chỉ cho Chủ sở hữu /
+       Lãnh đạo sửa, máy chủ cũng phải chặn (nếu không teamlead gọi API là mở toang dự án giới hạn hoặc đá người
+       khác ra khỏi dự án). */
+    if (!sameJson(pr.members || [], (old && old.members) || []) && !me.isLeader) return "Chỉ Lãnh đạo / Chủ sở hữu mới đổi được thành viên dự án.";
+    if (!sameJson(pr.baselines || [], (old && old.baselines) || []) && !me.isLeader) return "Chỉ Lãnh đạo / Chủ sở hữu mới được lưu kế hoạch gốc.";   // P3
+    if (!sameJson(pr.duyet || null, (old && old.duyet) || null) && !me.isLeader) return "Chỉ Lãnh đạo / Chủ sở hữu mới đổi được quy tắc nghiệm thu.";   // H4
   }
 
   // 2. Thùng rác: không được sửa nội dung; chỉ được bỏ mục khi KHÔI PHỤC (dự án trở lại
@@ -686,11 +937,24 @@ function validateSharedWrite(me, inc, curStr) {
   if (removedTasks > 10) return "Không thể xóa nhiều công việc như vậy trong một thao tác. Hãy xóa từng việc.";
 
   // 5. Duyệt hoàn thành (chờ duyệt -> hoàn thành): phải đúng người có quyền duyệt.
+  /* H4: dự án khai quy tắc nghiệm thu (project.duyet = { canAnh, canViecCon, qcIds }) thì máy chủ ép:
+     gửi duyệt phải xong hết việc con / có ít nhất 1 ảnh-tệp; nếu chỉ định QC thì chỉ QC (hoặc Lãnh đạo) duyệt. */
+  const quyTacDuyet = (pid) => { const pr = curProjById.get(pid); return (pr && pr.duyet && typeof pr.duyet === "object") ? pr.duyet : null; };
+  const nguoiDuyetHopLe = (old) => { const qt = quyTacDuyet(old.projectId); const qc = qt && Array.isArray(qt.qcIds) ? qt.qcIds : [];
+    return qc.length ? (qc.includes(me.id) || !!me.isLeader) : (old.approver === "leader" ? !!me.isLeader : !!me.isTeamlead); };
+  let taskFilesCache = null;
   for (const [id, tk] of incTasks) {
     const old = id && curTasks.get(id);
-    if (old && old.status === "review" && tk && tk.status === "done") {
-      const okApprove = old.approver === "leader" ? !!me.isLeader : !!me.isTeamlead;
-      if (!okApprove) return "Chỉ người có quyền duyệt (Teamlead / Lãnh đạo) mới được duyệt hoàn thành công việc.";
+    if (!old || !tk) continue;
+    const qt = quyTacDuyet(old.projectId);
+    if (old.status !== "review" && tk.status === "review" && qt) {
+      if (qt.canViecCon && arr(tk.subtasks).some((sx) => sx && !sx.done)) return "Phải hoàn thành hết việc con trước khi gửi duyệt (quy tắc nghiệm thu của dự án).";
+      if (qt.canAnh) { if (!taskFilesCache) taskFilesCache = loadTaskFiles(); if (!arr(taskFilesCache[id]).length) return "Phải đính kèm ít nhất một ảnh / tệp nghiệm thu trước khi gửi duyệt (quy tắc nghiệm thu của dự án)."; }
+    }
+    if (old.status === "review" && tk.status === "done") {
+      const qc = qt && Array.isArray(qt.qcIds) ? qt.qcIds : [];
+      const okApprove = nguoiDuyetHopLe(old);
+      if (!okApprove) return qc.length ? "Chỉ người kiểm tra chất lượng (QC) được chỉ định hoặc Lãnh đạo mới được duyệt công việc này." : "Chỉ người có quyền duyệt (Teamlead / Lãnh đạo) mới được duyệt hoàn thành công việc.";
     }
   }
 
@@ -717,24 +981,33 @@ function validateSharedWrite(me, inc, curStr) {
     }
     const isMine = (e) => e && (e.author === me.name || e.author === me.email);
     // các trường người-được-giao được đổi trên việc của mình
-    const ASSIGNEE_FIELDS = new Set(["workdone", "status", "completed", "completedAt", "approvedBy", "comments", "subtasks", "reminderSentKey"]);
+    const ASSIGNEE_FIELDS = new Set(["workdone", "status", "completed", "completedAt", "approvedBy", "comments", "subtasks", "reminderSentKey", "actualStart", "actualFinish"]);   // P4: người làm ghi ngày thực tế
     // các trường client tự động đổi trên MỌI việc
     const AUTO_FIELDS = new Set(["comments", "recurSpawned", "status"]);
-    for (const [id, tk] of incTasks) {
-      if (!id || !tk) continue;
-      const old = curTasks.get(id);
-      if (!old) {
+    for (const [id, tk0] of incTasks) {
+      if (!id || !tk0) continue;
+      const old0 = curTasks.get(id);
+      if (!old0) {
         // tạo việc mới: chỉ chấp nhận việc do máy tự sinh từ việc lặp (recur) —
         // phải có việc gốc cùng tiêu đề + chu kỳ vừa được đánh dấu recurSpawned trong lần ghi này
-        const spawned = tk.recur && tk.recur !== "none" && !tk.recurSpawned &&
-          arr(cur.tasks).some((src) => src && src.recur === tk.recur && src.title === tk.title && src.recurSpawned !== true &&
+        const spawned = tk0.recur && tk0.recur !== "none" && !tk0.recurSpawned &&
+          arr(cur.tasks).some((src) => src && src.recur === tk0.recur && src.title === tk0.title && src.recurSpawned !== true &&
             (incTasks.get(src.id) || {}).recurSpawned === true);
         if (!spawned) return "Bạn không có quyền tạo công việc.";
         continue;
       }
+      /* L1: so sánh SAU khi chuẩn hóa cả hai bên (xem chuanHoaViecSS) — trường mặc định client tự điền không phải "sửa". */
+      const tk = chuanHoaViecSS(tk0), old = chuanHoaViecSS(old0);
       if (sameJson(tk, old)) continue;
       const assignee = arr(old.assignees).includes(me.id);
       const keys = new Set([...Object.keys(old), ...Object.keys(tk)]);
+      /* H4: QC được chỉ định thường không có quyền giao việc — một lần DUYỆT hợp lệ (chờ duyệt -> hoàn thành) chỉ được
+         đụng đúng các trường của việc duyệt; mọi trường khác vẫn bị chặn như nhân viên thường. */
+      if (old.status === "review" && tk.status === "done" && nguoiDuyetHopLe(old)) {
+        const DUYET_FIELDS = new Set(["status", "completed", "completedAt", "approvedBy", "workdone", "actualFinish", "comments"]);
+        for (const k of keys) { if (!sameJson(tk[k], old[k]) && !DUYET_FIELDS.has(k)) return "Người duyệt chỉ được đổi trạng thái / ngày hoàn thành, không sửa nội dung việc (trường '" + k + "')."; }
+        continue;
+      }
       for (const k of keys) {
         if (sameJson(tk[k], old[k])) continue;
         const allowed = assignee ? (ASSIGNEE_FIELDS.has(k) || AUTO_FIELDS.has(k)) : AUTO_FIELDS.has(k);
@@ -899,9 +1172,12 @@ function taskProjectId(tid, shared) { const sh = shared || sharedState(); const 
 // Tệp của công việc: theo dự án của công việc đó; công việc đã bị xóa -> chỉ quản lý xem được.
 function canViewTaskFiles(me, tid, shared) {
   if (!me) return false;
-  if (me.role === "owner" || me.isLeader || me.isTeamlead) return true;
+  if (me.role === "owner" || me.isLeader) return true;
   const prid = taskProjectId(tid, shared);
-  return prid ? canViewProjectFiles(me, prid, shared) : false;
+  /* K2 (kiểm tra toàn bộ 06/09): Teamlead cũng phải qua cửa thành viên dự án như biên bản / nhật ký — trước đây
+     trả true ngay nên teamlead ngoài dự án giới hạn vẫn xem / tải tệp công việc của dự án đó nếu biết id việc. */
+  if (!prid) return !!me.isTeamlead;                      // việc đã xóa: chỉ quản lý xem được
+  return canViewProjectFiles(me, prid, shared);
 }
 
 function canDeleteRecord(me, rec) {
@@ -1001,6 +1277,7 @@ function revokeTokens(accountId, exceptTok) {
 // ---- Chống dò mật khẩu (rate-limit + khóa tạm) ----
 const MAX_FAILS = 5, FAIL_WINDOW_MS = 15 * 60 * 1000, LOCK_MS = 15 * 60 * 1000;
 const loginAttempts = new Map(); // key(ip|email) -> { count, first, lockUntil }
+const clientErrRate = new Map();  // userId -> { count, first } (giới hạn /api/client-error)
 function attemptKey(req, email) { return clientIp(req) + "|" + String(email || "").trim().toLowerCase(); }
 function lockedMinutes(key) {
   const r = loginAttempts.get(key);
@@ -1060,7 +1337,9 @@ function readBody(req) {
     const chunks = []; let len = 0, done = false;
     const settle = (v) => { if (!done) { done = true; resolve(v); } };
     req.on("data", (c) => { len += c.length; if (len > 8e6) { req.destroy(); settle({}); return; } chunks.push(c); });
-    req.on("end", () => { try { settle(JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}")); } catch { settle({}); } });
+    /* Fuzz 06/09: body là null / mảng / số / chuỗi -> trả {} thay vì để handler destructuring rồi 500. */
+    const doiTuong = (v) => (v && typeof v === "object" && !Array.isArray(v)) ? v : {};
+    req.on("end", () => { try { settle(doiTuong(JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}"))); } catch { settle({}); } });
     req.on("error", () => settle({}));
     req.on("close", () => settle({}));
   });
@@ -1114,7 +1393,7 @@ const requestHandler = async (req, res) => {
   // ---- public auth endpoints ----
   if (p === "/api/config" && req.method === "GET") {
     CONFIG = loadConfig();
-    return json(res, 200, { serverMode: true, appName: CONFIG.appName || "Trạm Dự Án", version: APP_VERSION, features: CONFIG.features || {}, hasAccounts: loadAccounts().length > 0,
+    return json(res, 200, { serverMode: true, appName: CONFIG.appName || "Trạm Dự Án", version: APP_VERSION, features: CONFIG.features || {}, hasAccounts: loadAccounts().length > 0, recordTypes: Array.isArray(CONFIG.recordTypes) ? CONFIG.recordTypes : [],
       license: "AGPL-3.0-or-later", author: TAC_GIA, authorUrl: TAC_GIA_URL, sourceUrl: CONFIG.sourceUrl || MA_NGUON_MAC_DINH });
   }
   if (p === "/api/setup" && req.method === "POST") {
@@ -1132,6 +1411,8 @@ const requestHandler = async (req, res) => {
     }
     clearFails(setupKey);
     if (!name || !email || !password) return json(res, 400, { error: "missing", message: "Thiếu tên, email hoặc mật khẩu." });
+    if (typeof name !== "string" || typeof email !== "string" || typeof password !== "string") return json(res, 400, { error: "bad_shape", message: "Dữ liệu gửi lên sai cấu trúc — hãy tải lại trang (Ctrl+R)." });
+    if (!LA_EMAIL.test(String(email).trim())) return json(res, 400, { error: "bad_email", message: "Email không hợp lệ." });
     const pwErr = passwordProblem(password);
     if (pwErr) return json(res, 400, { error: "weak_password", message: pwErr });
     const salt = makeSalt();
@@ -1191,12 +1472,23 @@ const requestHandler = async (req, res) => {
     if (!canRecords(me)) return json(res, 403, { error: "forbidden" });
     const b = await readBody(req);
     if (!b.projectId) return json(res, 400, { error: "missing", message: "Thiếu dự án." });
+    if (typeof b.projectId !== "string" || !projectOf(b.projectId)) return json(res, 400, { error: "no_project", message: "Dự án không tồn tại (có thể vừa bị xóa) — hãy tải lại trang." });
     if (!canRecordProject(me, b.projectId)) return json(res, 403, { error: "forbidden", message: "Bạn không được phân công cho dự án này." });
     const folder = sanitizeName(b.projectName || b.projectId);
-    const rec = { id: uid(), projectId: String(b.projectId), projectName: String(b.projectName || ""), folder, date: String(b.date || "").slice(0, 10), type: String(b.type || ""), number: String(b.number || ""), note: String(b.note || ""), checklist: sachBangKiem(b.checklist), files: [], createdBy: me.name || me.email, createdById: me.id, createdAt: Date.now() };
-    const recs = loadRecords(); recs.push(rec); saveRecords(recs);
+    const recs = loadRecords();
+    /* H6: không nhập số hiệu thì máy chủ cấp "BB-NN/NĂM" tăng dần theo dự án và năm — không trùng, không quên. */
+    let number = String(b.number || "").trim();
+    if (!number) {
+      const nam = /^\d{4}/.test(String(b.date || "")) ? String(b.date).slice(0, 4) : String(new Date().getFullYear());
+      const cung = recs.filter((r) => r.projectId === String(b.projectId) && String(r.date || "").slice(0, 4) === nam);
+      let so = cung.length + 1; const daCo = new Set(cung.map((r) => r.number));
+      while (daCo.has("BB-" + String(so).padStart(2, "0") + "/" + nam)) so++;
+      number = "BB-" + String(so).padStart(2, "0") + "/" + nam;
+    }
+    const rec = { id: uid(), projectId: String(b.projectId), projectName: String(b.projectName || ""), folder, date: String(b.date || "").slice(0, 10), type: String(b.type || "").slice(0, 60), number: number.slice(0, 40), note: String(b.note || ""), checklist: sachBangKiem(b.checklist), files: [], createdBy: me.name || me.email, createdById: me.id, createdAt: Date.now() };
+    recs.push(rec); saveRecords(recs);
     slog("Tạo biên bản " + rec.date + " (" + rec.type + ") dự án " + folder + " bởi " + me.email);
-    return json(res, 200, { record: { id: rec.id } });
+    return json(res, 200, { record: { id: rec.id, number: rec.number } });
   }
   if (p === "/api/records/file" && req.method === "POST") {
     if (!canRecords(me)) return json(res, 403, { error: "forbidden" });
@@ -1237,6 +1529,11 @@ const requestHandler = async (req, res) => {
     const recs = loadRecords(); const rec = recs.find((r) => r.id === b.id && !r.deletedAt);
     if (!rec) return json(res, 404, { error: "notfound" });
     if (!canDeleteRecord(me, rec)) return json(res, 403, { error: "forbidden", message: "Chỉ người lập hoặc quản lý mới sửa được." });
+    if (!canViewProjectFiles(me, rec.projectId)) return json(res, 403, { error: "forbidden", message: "Bạn không còn thuộc dự án của hồ sơ này." });   // K11
+    if (typeof b.expectedUpdatedAt === "number" && (rec.updatedAt || rec.createdAt || 0) !== b.expectedUpdatedAt) {   // F-4
+      return json(res, 409, { error: "stale", updatedAt: rec.updatedAt || rec.createdAt || 0, updatedBy: rec.updatedBy || rec.createdBy || "",
+        message: "Biên bản này vừa được " + (rec.updatedBy || rec.createdBy || "người khác") + " sửa. Hãy tải lại rồi sửa tiếp." });
+    }
     if (b.date !== undefined) rec.date = String(b.date).slice(0, 10);
     if (b.type !== undefined) rec.type = String(b.type);
     if (b.number !== undefined) rec.number = String(b.number);
@@ -1254,6 +1551,7 @@ const requestHandler = async (req, res) => {
     const recs = loadRecords(); const rec = recs.find((r) => r.id === id);
     if (!rec || !rec.deletedAt) return json(res, 404, { error: "notfound", message: "Không thấy hồ sơ này trong thùng rác." });
     if (!canDeleteRecord(me, rec)) return json(res, 403, { error: "forbidden", message: "Chỉ người lập hoặc quản lý mới khôi phục được." });
+    if (!canViewProjectFiles(me, rec.projectId)) return json(res, 403, { error: "forbidden", message: "Bạn không còn thuộc dự án của hồ sơ này." });   // K11
     delete rec.deletedAt; delete rec.deletedBy; delete rec.deleteReason;
     rec.updatedBy = me.name || me.email; rec.updatedAt = Date.now();
     saveRecords(recs);
@@ -1338,7 +1636,7 @@ const requestHandler = async (req, res) => {
     const list = loadSiteLogs().filter((r) => (!pid || r.projectId === pid) && (xemRac ? !!r.deletedAt : !r.deletedAt) && viewOK(r.projectId))
       .map((r) => ({ id: r.id, projectId: r.projectId, date: r.date, weatherAM: r.weatherAM || "", weatherPM: r.weatherPM || "", manpower: r.manpower || "", work: r.work || "", equipment: r.equipment || "", issues: r.issues || "", nextPlan: r.nextPlan || "",
         thoiTiet: r.thoiTiet || null, nhanLuc: r.nhanLuc || null, thietBi: r.thietBi || null, khoiLuong: r.khoiLuong || null, suCo: r.suCo || null, ykienGiamSat: r.ykienGiamSat || "",
-        trangThai: r.trangThai || "nhap", duyetBoi: r.duyetBoi || "", duyetLuc: r.duyetLuc || 0,
+        trangThai: r.trangThai || "nhap", duyetBoi: r.duyetBoi || "", duyetLuc: r.duyetLuc || 0, suaSauDuyetBoi: r.suaSauDuyetBoi || "", suaSauDuyetLuc: r.suaSauDuyetLuc || 0,
         createdBy: r.createdBy || "", createdById: r.createdById || "", createdAt: r.createdAt, updatedBy: r.updatedBy || "", updatedAt: r.updatedAt || 0,
         deletedAt: r.deletedAt || 0, deletedBy: r.deletedBy || "", photos: (r.photos || []).map((f, i) => ({ idx: i, name: f.name, size: f.size, mime: f.mime })) }))
       .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
@@ -1348,9 +1646,23 @@ const requestHandler = async (req, res) => {
     if (!canRecords(me)) return json(res, 403, { error: "forbidden" });
     const b = await readBody(req);
     if (!b.projectId || !b.date) return json(res, 400, { error: "missing", message: "Thiếu dự án hoặc ngày." });
+    if (typeof b.projectId !== "string" || typeof b.date !== "string" || !projectOf(b.projectId)) return json(res, 400, { error: "no_project", message: "Dự án không tồn tại (có thể vừa bị xóa) — hãy tải lại trang." });
     if (!canRecordProject(me, b.projectId)) return json(res, 403, { error: "forbidden", message: "Bạn không được phân công cho dự án này." });
     const logs = loadSiteLogs();
     let rec = b.id ? logs.find((r) => r.id === b.id) : null;
+    let suaSauDuyet = false, moKhoaQuaLuu = false, ttTruoc = "";
+    if (rec) {
+      /* K3 (kiểm tra toàn bộ 06/09): quyền xét theo dự án CỦA NHẬT KÝ, không phải projectId người gửi khai — trước
+         đây gửi id nhật ký dự án khác kèm projectId dự án mình là sửa được; bản trong thùng rác cũng sửa được. */
+      if (rec.deletedAt) return json(res, 409, { error: "in_trash", message: "Nhật ký ngày " + rec.date + " đang trong thùng rác — khôi phục trước khi sửa." });
+      if (!canRecordProject(me, rec.projectId)) return json(res, 403, { error: "forbidden", message: "Bạn không được phân công cho dự án của nhật ký này." });
+      /* F-4: chống ghi đè đồng thời — client gửi expectedUpdatedAt = mốc bản nó đã mở; lệch nghĩa là có người vừa sửa. */
+      if (typeof b.expectedUpdatedAt === "number" && (rec.updatedAt || rec.createdAt || 0) !== b.expectedUpdatedAt) {
+        return json(res, 409, { error: "stale", updatedAt: rec.updatedAt || rec.createdAt || 0, updatedBy: rec.updatedBy || rec.createdBy || "",
+          message: "Nhật ký ngày " + rec.date + " vừa được " + (rec.updatedBy || rec.createdBy || "người khác") + " sửa. Hãy mở lại bản mới rồi bổ sung." });
+      }
+      ttTruoc = rec.trangThai || "nhap";
+    }
     if (!rec) {
       // Ngày này đã có nhật ký của người khác -> KHÔNG đè (trước đây gộp theo project+date và
       // ghi đè nội dung nhưng vẫn giữ tên người lập cũ). Trả 409 để client mở đúng bản đang có.
@@ -1372,14 +1684,19 @@ const requestHandler = async (req, res) => {
     if (rec) {
       /* P5: nhật ký đã được Chỉ huy trưởng duyệt thì khóa — chỉ Chủ sở hữu/Lãnh đạo mở lại được. */
       if (rec.trangThai === "daduyet" && !(me.role === "owner" || me.isLeader)) {
-        return json(res, 409, { error: "locked", message: "Nhật ký ngày " + rec.date + " đã được duyệt nên không sửa được. Đề nghị Chỉ huy trưởng mở khóa." });
+        return json(res, 409, { error: "sitelog_locked", message: "Nhật ký ngày " + rec.date + " đã được duyệt nên không sửa được. Đề nghị Chỉ huy trưởng mở khóa." });
       }
+      const daDuyet = rec.trangThai === "daduyet";
+      const chupNoiDung = () => JSON.stringify(Object.keys(noiDung).map((k) => rec[k]));
+      const truocSua = daDuyet ? chupNoiDung() : "";
       Object.assign(rec, noiDung, { updatedAt: Date.now(), updatedBy: me.name || me.email });
+      if (daDuyet) suaSauDuyet = truocSua !== chupNoiDung();
       if (TT.includes(b.trangThai)) {
         // người lập chỉ được chuyển Nháp <-> Đã nộp; "Đã duyệt" phải đi qua endpoint duyệt
         if (b.trangThai === "daduyet" && rec.trangThai !== "daduyet") { /* bỏ qua, không tự duyệt */ }
         else { rec.trangThai = b.trangThai; if (b.trangThai !== "daduyet") { rec.duyetBoi = ""; rec.duyetLuc = 0; } }
       }
+      if (daDuyet && rec.trangThai !== "daduyet") moKhoaQuaLuu = true;
     } else {
       rec = Object.assign({ id: uid(), projectId: String(b.projectId), projectName: String(b.projectName || ""),
         folder: sanitizeName(b.projectName || b.projectId), date: String(b.date).slice(0, 10) }, noiDung,
@@ -1387,7 +1704,19 @@ const requestHandler = async (req, res) => {
           photos: [], createdBy: me.name || me.email, createdById: me.id, createdAt: Date.now() });
       logs.push(rec);
     }
+    /* K5 (kiểm tra toàn bộ 06/09): Chủ sở hữu / Lãnh đạo sửa nội dung một bản ĐÃ DUYỆT (hoặc kéo nó về nháp qua
+       đường lưu) thì phải có vết — con dấu duyệt giữ nguyên nhưng ghi rõ ai sửa, lúc nào, và nhật ký kiểm toán có dòng riêng. */
+    if (suaSauDuyet) { rec.suaSauDuyetBoi = me.name || me.email; rec.suaSauDuyetLuc = Date.now(); }
     saveSiteLogs(logs);
+    /* U6: nộp nhật ký -> báo cho người duyệt (Chủ sở hữu, Lãnh đạo, Teamlead Site trong dự án). */
+    try { if (rec.trangThai === "danop" && ttTruoc !== "danop") thongBaoNopNhatKy(rec, me); } catch {}
+    if (suaSauDuyet || moKhoaQuaLuu) {
+      try {
+        auditWrite([{ ts: Date.now(), rev: null, actor: me.name || me.email, actorId: me.id, ip: clientIp(req), entity: "sitelog",
+          id: rec.id, name: "Nhật ký " + rec.date, field: moKhoaQuaLuu ? "mở khóa nhật ký" : "sửa nhật ký đã duyệt",
+          from: moKhoaQuaLuu ? "daduyet" : "", to: moKhoaQuaLuu ? rec.trangThai : "(nội dung mới)", projectId: rec.projectId, projectName: rec.projectName || "" }]);
+      } catch {}
+    }
     slog("Nhật ký thi công " + rec.date + " dự án " + rec.folder + " bởi " + me.email);
     return json(res, 200, { log: { id: rec.id } });
   }
@@ -1403,7 +1732,7 @@ const requestHandler = async (req, res) => {
     /* R7: nhật ký đã được Chỉ huy trưởng duyệt thì khóa cả phần ẢNH — trước đây vẫn thêm
        ảnh vào bản đã duyệt được, tức là hồ sơ đã ký vẫn đổi nội dung được. */
     if (rec.trangThai === "daduyet" && !(me.role === "owner" || me.isLeader)) {
-      return json(res, 409, { error: "locked", message: "Nhật ký ngày " + rec.date + " đã được duyệt — không thêm ảnh được. Đề nghị Chỉ huy trưởng mở khóa." });
+      return json(res, 409, { error: "sitelog_locked", message: "Nhật ký ngày " + rec.date + " đã được duyệt — không thêm ảnh được. Đề nghị Chỉ huy trưởng mở khóa." });
     }
     let buf; try { buf = await readRawBody(req, 40 * 1024 * 1024); } catch { return json(res, 413, { error: "too_large", message: "Ảnh quá lớn (tối đa 40MB)." }); }
     const dir = path.join(NHATKY, rec.folder || sanitizeName(rec.projectName || rec.projectId), rec.date);
@@ -1455,6 +1784,7 @@ const requestHandler = async (req, res) => {
       rec.trangThai = "daduyet"; rec.duyetBoi = me.name || me.email; rec.duyetLuc = Date.now();
     }
     saveSiteLogs(logs);
+    try { if (rec.createdById && rec.createdById !== me.id) themThongBao([rec.createdById], { type: b.duyet === false ? "unlock" : "approved", text: (b.duyet === false ? "Nhật ký ngày " + rec.date + " được mở khóa để sửa tiếp" : "Nhật ký ngày " + rec.date + " đã được " + (me.name || me.email) + " duyệt"), projectId: rec.projectId, logId: rec.id }); } catch {}
     slog((b.duyet === false ? "Mở khóa" : "Duyệt") + " nhật ký thi công " + rec.date + " dự án " + rec.folder + " bởi " + me.email);
     /* N2: duyệt / mở khóa đổi giá trị pháp lý của hồ sơ -> để lại vết trong nhật ký kiểm toán */
     try {
@@ -1472,6 +1802,7 @@ const requestHandler = async (req, res) => {
     const logs = loadSiteLogs(); const rec = logs.find((r) => r.id === id);
     if (!rec || !rec.deletedAt) return json(res, 404, { error: "notfound", message: "Không thấy nhật ký này trong thùng rác." });
     if (!canDeleteRecord(me, rec)) return json(res, 403, { error: "forbidden", message: "Chỉ người lập hoặc quản lý mới khôi phục được." });
+    if (!canViewProjectFiles(me, rec.projectId)) return json(res, 403, { error: "forbidden", message: "Bạn không còn thuộc dự án của hồ sơ này." });   // K11
     const dungNgay = logs.find((r) => r !== rec && r.projectId === rec.projectId && r.date === rec.date && !r.deletedAt);
     if (dungNgay) return json(res, 409, { error: "log_exists", logId: dungNgay.id,
       message: "Ngày " + rec.date + " nay đã có nhật ký khác (do " + (dungNgay.createdBy || "người khác") + " lập). Xóa hoặc gộp bản đó trước khi khôi phục." });
@@ -1489,7 +1820,7 @@ const requestHandler = async (req, res) => {
     if (rec && !canDeleteRecord(me, rec)) return json(res, 403, { error: "forbidden", message: "Chỉ người tạo hoặc quản lý mới xóa được." });
     /* R7: bản đã duyệt là hồ sơ đã ký — người lập không tự xóa được nữa, chỉ Lãnh đạo. */
     if (rec && rec.trangThai === "daduyet" && !(me.role === "owner" || me.isLeader)) {
-      return json(res, 409, { error: "locked", message: "Nhật ký ngày " + rec.date + " đã được duyệt — chỉ Chủ sở hữu hoặc Lãnh đạo mới xóa được." });
+      return json(res, 409, { error: "sitelog_locked", message: "Nhật ký ngày " + rec.date + " đã được duyệt — chỉ Chủ sở hữu hoặc Lãnh đạo mới xóa được." });
     }
     if (!rec) return json(res, 200, { ok: true });
     if (b1.purge) {
@@ -1512,6 +1843,41 @@ const requestHandler = async (req, res) => {
     const pid = u.searchParams.get("projectId") || "";
     return json(res, 200, { entries: auditRead(limit, pid) }, req);
   }
+  if (p === "/api/notifications" && req.method === "GET") {
+    const ds = (loadNotif()[me.id] || []).slice(0, 50);
+    return json(res, 200, { items: ds, unread: ds.filter((x) => !x.read).length }, req);
+  }
+  if (p === "/api/notifications/read" && req.method === "POST") {
+    const b = await readBody(req); const all = loadNotif(); const ds = Array.isArray(all[me.id]) ? all[me.id] : [];
+    const ids = Array.isArray(b.ids) ? new Set(b.ids) : null;
+    all[me.id] = ds.map((x) => (!ids || ids.has(x.id)) ? { ...x, read: true } : x); saveNotif(all);
+    return json(res, 200, { ok: true });
+  }
+  /* Hoàn thiện 06/09: lỗi trình duyệt ngoài công trường được thấy từ máy chủ (security.log), tối đa 30 dòng / người / giờ. */
+  if (p === "/api/client-error" && req.method === "POST") {
+    const b = await readBody(req); const now = Date.now();
+    const r0 = clientErrRate.get(me.id) || { count: 0, first: now }; if (now - r0.first > 3600000) { r0.count = 0; r0.first = now; } r0.count++; clientErrRate.set(me.id, r0);
+    if (r0.count > 30) return json(res, 429, { error: "too_many" });
+    slog("LỖI TRÌNH DUYỆT " + me.email + " [" + String(b.view || "").slice(0, 40) + " · rev " + (b.rev || "?") + " · " + String(b.ua || "").slice(0, 80) + "]: " + String(b.message || "").slice(0, 300) + " | " + String(b.stack || "").replace(/\s+/g, " ").slice(0, 600));
+    return json(res, 200, { ok: true });
+  }
+  if (p === "/api/feedback" && req.method === "POST") {
+    const b = await readBody(req); const text = String(b.text || "").trim().slice(0, 2000);
+    if (!text) return json(res, 400, { error: "missing", message: "Chưa có nội dung góp ý." });
+    slog("GÓP Ý từ " + me.email + " [" + String(b.view || "").slice(0, 40) + "]: " + text.replace(/\s+/g, " "));
+    try { fs.appendFileSync(path.join(DATA_DIR, "gop-y.jsonl"), JSON.stringify({ ts: Date.now(), by: me.name || me.email, byId: me.id, view: String(b.view || "").slice(0, 40), text }) + "\n"); } catch {}
+    try { const owners = loadAccounts().filter((a) => a.role === "owner").map((a) => a.email).filter(Boolean); const tr = buildTransport();
+      if (tr && owners.length) tr.sendMail({ from: smtpFrom(), to: owners.join(","), subject: "[Góp ý] " + (me.name || me.email), text: text + "\n\n— " + (me.name || me.email) + (b.view ? " · màn hình: " + b.view : "") + "\n\n(Email tự động từ Trạm Dự Án)" }).catch(() => {}); } catch {}
+    return json(res, 200, { ok: true });
+  }
+  if (p === "/api/health" && req.method === "GET") {
+    if (!(me.role === "owner" || me.isLeader)) return json(res, 403, { error: "forbidden" });
+    return json(res, 200, sucKhoe());
+  }
+  if (p === "/api/audit/tuan" && req.method === "GET") {
+    if (!(me.role === "owner" || me.isLeader)) return json(res, 403, { error: "forbidden" });
+    return json(res, 200, tomTatAudit(Math.min(90, Math.max(1, parseInt(u.searchParams.get("ngay") || "7", 10)))), req);
+  }
   if (p === "/api/me" && req.method === "GET") return json(res, 200, { user: safe(me) });
   if (p === "/api/logout" && req.method === "POST") {
     const h = req.headers["authorization"] || ""; tokens.delete(hashTok(h.startsWith("Bearer ") ? h.slice(7) : "")); sessionsDirty = true; saveSessions(); return json(res, 200, { ok: true });
@@ -1522,6 +1888,8 @@ const requestHandler = async (req, res) => {
     if (!canManageMembers(me)) return json(res, 403, { error: "forbidden" });
     const { name, email, password, role, dept, canAssign, canViewHistory, canViewFinance, canEditFinance: cef, canViewWorkload, canManageMembers: setMng, isLeader, isTeamlead, noReport, position } = await readBody(req);
     if (!name || !email || !password) return json(res, 400, { error: "missing", message: "Thiếu tên, email hoặc mật khẩu." });
+    if (typeof name !== "string" || typeof email !== "string" || typeof password !== "string" || (dept != null && typeof dept !== "string")) return json(res, 400, { error: "bad_shape", message: "Dữ liệu gửi lên sai cấu trúc — hãy tải lại trang (Ctrl+R)." });
+    if (!LA_EMAIL.test(String(email).trim())) return json(res, 400, { error: "bad_email", message: "Email không hợp lệ." });
     const pwErr = passwordProblem(password);
     if (pwErr) return json(res, 400, { error: "weak_password", message: pwErr });
     if (role === "owner" && me.role !== "owner") return json(res, 403, { error: "owner_only" });
@@ -1537,11 +1905,20 @@ const requestHandler = async (req, res) => {
   }
   if (p === "/api/accounts/update" && req.method === "POST") {
     if (!canManageMembers(me)) return json(res, 403, { error: "forbidden" });
-    const { id, name, role, dept, canAssign, canViewHistory, canViewFinance, canEditFinance: cef2, canViewWorkload, canManageMembers: setMng, isLeader, isTeamlead, noReport, position, password } = await readBody(req);
+    const bodyAcc = await readBody(req);
+    const { id, name, role, dept, canAssign, canViewHistory, canViewFinance, canEditFinance: cef2, canViewWorkload, canManageMembers: setMng, isLeader, isTeamlead, noReport, position, password } = bodyAcc;
     const accts = loadAccounts(); const a = accts.find((x) => x.id === id);
     if (!a) return json(res, 404, { error: "not_found" });
+    /* K6 (kiểm tra toàn bộ 06/09): người có quyền Tạo tài khoản không tự đổi quyền của CHÍNH MÌNH (đường tự cấp
+       quyền tài chính im lặng nhất). Chủ sở hữu vẫn sửa được mọi tài khoản, kể cả của mình. */
+    const CAP_KEYS = ["role", "dept", "canAssign", "canViewHistory", "canViewFinance", "canEditFinance", "canViewWorkload", "canManageMembers", "isLeader", "isTeamlead", "noReport"];
+    if (a.id === me.id && me.role !== "owner" && CAP_KEYS.some((k) => bodyAcc[k] != null)) {
+      slog("TỪ CHỐI " + me.email + " tự đổi quyền của chính mình");
+      return json(res, 403, { error: "self_caps", message: "Không tự đổi quyền của chính mình — nhờ Chủ sở hữu cấp." });
+    }
     if (a.role === "owner" && me.role !== "owner") return json(res, 403, { error: "owner_only" });
     if (role === "owner" && me.role !== "owner") return json(res, 403, { error: "owner_only" });
+    if ((name != null && typeof name !== "string") || (dept != null && typeof dept !== "string") || (position != null && typeof position !== "string") || (password != null && typeof password !== "string")) return json(res, 400, { error: "bad_shape", message: "Dữ liệu gửi lên sai cấu trúc — hãy tải lại trang (Ctrl+R)." });
     if (password) { const pwErr = passwordProblem(password); if (pwErr) return json(res, 400, { error: "weak_password", message: pwErr }); }
     if (name != null) a.name = String(name).trim();
     if (dept != null) a.dept = String(dept);
@@ -1574,13 +1951,47 @@ const requestHandler = async (req, res) => {
     if (!accts.some((x) => x.role === "owner")) return json(res, 400, { error: "need_owner" });
     saveAccounts(accts);
     revokeTokens(id);
+    /* Hoàn thiện 06/09: gỡ id khỏi thành viên dự án, người lập nhật ký, người được giao, phụ trách chính —
+       trước đây id "ma" ở lại làm dự án giới hạn không ai vào được và việc không ai cập nhật % được. */
+    try {
+      const d = loadData(); const prevStr = d[SHARED_KEY] || "";
+      const st = prevStr ? JSON.parse(prevStr) : null;
+      if (st && typeof st === "object" && !Array.isArray(st)) {
+        let doi = 0;
+        st.projects = (st.projects || []).map((p) => {
+          if (!p) return p;
+          const m0 = Array.isArray(p.members) ? p.members : null, s0 = Array.isArray(p.siteLoggers) ? p.siteLoggers : null;
+          const m1 = m0 && m0.includes(id) ? m0.filter((x) => x !== id) : m0, s1 = s0 && s0.includes(id) ? s0.filter((x) => x !== id) : s0;
+          if (m1 === m0 && s1 === s0) return p;
+          doi++;
+          const q = { ...p };
+          if (m1 !== m0) q.members = (m0.length && !m1.length) ? [me.id] : m1;   // dự án giới hạn không được thành "mở" vì người cuối bị xóa
+          if (s1 !== s0) q.siteLoggers = s1;
+          return q;
+        });
+        st.tasks = (st.tasks || []).map((tk) => {
+          if (!tk) return tk;
+          const as = Array.isArray(tk.assignees) ? tk.assignees : [];
+          if (!as.includes(id) && tk.primaryAssigneeId !== id) return tk;
+          doi++;
+          const as2 = as.filter((x) => x !== id);
+          return { ...tk, assignees: as2, primaryAssigneeId: tk.primaryAssigneeId === id ? (as2[0] || null) : tk.primaryAssigneeId };
+        });
+        if (doi) {
+          st.rev = (Number(st.rev) || 0) + 1;
+          d[SHARED_KEY] = JSON.stringify(st); saveData(d); SHARED_REV_CACHE = st.rev;
+          try { auditWrite(diffAudit(me, st, prevStr, clientIp(req), st.rev)); } catch {}
+          slog("Đã gỡ " + (target ? target.email : id) + " khỏi " + doi + " dự án / công việc");
+        }
+      }
+    } catch (e) { slog("LỖI dọn dữ liệu sau khi xóa tài khoản: " + (e && e.message)); }
     slog("Xóa tài khoản " + (target ? target.email : id) + " bởi " + me.email);
     return json(res, 200, { ok: true });
   }
   if (p === "/api/password" && req.method === "POST") { // self change
     const { oldPassword, newPassword } = await readBody(req);
     const accts = loadAccounts(); const a = accts.find((x) => x.id === me.id);
-    if (!a || !verifyPw(oldPassword, a.salt, a.hash)) return json(res, 401, { error: "invalid", message: "Mật khẩu hiện tại không đúng." });
+    if (!a || !verifyPw(oldPassword, a.salt, a.hash)) return json(res, 401, { error: "wrong_current_password", message: "Mật khẩu hiện tại không đúng." });
     const pwErr = passwordProblem(newPassword);
     if (pwErr) return json(res, 400, { error: "weak_password", message: pwErr });
     a.salt = makeSalt(); a.hash = hashPw(newPassword, a.salt); saveAccounts(accts);
@@ -1597,19 +2008,21 @@ const requestHandler = async (req, res) => {
     // Không trả mật khẩu SMTP về trình duyệt; chỉ cho biết đã có hay chưa.
     const hasSmtpPass = !!(process.env.SMTP_PASS || smtp.pass);
     smtp.pass = "";
-    return json(res, 200, { appName: c.appName || "Trạm Dự Án", appUrl: c.appUrl || "", reminderCheckSeconds: c.reminderCheckSeconds || 60, backup: c.backup || { email: "" }, smtp, hasSmtpPass, smtpPassFromEnv: !!process.env.SMTP_PASS, features: c.features || {} });
+    return json(res, 200, { appName: c.appName || "Trạm Dự Án", appUrl: c.appUrl || "", reminderCheckSeconds: c.reminderCheckSeconds || 60, backup: c.backup || { email: "" }, smtp, hasSmtpPass, smtpPassFromEnv: !!process.env.SMTP_PASS, features: c.features || {}, recordTypes: Array.isArray(c.recordTypes) ? c.recordTypes : [] });
   }
   if (p === "/api/settings" && req.method === "POST") {
     if (me.role !== "owner") return json(res, 403, { error: "forbidden" });
     const b = await readBody(req);
     const cfg = loadConfig();
     const merged = { ...cfg };
-    if (b.appName != null) merged.appName = String(b.appName);
-    if (b.appUrl != null) merged.appUrl = String(b.appUrl);
+    const laDT = (x) => x && typeof x === "object" && !Array.isArray(x);
+    if (typeof b.appName === "string") merged.appName = b.appName.slice(0, 120);
+    if (typeof b.appUrl === "string") merged.appUrl = b.appUrl.slice(0, 300);
     if (b.reminderCheckSeconds != null) merged.reminderCheckSeconds = Number(b.reminderCheckSeconds) || 60;
-    if (b.features && typeof b.features === "object") merged.features = { ...(cfg.features || {}), ...b.features };
-    if (b.backup) merged.backup = { ...(cfg.backup || {}), ...b.backup };
-    if (b.smtp) {
+    if (laDT(b.features)) merged.features = { ...(cfg.features || {}), ...b.features };
+    if (Array.isArray(b.recordTypes)) merged.recordTypes = b.recordTypes.filter((x) => typeof x === "string").map((x) => x.trim().slice(0, 60)).filter(Boolean).slice(0, 30);   // H6
+    if (laDT(b.backup)) merged.backup = { ...(cfg.backup || {}), ...b.backup };
+    if (laDT(b.smtp)) {
       const sm = { ...(cfg.smtp || {}), ...b.smtp };
       // Nếu ô mật khẩu để trống thì GIỮ mật khẩu cũ (tránh xóa nhầm khi lưu cài đặt).
       if (b.smtp.pass === "" || b.smtp.pass == null) sm.pass = (cfg.smtp || {}).pass || "";
@@ -1629,27 +2042,37 @@ const requestHandler = async (req, res) => {
   }
   if (p === "/api/finance" && req.method === "POST") {
     if (!canEditFinance(me)) return json(res, 403, { error: "forbidden", message: "Bạn chỉ có quyền XEM số liệu tài chính." });
-    let body = await readBody(req);
+    let body = sachTaiChinh(await readBody(req));
+    if (!body) return json(res, 400, { error: "bad_shape", message: "Dữ liệu gửi lên sai cấu trúc — hãy tải lại trang (Ctrl+R)." });
+    /* Fuzz 06/09: thiếu expectedRev là ghi đè không đối chiếu — một lần gọi tay với body {} xóa sạch tài chính. */
+    if (typeof body.expectedRev !== "number") return json(res, 400, { error: "missing_rev", message: "Thiếu số phiên bản tài chính (expectedRev) — hãy tải lại trang (Ctrl+R)." });
     // CAS chống ghi đè đồng thời (audit 17/08 F2): client gửi expectedRev = rev nó đã tải;
     // lệch với rev hiện tại -> 409 kèm rev mới, KHÔNG ghi đè thầm lặng bản của người khác.
     const curF = loadFinance();
-    if (body.expectedRev !== undefined && Number(body.expectedRev) !== curF.rev) {
-      return json(res, 409, { error: "conflict", rev: curF.rev });
-    }
     const newRev = curF.rev + 1;
-    /* Q3: kỳ nghiệm thu ĐÃ KHÓA thì không ai sửa được số liệu của kỳ đó, kể cả người có quyền
-       sửa tài chính — trừ khi Chủ sở hữu mở khóa (kèm lý do, ghi vào nhật ký). */
-    const viPham = kiemTraKyKhoa(curF, body, me);
-    if (viPham) {
-      slog("TỪ CHỐI sửa kỳ nghiệm thu đã khóa bởi " + me.email + ": " + viPham);
-      return json(res, 403, { error: "period_locked", message: viPham });
-    }
     /* R8: người bị giới hạn phạm vi chỉ gửi lên phần họ thấy -> ghép lên bản đầy đủ, nếu
        không thì mỗi lần họ lưu là xóa sạch tài chính của dự án họ không nhìn thấy. */
     try { const thay = phamViDuAn(me, sharedState()); if (thay) body = ghepTaiChinh(curF, body, thay); }
     catch (e) {
       slog("LỖI ghép phạm vi tài chính cho " + me.email + ": " + (e && e.message));
       return json(res, 500, { error: "scope_merge_failed", message: "Máy chủ không ghép được số liệu tài chính theo phạm vi dự án. Vui lòng báo quản trị." });
+    }
+    /* Q6: rev đã cũ thì KHÔNG từ chối ngay. Chỉ dự án nào người này đổi mà người khác cũng vừa đổi (sau lúc họ
+       tải) mới là xung đột thật; QS sửa dự án A và Kế toán ghi đợt thu dự án B cùng lúc thì cả hai đều được lưu. */
+    if (Number(body.expectedRev) !== curF.rev) {
+      const kq = ghepTaiChinhTheoDuAn(curF, body, Number(body.expectedRev));
+      if (!kq.ok) return json(res, 409, { error: "conflict", rev: curF.rev, projects: kq.trung });
+      body = kq.body;
+    }
+    /* G1 (kiểm tra toàn bộ 06/09): kiểm tra khóa kỳ PHẢI chạy trên bản ĐÃ GHÉP — người bị giới hạn gửi bản
+       thiếu dự án ẩn, kiểm trước khi ghép thì máy chủ tưởng họ xóa kỳ đã khóa của dự án ẩn và từ chối mọi lần lưu.
+       Quy tắc chung cho cả /api/kv lẫn /api/finance: mọi đối chiếu với bản đầy đủ đều đứng SAU bước ghép. */
+    /* Q3: kỳ nghiệm thu ĐÃ KHÓA thì không ai sửa được số liệu của kỳ đó, kể cả người có quyền
+       sửa tài chính — trừ khi Chủ sở hữu mở khóa (kèm lý do, ghi vào nhật ký). */
+    const viPham = kiemTraKyKhoa(curF, body, me);
+    if (viPham) {
+      slog("TỪ CHỐI sửa kỳ nghiệm thu đã khóa bởi " + me.email + ": " + viPham);
+      return json(res, 403, { error: "period_locked", message: viPham });
     }
     try { chupDonGiaKhiKhoa(curF, body); } catch {}     // R3: chốt đơn giá của kỳ vừa khóa
     const obj = (x) => (x && typeof x === "object" && !Array.isArray(x)) ? x : {};
@@ -1660,6 +2083,7 @@ const requestHandler = async (req, res) => {
       nganSach: obj(body.nganSach),        // Q2: ngân sách chi phí theo nhóm, theo dự án
       chiPhi: obj(body.chiPhi),            // Q2: sổ chi phí thực tế theo dự án
       deNghi: obj(body.deNghi),            // Q5: đề nghị thanh toán sinh từ kỳ nghiệm thu
+      revTheoDuAn: revTheoDuAnMoi(curF, body, newRev),   // Q6
       rev: newRev, updatedAt: Date.now() });
     /* R2: chỉ ghi vết SAU khi đã lưu thật. Trước đây ghi trước cả bước kiểm tra khóa kỳ nên
        một thay đổi bị từ chối (403) vẫn để lại dòng "đã sửa 20 → 99" trong audit.jsonl. */
@@ -1683,7 +2107,7 @@ const requestHandler = async (req, res) => {
       try {
         const st = JSON.parse(val);
         const thay = phamViDuAn(me, st);
-        if (thay) val = JSON.stringify(locTheoPhamVi(st, thay));
+        if (thay) val = JSON.stringify(locTheoPhamVi(st, thay, me.id));
       } catch {}
     }
     return json(res, 200, { value: val }, req); // khối lớn nhất — gzip giúp nhiều nhất
@@ -1694,6 +2118,8 @@ const requestHandler = async (req, res) => {
     if (typeof value !== "string") return json(res, 400, { error: "bad_value" });
     let incoming;
     try { incoming = JSON.parse(value); } catch { return json(res, 400, { error: "bad_value", message: "Dữ liệu không phải JSON hợp lệ." }); }
+    incoming = sachKhoiChung(incoming);
+    if (!incoming) return json(res, 400, { error: "bad_shape", message: "Dữ liệu gửi lên sai cấu trúc — hãy tải lại trang (Ctrl+R)." });
     const d = loadData();
     {
       let curRev = null;
@@ -1702,13 +2128,32 @@ const requestHandler = async (req, res) => {
       if (typeof inRev === "number" && typeof curRev === "number" && inRev <= curRev) {
         return json(res, 409, { error: "conflict", rev: curRev });
       }
+      /* Fuzz 06/09: rev nhảy quá xa (client lỗi / gọi tay) sẽ khóa ghi cho mọi người mãi mãi vì ai gửi cũng "cũ hơn". */
+      if (typeof inRev === "number" && typeof curRev === "number" && inRev > curRev + 1000000) {
+        return json(res, 400, { error: "bad_shape", message: "Dữ liệu gửi lên sai cấu trúc — hãy tải lại trang (Ctrl+R)." });
+      }
     }
     /* A6: người bị giới hạn phạm vi chỉ gửi lên phần họ thấy -> ghép lên bản đầy đủ trước khi
        thẩm định và lưu, nếu không mỗi lần họ lưu là xóa sạch dự án họ không thấy. */
     try {
       const cur = JSON.parse(d[key] || "{}");
       const thay = phamViDuAn(me, cur);
-      if (thay) incoming = ghepTheoPhamVi(cur, incoming, thay);
+      if (thay) {
+        /* K1 (kiểm tra toàn bộ 06/09): dự án MỚI do người bị giới hạn tạo chưa có trên máy chủ nên không nằm
+           trong phạm vi -> trước đây bị ghép rớt im lặng (200 nhưng mất dự án, cột, việc, lịch sử). Id mới =
+           chưa có trong danh sách dự án lẫn thùng rác (không cho "tạo lại" một dự án ẩn đã xóa). */
+        const daCo = new Set([...(cur.projects || []).map((p) => p && p.id), ...(cur.trash || []).map((x) => x && x.id)]);
+        for (const p of (Array.isArray(incoming.projects) ? incoming.projects : [])) if (p && p.id && !daCo.has(p.id)) thay.add(p.id);
+        /* K25: chuyển việc đang thấy sang dự án ngoài phạm vi -> báo đúng lý do (trước đây lọt xuống luật
+           "xóa việc phải qua thùng rác" vì việc biến mất khỏi phần hiện). */
+        const cuT = new Map((cur.tasks || []).map((x) => [x && x.id, x]));
+        for (const x of (Array.isArray(incoming.tasks) ? incoming.tasks : [])) {
+          const old = x && cuT.get(x.id);
+          if (old && x.projectId && !thay.has(x.projectId) && (!old.projectId || thay.has(old.projectId)))
+            return json(res, 403, { error: "forbidden_change", message: "Không thể chuyển công việc sang dự án ngoài phạm vi của bạn." });
+        }
+        incoming = ghepTheoPhamVi(cur, incoming, thay, me.id);
+      }
     } catch (e) {
       /* Ghép hỏng mà vẫn lưu thì sẽ XÓA MẤT dữ liệu của dự án người này không nhìn thấy.
          Thà từ chối và để lại dấu vết còn hơn im lặng làm hỏng dữ liệu. */
@@ -1723,6 +2168,7 @@ const requestHandler = async (req, res) => {
     }
     if (JSON.stringify(incoming).length > 5 * 1024 * 1024) slog("CẢNH BÁO: khối dữ liệu chung đã " + Math.round(value.length / 1048576) + "MB — cân nhắc dọn lịch sử/thùng rác (trần cứng 8MB).");
     const prevStr = d[key] || "";
+    incoming.dataVersion = DATA_VERSION;                 // giữ số phiên bản cấu trúc qua mỗi lần client lưu
     d[key] = JSON.stringify(incoming); saveData(d);   // A6: lưu bản ĐÃ GHÉP, không phải bản client gửi
     SHARED_REV_CACHE = (incoming && typeof incoming.rev === "number") ? incoming.rev : null;
     try { auditWrite(diffAudit(me, incoming, prevStr, clientIp(req), SHARED_REV_CACHE)); } catch {}
@@ -1738,7 +2184,7 @@ const requestHandler = async (req, res) => {
     if (err) { res.writeHead(404); res.end("Not found"); return; }
     const ex2 = path.extname(fp);
     let nc = {};
-    if (ex2 === ".html") nc = { "Cache-Control": "no-store" };
+    if (ex2 === ".html" || /(^|[\\/])sw\.js$/.test(sfe)) nc = { "Cache-Control": "no-store" };   // service worker phải luôn mới
     else if ([".js", ".css", ".woff", ".woff2", ".png", ".jpg", ".svg", ".ico"].includes(ex2)) nc = { "Cache-Control": "public, max-age=31536000, immutable" };
     const headers = { "Content-Type": MIME[ex2] || "application/octet-stream", ...nc };
     if (GZIP_EXT.has(ex2)) return sendMaybeGzip(req, res, buf, headers);
@@ -1892,6 +2338,7 @@ function notifyChanges(actor, inc, curStr) {
     const oldAss = new Set(old ? arr(old.assignees) : []);
     for (const uid2 of arr(tk.assignees)) {
       if (oldAss.has(uid2) || uid2 === actor.id) continue;
+      themThongBao([uid2], { type: "assign", text: "Bạn được giao việc: " + (tk.title || "(chưa đặt tên)") + (projName[tk.projectId] ? " — " + projName[tk.projectId] : "") + (tk.dueDate ? " · hạn " + tk.dueDate : ""), taskId: tk.id, projectId: tk.projectId });
       send(emailById[uid2], "[Giao việc] " + (tk.title || "Công việc"),
         "Bạn vừa được giao việc:\n\n• Công việc: " + (tk.title || "(chưa đặt tên)") + "\n• Dự án: " + (projName[tk.projectId] || "") + (tk.dueDate ? "\n• Hạn chót: " + tk.dueDate : "") + "\n• Người giao: " + (actor.name || actor.email));
     }
@@ -1899,6 +2346,7 @@ function notifyChanges(actor, inc, curStr) {
     if (newRet && newRet !== (old && old.lastReturn && old.lastReturn.ts)) {
       for (const uid2 of arr(tk.assignees)) {
         if (uid2 === actor.id) continue;
+        themThongBao([uid2], { type: "return", text: "Việc bị trả về: " + (tk.title || "(chưa đặt tên)") + (tk.lastReturn.reason ? " — " + String(tk.lastReturn.reason).slice(0, 120) : ""), taskId: tk.id, projectId: tk.projectId });
         send(emailById[uid2], "[Trả về] " + (tk.title || "Công việc"),
           "Việc của bạn bị TRẢ VỀ để làm lại:\n\n• Công việc: " + (tk.title || "(chưa đặt tên)") + "\n• Dự án: " + (projName[tk.projectId] || "") + "\n• Lý do: " + (tk.lastReturn.reason || "") + "\n• Người trả về: " + (tk.lastReturn.by || actor.name || ""));
       }
@@ -1922,6 +2370,12 @@ async function runOverdueDigest() {
   const overdue = (sh.tasks || []).filter((x) => x && !x.completed && x.dueDate && x.dueDate < day);
   st.digestDay = day; saveSchedState(st); // đánh dấu trước, tránh gửi lặp nếu lỗi giữa chừng
   if (!overdue.length) return;
+  /* U6: mỗi người một thông báo quá hạn mỗi ngày (khóa theo ngày để không lặp). */
+  try {
+    const theoNguoi = {};
+    for (const x of overdue) for (const id of (x.assignees || [])) (theoNguoi[id] = theoNguoi[id] || []).push(x);
+    for (const [id, ds] of Object.entries(theoNguoi)) themThongBao([id], { type: "overdue", khoa: "qh|" + day + "|" + id, text: "Bạn có " + ds.length + " việc quá hạn: " + ds.slice(0, 3).map((x) => x.title || "(chưa đặt tên)").join(", ") + (ds.length > 3 ? "…" : ""), taskId: ds[0].id, projectId: ds[0].projectId });
+  } catch {}
   const accounts = loadAccounts();
   const mgrs = accounts.filter((a) => a.role === "owner" || a.isLeader).map((a) => a.email).filter(Boolean);
   if (!mgrs.length) return;
@@ -1983,7 +2437,7 @@ function runSnapshotCheck() {
   if (fs.existsSync(dir)) return; // hôm nay đã chụp
   try { fs.mkdirSync(dir, { recursive: true }); } catch { return; }
   let n = 0;
-  for (const [fn, fp] of [["data.json", DATA], ["accounts.json", ACCOUNTS], ["finance.json", FINANCE], ["records.json", RECORDS], ["sitelogs.json", SITELOGS], ["taskfiles.json", TASKFILES], ["config.json", CONFIG_PATH], ["audit.jsonl", AUDIT]]) {
+  for (const [fn, fp] of [["data.json", DATA], ["accounts.json", ACCOUNTS], ["finance.json", FINANCE], ["records.json", RECORDS], ["sitelogs.json", SITELOGS], ["taskfiles.json", TASKFILES], ["config.json", CONFIG_PATH], ["audit.jsonl", AUDIT], ...auditFiles().filter((f) => f !== AUDIT && !f.endsWith(".1")).map((f) => [path.basename(f), f])]) {
     try { if (fs.existsSync(fp)) { fs.copyFileSync(fp, path.join(dir, fn)); n++; } } catch {}
   }
   console.log("[snapshot] đã chụp " + n + " file dữ liệu -> " + dir);
@@ -2050,7 +2504,9 @@ server.on("error", (e) => {
   }
   throw e;
 });
-server.listen(PORT, "0.0.0.0", () => {
+/* Hoàn thiện 06/09: nghe cả IPv4 lẫn IPv6 (mặc định của Node) — trước đây chỉ 0.0.0.0 nên Edge/Chrome mở http://localhost trên chính máy chủ
+   bị "localhost refused to connect" vì trình duyệt phân giải localhost thành ::1. Máy không có IPv6 thì Node tự về 0.0.0.0. */
+server.listen(PORT, () => {
   let lan = "localhost";
   const ifaces = os.networkInterfaces();
   for (const name in ifaces) for (const ni of ifaces[name]) if (ni.family === "IPv4" && !ni.internal) lan = ni.address;
@@ -2079,6 +2535,7 @@ server.listen(PORT, "0.0.0.0", () => {
   console.log("   Sao lưu hằng tuần (T7): " + ((cfg.backup && cfg.backup.email) ? ("-> " + cfg.backup.email) : "(chưa đặt email nhận sao lưu)"));
   console.log("   Bảo mật: khóa đăng nhập sau " + MAX_FAILS + " lần sai, phiên hết hạn sau " + Math.round(TOKEN_TTL_MS / 86400000) + " ngày không hoạt động.");
   try { donDauVetGiayPhep(); } catch {}
+  diTruDuLieu();
   loadSessions();
   if (tokens.size) console.log("   Phiên đăng nhập: khôi phục " + tokens.size + " phiên (không phải đăng nhập lại sau khi khởi động lại).");
   console.log("   Dữ liệu: " + DATA + "\n   Tài khoản: " + ACCOUNTS + "\n   Nhật ký bảo mật: " + path.join(DATA_DIR, "security.log") + "\n");
@@ -2086,14 +2543,17 @@ server.listen(PORT, "0.0.0.0", () => {
   console.log("   Giấy phép: AGPL-3.0 (phần mềm tự do) · mã nguồn: " + (loadConfig().sourceUrl || MA_NGUON_MAC_DINH));
   console.log("   Nhấn Ctrl+C để dừng.\n");
   const sec = Math.max(20, (loadConfig().reminderCheckSeconds || 60));
-  runReminderCheck().catch(() => {});
-  setInterval(() => runReminderCheck().catch(() => {}), sec * 1000);
-  runBackupCheck().catch(() => {});
-  setInterval(() => runBackupCheck().catch(() => {}), 3600 * 1000);
+  runReminderCheck().catch((e) => slog("LỖI tác vụ nền nhắc việc: " + (e && e.stack || e)));
+  setInterval(() => runReminderCheck().catch((e) => slog("LỖI tác vụ nền nhắc việc: " + (e && e.stack || e))), sec * 1000);
+  runBackupCheck().catch((e) => slog("LỖI tác vụ nền sao lưu: " + (e && e.stack || e)));
+  setInterval(() => runBackupCheck().catch((e) => slog("LỖI tác vụ nền sao lưu: " + (e && e.stack || e))), 3600 * 1000);
   try { runSnapshotCheck(); } catch {}
   setInterval(() => { try { runSnapshotCheck(); } catch {} }, 3600 * 1000);
-  runOverdueDigest().catch(() => {});
-  setInterval(() => runOverdueDigest().catch(() => {}), 30 * 60 * 1000);
+  runOverdueDigest().catch((e) => slog("LỖI tác vụ nền bản tin quá hạn: " + (e && e.stack || e)));
+  setInterval(() => runOverdueDigest().catch((e) => slog("LỖI tác vụ nền bản tin quá hạn: " + (e && e.stack || e))), 30 * 60 * 1000);
+  setTimeout(() => runHealthAlert().catch((e) => slog("LỖI tác vụ nền cảnh báo sức khỏe: " + (e && e.stack || e))), 90 * 1000);
+  setInterval(() => runHealthAlert().catch((e) => slog("LỖI tác vụ nền cảnh báo sức khỏe: " + (e && e.stack || e))), 3600 * 1000);
+  setInterval(() => runWeeklyAuditDigest().catch((e) => slog("LỖI tác vụ nền báo cáo tuần: " + (e && e.stack || e))), 30 * 60 * 1000);
   setInterval(purgeTokens, 10 * 60 * 1000);
   setInterval(saveSessions, 5 * 60 * 1000);   // ghi hạn phiên đã gia hạn xuống đĩa định kỳ
 });

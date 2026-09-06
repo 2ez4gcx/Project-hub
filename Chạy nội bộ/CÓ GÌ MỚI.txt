@@ -1,4 +1,56 @@
 ═══════════════════════════════════════════════════════════════
+  TRẠM DỰ ÁN v5.0.0 — HOÀN THIỆN: ĐÓNG CẢ LỘ TRÌNH TRONG MỘT BẢN
+═══════════════════════════════════════════════════════════════
+
+ CÓ GÌ MỚI (cho người dùng)
+
+ • Việc có "Bắt đầu / Kết thúc thực tế" riêng, tự điền theo trạng
+   thái; Gantt vẽ thanh thực tế; biết trễ thật bao nhiêu ngày.
+ • Kế hoạch gốc lưu nhiều bản (BL0, BL1…), chọn bản để so; Gantt
+   hiện KH đến hôm nay / Thực tế / SPI và đường S bên dưới.
+ • BOQ có cột "Thi công (NK)" (từ nhật ký) và "Đã đề nghị TT";
+   gợi ý KL kỳ có trọng số theo số ngày của việc.
+ • Quy tắc nghiệm thu theo dự án: phải xong việc con / phải có ảnh
+   mới được gửi duyệt; chỉ định QC duyệt.
+ • Thông báo trong app: được giao việc, bị trả về, nhật ký cần
+   duyệt / đã duyệt, quá hạn — không cần email.
+ • Tài chính: hai người sửa hai dự án khác nhau cùng lúc đều được
+   lưu; chỉ báo xung đột khi cùng một dự án.
+ • Đề nghị thanh toán chọn được cách tính VAT; số biên bản tự cấp
+   BB-NN/NĂM; loại biên bản khai trong Cài đặt.
+ • Điện thoại: BOQ và Gantt dạng thẻ.
+ • Nút "Góp ý" ở thanh bên; thẻ "Sức khỏe vận hành" trên Tổng quan
+   (Chủ sở hữu / Lãnh đạo).
+
+ CHO NGƯỜI QUẢN TRỊ
+
+ • Cài đặt > Sức khỏe máy chủ (dữ liệu, snapshot, đĩa, email); email
+   cảnh báo tự động khi có vấn đề; email "ai sửa gì" sáng thứ Hai.
+ • "Cập nhật phiên bản (Windows).bat" / cap-nhat.sh: sao lưu data,
+   tải bản mới, chép đè — một nút.
+ • Khởi động bản này lần đầu: máy chủ tự chuẩn hóa dữ liệu cũ một
+   lần (ghi vào security.log). Không cần làm gì thêm.
+ • Lỗi trình duyệt của người dùng nay được ghi vào data/security.log.
+ • Mở http://localhost:3000 ngay trên máy chủ bằng Edge/Chrome không còn
+   bị "localhost refused to connect" (máy chủ nghe cả IPv6).
+
+ ⚠ THAY ĐỔI HÀNH VI (gộp từ bản 4.3.0 chưa phát hành)
+ • Chỉ Chủ sở hữu / Lãnh đạo đổi được "Thành viên dự án" và quy tắc
+   nghiệm thu; người quản lý tài khoản không tự đổi quyền của mình;
+   Teamlead phải là thành viên dự án giới hạn mới xem tệp việc của
+   dự án đó; người bị loại khỏi dự án không sửa hồ sơ cũ của mình.
+ • Xóa tài khoản sẽ gỡ người đó khỏi mọi dự án / việc (có vết).
+ • Sửa nhật ký / biên bản trên bản đã cũ (người khác vừa sửa) sẽ bị
+   từ chối và báo tên người vừa sửa — mở lại rồi bổ sung.
+
+CÁCH CẬP NHẬT
+ Nhấp đúp "Cập nhật phiên bản (Windows).bat" (hoặc sh cap-nhat.sh
+ trên NAS), rồi khởi động lại. Bảo mọi người bấm Ctrl+F5 một lần.
+
+Phần mềm do Khuong Doan phát triển — https://khuongdoan.com/
+
+
+═══════════════════════════════════════════════════════════════
   TRẠM DỰ ÁN v4.2.3 — VÁ BA CẠNH NHỎ CỦA "THÀNH VIÊN DỰ ÁN"
 ═══════════════════════════════════════════════════════════════
 

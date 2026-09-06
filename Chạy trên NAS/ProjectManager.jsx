@@ -35,6 +35,7 @@ const T = {
     e_conflict: "Người khác vừa lưu thay đổi. Hãy tải lại và thao tác lại.",
     e_email_exists: "Email này đã được dùng.",
     e_forbidden: "Bạn không có quyền làm việc này.",
+    e_sitelog_locked: "Nhật ký này đã được duyệt nên đang khóa — đề nghị Chỉ huy trưởng mở khóa.", e_wrong_current_password: "Mật khẩu hiện tại không đúng.", e_not_submitted: "Nhật ký chưa được nộp.", e_in_trash: "Nhật ký này đang trong thùng rác — khôi phục trước.", e_self_caps: "Không tự đổi quyền của chính mình — nhờ Chủ sở hữu cấp.", e_bad_shape: "Dữ liệu gửi lên sai cấu trúc — hãy tải lại trang (Ctrl+R).", e_missing_rev: "Thiếu số phiên bản tài chính — hãy tải lại trang (Ctrl+R).", e_bad_email: "Email không hợp lệ.", e_no_project: "Dự án không tồn tại (có thể vừa bị xóa) — hãy tải lại trang.",
     e_forbidden_change: "Bạn không có quyền đổi mục này.",
     e_log_exists: "Ngày này đã có nhật ký thi công.",
     e_missing: "Còn thiếu thông tin bắt buộc.",
@@ -145,7 +146,18 @@ const T = {
     title: "Tiêu đề", description: "Mô tả", priority: "Ưu tiên",
     assignee: "Người làm", dueDate: "Hạn chót", tagsLabel: "Nhãn",
     section: "Cột", subtasks: "Việc con", addSubtask: "Thêm việc con",
-    delete: "Xóa", edit: "Sửa", untitled: "Việc chưa đặt tên",
+    delete: "Xóa", edit: "Sửa", untitled: "Việc chưa đặt tên", untitledProject: "(dự án chưa đặt tên)", deletedTask: "(việc đã xóa)",
+    gopY: "Góp ý", gopYHint: "Điều gì làm bạn phải mở Excel / Zalo thay vì phần mềm? Viết ngắn cũng được — Chủ sở hữu sẽ nhận được.", gopYSent: "Đã gửi góp ý — cảm ơn bạn.", gopYSend: "Gửi góp ý",
+    sucKhoeVH: "Sức khỏe vận hành (30 ngày)", nkDungHan: "Nhật ký nộp đúng hạn", bcDungHan: "Báo cáo ngày đúng hạn", kyThangNay: "Kỳ nghiệm thu tháng này", viecXong30: "Việc hoàn thành 30 ngày", chuaCoSoLieu: "chưa có số liệu",
+    sucKhoeMC: "Sức khỏe máy chủ", skPwa: "PWA / service worker", skPwaOn: "đã đăng ký (mở được khi mất mạng)", skPwaOff: "chưa — chỉ chạy khi HTTPS hoặc localhost", skDuLieu: "Khối dữ liệu", skSnapshot: "Snapshot gần nhất", skDia: "Đĩa trống", skEmail: "Email", skSaoLuu: "Sao lưu tuần", skUptime: "Chạy liên tục", skOk: "Không có cảnh báo", skNgay: "ngày trước", skChua: "chưa có", skSanSang: "sẵn sàng", skChuaCauHinh: "chưa cấu hình", skGio: "giờ",
+    recTypesLabel: "Loại biên bản (mỗi dòng một loại, hiện đầu danh sách chọn)", recNumberAuto: "Để trống = tự cấp BB-NN/NĂM theo dự án",
+    vatTren: "VAT tính trên", vatSauKhauTru: "giá trị sau giữ lại & khấu trừ", vatGiaTriKy: "giá trị kỳ (giữ lại, khấu trừ trừ sau VAT)", payWithVAT: "Giá trị có VAT",
+    actualStart: "Bắt đầu thực tế", actualFinish: "Kết thúc thực tế", actualHint: "Tự điền khi việc chuyển Đang làm / Hoàn thành; sửa được nếu khác thực tế.", treThat: "trễ thật", somThat: "sớm hơn hạn", actualLegend: "Thực tế",
+    blVersions: "Kế hoạch gốc", blNew: "Lưu bản mới", blCompare: "So với bản", spi: "SPI", planPct: "KH đến hôm nay", actPct: "Thực tế", sCurve: "Đường S: kế hoạch gốc so với thực tế", blNamePh: "Tên bản (vd BL1 sau khi CĐT duyệt lại)",
+    duyetRules: "Quy tắc nghiệm thu", duyetCanAnh: "Phải có ảnh / tệp đính kèm mới được gửi duyệt", duyetCanViecCon: "Phải xong hết việc con mới được gửi duyệt", duyetQC: "Người kiểm tra chất lượng (QC) được duyệt — trống = Teamlead / Lãnh đạo như cũ", duyetHint: "Máy chủ và ứng dụng cùng kiểm; Lãnh đạo luôn duyệt được.", duyetChanAnh: "Việc này chưa có ảnh / tệp đính kèm — quy tắc nghiệm thu của dự án yêu cầu có trước khi gửi duyệt.", duyetChanViecCon: "Còn việc con chưa xong — quy tắc nghiệm thu của dự án yêu cầu xong hết trước khi gửi duyệt.",
+    boqThiCong: "Thi công (NK)", boqXuatHD: "Đã đề nghị TT", boqTon: "Chưa NT", boqThiCongTip: "Cộng dồn khối lượng ghi trong nhật ký thi công (dòng có gắn hạng mục)", boqXuatHDTip: "Lũy kế các kỳ đã lập đề nghị thanh toán (có số / ngày)",
+    notifRead: "Đánh dấu đã đọc hết", showMore: "Hiện thêm", aiSuaGi: "Ai sửa gì 7 ngày qua", thayDoi: "thay đổi", ganttMobileHint: "Trên điện thoại: mỗi việc một thẻ; xoay ngang để xem biểu đồ.",
+    e_stale: "Bản này vừa được người khác sửa — hãy mở lại bản mới rồi bổ sung.", e_too_many: "Gửi quá nhiều — thử lại sau ít phút.",
     addTagPlaceholder: "Thêm nhãn + Enter",
     priorities: { low: "Thấp", medium: "Trung bình", high: "Cao", urgent: "Khẩn cấp" },
     defaultSections: ["Cần làm", "Đang làm", "Hoàn thành"],
@@ -327,7 +339,7 @@ const T = {
       member_add: "đã thêm thành viên", member_remove: "đã gỡ thành viên",
       member_role: "đã đổi vai trò của", member_cap: "đã đổi quyền của", history_grant: "đã cấp quyền xem lịch sử cho", history_revoke: "đã thu hồi quyền xem lịch sử của",
       task_reject: "đã trả về việc", baseline_save: "đã lưu kế hoạch gốc cho", trash_purge: "đã xóa vĩnh viễn", project_members: "đã đổi thành viên dự án",
-      task_assign: "đã giao việc", task_workdone: "đã cập nhật hoàn thành", task_reminder: "đã đặt nhắc việc cho",
+      csv_import: "đã nhập CSV vào", task_assign: "đã giao việc", task_workdone: "đã cập nhật hoàn thành", task_reminder: "đã đặt nhắc việc cho",
     },
     emptyVal: "(trống)",
     loading: "Đang tải…",
@@ -336,8 +348,8 @@ const T = {
     histServerHint: "Do máy chủ tự ghi — không sửa/xóa được từ ứng dụng.",
     histServerHead: "500 vết gần nhất",
     auditNoServer: "Chỉ có khi chạy chế độ máy chủ (LAN/NAS), và chỉ Chủ sở hữu / Lãnh đạo xem được.",
-    auditEntity: { project: "dự án", task: "công việc", boq: "khối lượng (BOQ)", contract: "hợp đồng", report: "báo cáo", trash: "thùng rác", sitelog: "nhật ký thi công", batch: "hàng loạt" },
-    auditField: { "tạo mới": "đã tạo", "xóa": "đã xóa", "xóa vĩnh viễn": "đã xóa vĩnh viễn", workdone: "sửa % hoàn thành", dueDate: "sửa hạn chót", startDate: "sửa ngày bắt đầu", duration: "sửa thời lượng", status: "đổi trạng thái", title: "đổi tên", priority: "đổi ưu tiên", assignees: "đổi người làm", section: "chuyển hạng mục", donGia: "sửa đơn giá", khoiLuong: "sửa khối lượng hợp đồng", khoiLuongKy: "sửa khối lượng kỳ nghiệm thu", giaTri: "sửa giá trị hợp đồng", "duyệt nhật ký": "đã duyệt nhật ký", "mở khóa nhật ký": "đã mở khóa nhật ký", name: "đổi tên dự án", members: "đổi thành viên dự án", siteLoggers: "đổi người lập nhật ký", lich: "đổi lịch làm việc", baseline: "lưu kế hoạch gốc", comment: "thêm bình luận", items: "sửa nội dung báo cáo", primaryAssigneeId: "đổi người phụ trách chính", dependsOn: "đổi phụ thuộc", approver: "đổi người duyệt", completed: "đổi trạng thái hoàn thành", sectionId: "chuyển giai đoạn", milestone: "đổi mốc", kind: "đổi loại việc", defect: "sửa thông tin lỗi", value: "sửa giá trị hợp đồng", billed: "đổi đợt xuất hóa đơn", paid: "đổi đợt thanh toán", "gộp": "gộp nhiều thay đổi", "xóa (vào thùng rác)": "đã chuyển vào thùng rác", "thêm hạng mục": "đã thêm hạng mục", "xóa hạng mục": "đã xóa hạng mục", "thêm kỳ nghiệm thu": "đã thêm kỳ nghiệm thu", "xóa kỳ nghiệm thu": "đã xóa kỳ nghiệm thu", "khóa kỳ": "đã khóa kỳ nghiệm thu", "mở khóa kỳ": "đã mở khóa kỳ nghiệm thu" },
+    auditEntity: { project: "dự án", task: "công việc", boq: "khối lượng (BOQ)", contract: "hợp đồng", report: "báo cáo", trash: "thùng rác", sitelog: "nhật ký thi công", batch: "hàng loạt", nganSach: "ngân sách", chiPhi: "chi phí", deNghi: "đề nghị thanh toán" },
+    auditField: { "tạo mới": "đã tạo", "xóa": "đã xóa", "xóa vĩnh viễn": "đã xóa vĩnh viễn", workdone: "sửa % hoàn thành", dueDate: "sửa hạn chót", startDate: "sửa ngày bắt đầu", duration: "sửa thời lượng", status: "đổi trạng thái", title: "đổi tên", priority: "đổi ưu tiên", assignees: "đổi người làm", section: "chuyển hạng mục", donGia: "sửa đơn giá", khoiLuong: "sửa khối lượng hợp đồng", khoiLuongKy: "sửa khối lượng kỳ nghiệm thu", giaTri: "sửa giá trị hợp đồng", "duyệt nhật ký": "đã duyệt nhật ký", "mở khóa nhật ký": "đã mở khóa nhật ký", name: "đổi tên dự án", members: "đổi thành viên dự án", siteLoggers: "đổi người lập nhật ký", lich: "đổi lịch làm việc", baseline: "lưu kế hoạch gốc", comment: "thêm bình luận", items: "sửa nội dung báo cáo", primaryAssigneeId: "đổi người phụ trách chính", dependsOn: "đổi phụ thuộc", approver: "đổi người duyệt", completed: "đổi trạng thái hoàn thành", sectionId: "chuyển giai đoạn", milestone: "đổi mốc", kind: "đổi loại việc", defect: "sửa thông tin lỗi", value: "sửa giá trị hợp đồng", billed: "đổi đợt xuất hóa đơn", paid: "đổi đợt thanh toán", "gộp": "gộp nhiều thay đổi", "xóa (vào thùng rác)": "đã chuyển vào thùng rác", "thêm hạng mục": "đã thêm hạng mục", "xóa hạng mục": "đã xóa hạng mục", "thêm kỳ nghiệm thu": "đã thêm kỳ nghiệm thu", "xóa kỳ nghiệm thu": "đã xóa kỳ nghiệm thu", "khóa kỳ": "đã khóa kỳ nghiệm thu", "mở khóa kỳ": "đã mở khóa kỳ nghiệm thu", "sửa ngân sách": "sửa ngân sách nhóm chi phí", "thêm chi phí": "đã ghi chi phí", "sửa chi phí": "đã sửa chi phí", "xóa chi phí": "đã xóa chi phí", "sửa đề nghị thanh toán": "đã sửa đề nghị thanh toán", "sửa nhật ký đã duyệt": "đã sửa nhật ký sau khi duyệt", actualStart: "sửa ngày bắt đầu thực tế", actualFinish: "sửa ngày kết thúc thực tế" },
   },
   en: {
     __ma: "en",
@@ -350,6 +362,7 @@ const T = {
     e_conflict: "Someone else just saved a change. Reload and try again.",
     e_email_exists: "That email is already in use.",
     e_forbidden: "You are not allowed to do this.",
+    e_sitelog_locked: "This site log has been approved and is locked — ask the Site Manager to unlock it.", e_wrong_current_password: "The current password is incorrect.", e_not_submitted: "The site log has not been submitted yet.", e_in_trash: "This site log is in the trash — restore it first.", e_self_caps: "You cannot change your own permissions — ask the Owner.", e_bad_shape: "The data sent is malformed — reload the page (Ctrl+R).", e_missing_rev: "Missing the finance version number — reload the page (Ctrl+R).", e_bad_email: "Invalid email address.", e_no_project: "This project no longer exists (it may have just been deleted) — reload the page.",
     e_forbidden_change: "You are not allowed to change this field.",
     e_log_exists: "A site log already exists for this date.",
     e_missing: "Some required information is missing.",
@@ -460,7 +473,18 @@ const T = {
     title: "Title", description: "Description", priority: "Priority",
     assignee: "Assignee", dueDate: "Due date", tagsLabel: "Tags",
     section: "Column", subtasks: "Subtasks", addSubtask: "Add subtask",
-    delete: "Delete", edit: "Edit", untitled: "Untitled task",
+    delete: "Delete", edit: "Edit", untitled: "Untitled task", untitledProject: "(untitled project)", deletedTask: "(deleted task)",
+    gopY: "Feedback", gopYHint: "What made you open Excel / Zalo instead of this app? A short note is fine — the Owner receives it.", gopYSent: "Feedback sent — thank you.", gopYSend: "Send feedback",
+    sucKhoeVH: "Operations health (30 days)", nkDungHan: "Site logs submitted on time", bcDungHan: "Daily reports on time", kyThangNay: "Acceptance periods this month", viecXong30: "Tasks completed in 30 days", chuaCoSoLieu: "no data yet",
+    sucKhoeMC: "Server health", skPwa: "PWA / service worker", skPwaOn: "registered (opens offline)", skPwaOff: "no — only over HTTPS or localhost", skDuLieu: "Data block", skSnapshot: "Latest snapshot", skDia: "Free disk", skEmail: "Email", skSaoLuu: "Weekly backup", skUptime: "Uptime", skOk: "No warnings", skNgay: "days ago", skChua: "none yet", skSanSang: "ready", skChuaCauHinh: "not configured", skGio: "h",
+    recTypesLabel: "Record types (one per line, shown first in the picker)", recNumberAuto: "Leave blank = auto number BB-NN/YEAR per project",
+    vatTren: "VAT applied on", vatSauKhauTru: "value after retention & advance recovery", vatGiaTriKy: "period value (retention / recovery deducted after VAT)", payWithVAT: "Value incl. VAT",
+    actualStart: "Actual start", actualFinish: "Actual finish", actualHint: "Filled automatically when the task moves to In progress / Done; edit if reality differs.", treThat: "late (actual)", somThat: "ahead of due date", actualLegend: "Actual",
+    blVersions: "Baselines", blNew: "Save new baseline", blCompare: "Compare with", spi: "SPI", planPct: "Planned to date", actPct: "Actual", sCurve: "S-curve: baseline vs actual", blNamePh: "Baseline name (e.g. BL1 after client re-approval)",
+    duyetRules: "Acceptance rules", duyetCanAnh: "Photo / file attachment required before submitting for approval", duyetCanViecCon: "All subtasks must be done before submitting for approval", duyetQC: "Quality inspectors (QC) who approve — empty = Team lead / Leader as before", duyetHint: "Enforced by both server and app; Leaders can always approve.", duyetChanAnh: "This task has no photo / file yet — the project's acceptance rule requires one before submitting.", duyetChanViecCon: "Some subtasks are not done — the project's acceptance rule requires all done before submitting.",
+    boqThiCong: "Executed (logs)", boqXuatHD: "Requested", boqTon: "Not accepted", boqThiCongTip: "Cumulative quantities recorded in site logs (rows linked to this item)", boqXuatHDTip: "Cumulative quantity of periods with a payment request (number / date)",
+    notifRead: "Mark all read", showMore: "Show more", aiSuaGi: "Who changed what, last 7 days", thayDoi: "changes", ganttMobileHint: "On phones each task is a card; rotate to landscape for the chart.",
+    e_stale: "Someone else just edited this — reopen the latest version and add your changes.", e_too_many: "Too many requests — try again in a few minutes.",
     addTagPlaceholder: "Add tag + Enter",
     priorities: { low: "Low", medium: "Medium", high: "High", urgent: "Urgent" },
     defaultSections: ["To do", "In progress", "Done"],
@@ -625,7 +649,7 @@ const T = {
       member_add: "added member", member_remove: "removed member",
       member_role: "changed role of", member_cap: "changed capability of", history_grant: "granted history access to", history_revoke: "revoked history access from",
       task_reject: "returned task", baseline_save: "saved baseline for", trash_purge: "permanently deleted", project_members: "changed project members",
-      task_assign: "assigned", task_workdone: "updated progress on", task_reminder: "set a reminder for",
+      csv_import: "imported CSV into", task_assign: "assigned", task_workdone: "updated progress on", task_reminder: "set a reminder for",
     },
     emptyVal: "(empty)",
     loading: "Loading…",
@@ -634,8 +658,8 @@ const T = {
     histServerHint: "Written by the server — cannot be edited or deleted from the app.",
     histServerHead: "latest 500 entries",
     auditNoServer: "Available only in server mode (LAN/NAS), and only to Owner / Leader.",
-    auditEntity: { project: "project", task: "task", boq: "BOQ item", contract: "contract", report: "report", trash: "trash", sitelog: "site log", batch: "batch" },
-    auditField: { "tạo mới": "created", "xóa": "deleted", "xóa vĩnh viễn": "purged", workdone: "changed progress", dueDate: "changed due date", startDate: "changed start date", duration: "changed duration", status: "changed status", title: "renamed", priority: "changed priority", assignees: "changed assignees", section: "moved section", donGia: "changed unit price", khoiLuong: "changed contract quantity", khoiLuongKy: "changed period quantity", giaTri: "changed contract value", "duyệt nhật ký": "approved the site log", "mở khóa nhật ký": "unlocked the site log", name: "renamed the project", members: "changed project members", siteLoggers: "changed site-log authors", lich: "changed the work calendar", baseline: "saved the baseline", comment: "added a comment", items: "edited report lines", primaryAssigneeId: "changed the primary assignee", dependsOn: "changed dependencies", approver: "changed the approver", completed: "changed completion", sectionId: "moved to another phase", milestone: "toggled milestone", kind: "changed task kind", defect: "edited defect details", value: "changed contract value", billed: "changed billing instalments", paid: "changed payments", "gộp": "batched changes", "xóa (vào thùng rác)": "moved to trash", "thêm hạng mục": "added a BOQ item", "xóa hạng mục": "removed a BOQ item", "thêm kỳ nghiệm thu": "added an acceptance period", "xóa kỳ nghiệm thu": "removed an acceptance period", "khóa kỳ": "locked the period", "mở khóa kỳ": "unlocked the period" },
+    auditEntity: { project: "project", task: "task", boq: "BOQ item", contract: "contract", report: "report", trash: "trash", sitelog: "site log", batch: "batch", nganSach: "budget", chiPhi: "cost entry", deNghi: "payment request" },
+    auditField: { "tạo mới": "created", "xóa": "deleted", "xóa vĩnh viễn": "purged", workdone: "changed progress", dueDate: "changed due date", startDate: "changed start date", duration: "changed duration", status: "changed status", title: "renamed", priority: "changed priority", assignees: "changed assignees", section: "moved section", donGia: "changed unit price", khoiLuong: "changed contract quantity", khoiLuongKy: "changed period quantity", giaTri: "changed contract value", "duyệt nhật ký": "approved the site log", "mở khóa nhật ký": "unlocked the site log", name: "renamed the project", members: "changed project members", siteLoggers: "changed site-log authors", lich: "changed the work calendar", baseline: "saved the baseline", comment: "added a comment", items: "edited report lines", primaryAssigneeId: "changed the primary assignee", dependsOn: "changed dependencies", approver: "changed the approver", completed: "changed completion", sectionId: "moved to another phase", milestone: "toggled milestone", kind: "changed task kind", defect: "edited defect details", value: "changed contract value", billed: "changed billing instalments", paid: "changed payments", "gộp": "batched changes", "xóa (vào thùng rác)": "moved to trash", "thêm hạng mục": "added a BOQ item", "xóa hạng mục": "removed a BOQ item", "thêm kỳ nghiệm thu": "added an acceptance period", "xóa kỳ nghiệm thu": "removed an acceptance period", "khóa kỳ": "locked the period", "mở khóa kỳ": "unlocked the period", "sửa ngân sách": "changed a budget line", "thêm chi phí": "recorded a cost", "sửa chi phí": "edited a cost entry", "xóa chi phí": "removed a cost entry", "sửa đề nghị thanh toán": "edited the payment request", "sửa nhật ký đã duyệt": "edited an approved site log", actualStart: "changed the actual start", actualFinish: "changed the actual finish" },
   },
 };
 
@@ -746,6 +770,23 @@ function parseCSV(text) {
 }
 function normDateCell(v) { const w = String(v || "").trim(); let m; if ((m = w.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/))) return m[1] + "-" + String(m[2]).padStart(2, "0") + "-" + String(m[3]).padStart(2, "0"); if ((m = w.match(/^(\d{1,2})[\/.](\d{1,2})[\/.](\d{4})/))) return m[3] + "-" + String(m[2]).padStart(2, "0") + "-" + String(m[1]).padStart(2, "0"); return ""; }
 const today0 = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+/* Q9/U4: dưới 640 px thì BOQ và Gantt hiện dạng thẻ thay vì bảng rộng. */
+function useIsMobile() {
+  const [m, setM] = useState(() => typeof window !== "undefined" && window.innerWidth < 640);
+  useEffect(() => {
+    const f = () => setM(window.innerWidth < 640);
+    const mq = window.matchMedia ? window.matchMedia("(max-width: 639px)") : null;
+    window.addEventListener("resize", f); if (mq && mq.addEventListener) mq.addEventListener("change", f);
+    f();
+    return () => { window.removeEventListener("resize", f); if (mq && mq.removeEventListener) mq.removeEventListener("change", f); };
+  }, []);
+  return m;
+}
+/* P4: ngày thực tế đi theo trạng thái — bắt đầu khi việc chuyển Đang làm, kết thúc khi Hoàn thành; mở lại thì bỏ ngày kết thúc. */
+const ngayThucTe = (x, st) => {
+  const hom = (() => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); })();
+  return { actualStart: x.actualStart || (st === "doing" || st === "review" || st === "done" ? hom : ""), actualFinish: st === "done" ? (x.actualFinish || hom) : "" };
+};
 const isEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((s || "").trim());
 
 function avatarColor(name) {
@@ -762,6 +803,7 @@ function dueMeta(iso, lang) {
   if (!iso) return null;
   const t = T[lang];
   const d = new Date(iso + "T00:00:00");
+  if (isNaN(d)) return null;                       // ngày không hợp lệ -> coi như không có hạn (không hiện NaN/NaN)
   const diff = Math.round((d - today0()) / 86400000);
   let label, overdue = false;
   if (diff < 0) { overdue = true; label = t.overdue; }
@@ -771,7 +813,7 @@ function dueMeta(iso, lang) {
   return { label, overdue, soon: diff >= 0 && diff <= 2, date: d.getDate() + "/" + (d.getMonth() + 1) };
 }
 function relTime(ts, lang) {
-  const t = T[lang]; const s = Math.floor((Date.now() - ts) / 1000);
+  const t = T[lang]; if (!Number.isFinite(ts)) return ""; const s = Math.floor((Date.now() - ts) / 1000);
   if (s < 60) return t.justNow;
   const m = Math.floor(s / 60); if (m < 60) return t.minAgo(m);
   const h = Math.floor(m / 60); if (h < 24) return t.hrAgo(h);
@@ -799,7 +841,8 @@ function normalizeFinance(f) {
     boq: obj(f.boq),            // { projectId: { items, kys } }
     nganSach: obj(f.nganSach),  // { projectId: { nhóm chi phí: số tiền } }
     chiPhi: obj(f.chiPhi),      // { projectId: [khoản chi thực tế] }
-    deNghi: obj(f.deNghi) };    // { projectId: { kyId: đề nghị thanh toán } }
+    deNghi: obj(f.deNghi),      // { projectId: { kyId: đề nghị thanh toán } }
+    revTheoDuAn: obj(f.revTheoDuAn) };   // Q6: rev từng dự án (máy chủ tính, máy trạm chỉ mang theo)
 }
 const sumItems = (arr) => (arr || []).reduce((s, x) => s + (Number(x.amount) || 0), 0);
 // money input grouping (vi uses '.', en uses ',')
@@ -885,6 +928,7 @@ function normalizeTask(x, members) {
     dependsOn: Array.isArray(x.dependsOn) ? x.dependsOn.filter((d) => typeof d === "string" ? !!d : !!(d && d.id)) : [],
     assignedAt: x.assignedAt || null, completedAt: x.completedAt || null,
     completed: (STATUS_ORDER.includes(x.status) ? x.status : ((x.completed || workdone >= 100) ? "done" : (workdone > 0 ? "doing" : "todo"))) === "done",
+    actualStart: x.actualStart || "", actualFinish: x.actualFinish || "",   // P4 (máy chủ: chuanHoaViecSS phải có cùng trường)
   };
 }
 function normMember(m) {
@@ -1016,6 +1060,8 @@ function ProjectManagerInner() {
   // server auth
   const [serverMode, setServerMode] = useState(false);
   const [features, setFeatures] = useState({});
+  const [recordTypes, setRecordTypes] = useState([]);          // H6: loại biên bản do Chủ sở hữu khai
+  const [serverNotifs, setServerNotifs] = useState([]);        // U6: thông báo do máy chủ sinh
   const [appVersion, setAppVersion] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");     // mục 13 AGPL: mã nguồn của bản ĐANG chạy
   const [authUser, setAuthUser] = useState(null);
@@ -1100,6 +1146,7 @@ function ProjectManagerInner() {
       if (c.ok && c.body && c.body.serverMode) {
         setServerMode(true);
         if (c.body.features) setFeatures(c.body.features);
+        setRecordTypes(Array.isArray(c.body.recordTypes) ? c.body.recordTypes : []);
         if (c.body.version) setAppVersion(c.body.version);
         if (c.body.sourceUrl) setSourceUrl(c.body.sourceUrl);
         if (!c.body.hasAccounts) { setNeedsSetup(true); setAuthReady(true); setLoaded(true); return; }
@@ -1294,6 +1341,25 @@ function ProjectManagerInner() {
       }
     } catch {}
   };
+  /* Hoàn thiện 06/09: lỗi runtime ngoài công trường gửi về security.log của máy chủ (tối đa 1 lần/phút cho mỗi thông điệp). */
+  useEffect(() => {
+    if (!serverMode || !authUser) return;
+    const seen = new Map();
+    const gui = (msg, stack) => { try { const k = String(msg).slice(0, 80); const now = Date.now(); if (seen.get(k) && now - seen.get(k) < 60000) return; seen.set(k, now);
+      api("/api/client-error", { method: "POST", body: JSON.stringify({ message: String(msg).slice(0, 300), stack: String(stack || "").slice(0, 800), view: String(activeProject) + "/" + String(view), rev: localRev.current, ua: navigator.userAgent }) }).catch(() => {}); } catch {} };
+    const onErr = (e) => gui((e && e.message) || String(e), e && e.error && e.error.stack);
+    const onRej = (e) => gui((e && e.reason && e.reason.message) || String(e && e.reason), e && e.reason && e.reason.stack);
+    window.addEventListener("error", onErr); window.addEventListener("unhandledrejection", onRej);
+    return () => { window.removeEventListener("error", onErr); window.removeEventListener("unhandledrejection", onRej); };
+  }, [serverMode, authUser, activeProject, view]); // eslint-disable-line
+  /* U6: thông báo do máy chủ sinh — đọc mỗi 30 giây. */
+  useEffect(() => {
+    if (!serverMode || !authUser) return;
+    let huy = false;
+    const nap = async () => { const r = await api("/api/notifications"); if (!huy && r.ok) setServerNotifs(Array.isArray(r.body.items) ? r.body.items : []); };
+    nap(); const iv = setInterval(nap, 30000);
+    return () => { huy = true; clearInterval(iv); };
+  }, [serverMode, authUser]); // eslint-disable-line
   useEffect(() => {
     if (!loaded || !storageOK) return;
     if (serverMode && !authUser) return; // chưa đăng nhập thì không poll (tránh spam 401 lên máy chủ)
@@ -1320,7 +1386,9 @@ function ProjectManagerInner() {
   const canViewWorkload = (myRole === "owner" || !!me?.canViewWorkload) && feat("workload");
   const viewAllowed = (v) => v === "board" ? feat("viewBoard") : v === "calendar" ? feat("viewCalendar") : v === "timeline" ? feat("viewTimeline") : v === "construction" ? (feat("sitelog") || feat("records")) : v === "defects" ? feat("defects") : true;
   useEffect(() => { if (!viewAllowed(view)) setView("list"); }, [features, view]); // eslint-disable-line
-  const canWorkdone = (task) => canEdit || (me && task.primaryAssigneeId === me.id);
+  /* Thử giao diện 06/09 (UI-7): người phụ trách chính đã bị xóa tài khoản thì không ai cập nhật được % —
+     khi id phụ trách chính không còn trong danh sách thành viên, bất kỳ người được giao nào cũng cập nhật được. */
+  const canWorkdone = (task) => canEdit || (me && (task.primaryAssigneeId === me.id || (!memberById[task.primaryAssigneeId] && (task.assignees || []).includes(me.id))));
   const workMembers = useMemo(() => members.filter((m) => effRole(m) !== "owner"), [members, ownerEmail]); // owner is admin, not a worker
 
   const projName = (pid) => projects.find((p) => p.id === pid)?.name || "";
@@ -1397,9 +1465,10 @@ function ProjectManagerInner() {
     }));
     if (tk) log({ action: "task_assign", projectId: tk.projectId, projectName: projName(tk.projectId), taskId: id, taskTitle: tk.title, to: assignees.map(memName).join(", ") || t.unassigned, primaryName: memName(prim) });
   };
-  const setWorkdone = (id, val) => {
+  const setWorkdone = async (id, val) => {
     const tk = tasks.find((x) => x.id === id); if (!tk || !canWorkdone(tk)) return;
     const v = Math.max(0, Math.min(100, Math.round(val)));
+    if (v >= 100 && tk.status !== "done" && tk.status !== "review" && await chanGuiDuyet(tk)) return;   // H4
     setTasks((p) => p.map((x) => {
       if (x.id !== id) return x;
       let status = x.status, completed = x.completed, completedAt = x.completedAt, approvedBy = x.approvedBy || "";
@@ -1409,21 +1478,38 @@ function ProjectManagerInner() {
         if (auto) { status = "done"; completed = true; completedAt = x.completedAt || Date.now(); approvedBy = prim ? prim.name : approvedBy; }
         else { status = "review"; completed = false; completedAt = null; approvedBy = ""; }
       } else { completed = false; completedAt = null; approvedBy = ""; if (x.status === "review" || x.status === "done") status = "doing"; }
-      return { ...x, workdone: v, status, completed, completedAt, approvedBy };
+      return { ...x, workdone: v, status, completed, completedAt, approvedBy, ...ngayThucTe(x, status) };
     }));
     log({ action: "task_workdone", projectId: tk.projectId, projectName: projName(tk.projectId), taskId: id, taskTitle: tk.title, from: tk.workdone + "%", to: v + "%" });
   };
-  const canApproveTask = (tk) => !!me && (myRole === "owner" || (tk.approver === "leader" ? !!me.isLeader : !!me.isTeamlead));
+  /* H4: dự án chỉ định QC thì chỉ QC (hoặc Lãnh đạo) duyệt; không thì theo người duyệt của việc như cũ. */
+  const quyTacDuyet = (pid) => { const pr = projects.find((p) => p.id === pid); return pr && pr.duyet && typeof pr.duyet === "object" ? pr.duyet : null; };
+  const canApproveTask = (tk) => { if (!me) return false; if (myRole === "owner") return true; const qt = quyTacDuyet(tk.projectId); const qc = qt && Array.isArray(qt.qcIds) ? qt.qcIds : [];
+    if (qc.length) return qc.includes(me.id) || !!me.isLeader; return tk.approver === "leader" ? !!me.isLeader : !!me.isTeamlead; };
+  const coTepDinhKem = async (id) => { const r = await api("/api/taskfiles?taskId=" + encodeURIComponent(id)); return r.ok && Array.isArray(r.body.files) && r.body.files.length > 0; };
+  /* H4: kiểm quy tắc trước khi chuyển "Chờ duyệt" — máy chủ cũng kiểm, đây là để báo sớm và không mất thao tác. */
+  const chanGuiDuyet = async (tk) => {
+    const qt = quyTacDuyet(tk.projectId); if (!qt) return false;
+    if (qt.canViecCon && (tk.subtasks || []).some((c) => c && !c.done)) { antMessage.error(t.duyetChanViecCon); return true; }
+    if (qt.canAnh && !(await coTepDinhKem(tk.id))) { antMessage.error(t.duyetChanAnh); return true; }
+    return false;
+  };
+  /* P4: người được giao (không có quyền giao việc) vẫn ghi được ngày thực tế của việc mình. */
+  const setActual = (id, patch) => {
+    const tk = tasks.find((x) => x.id === id); if (!tk || !canWorkdone(tk)) return;
+    setTasks((p) => p.map((x) => x.id === id ? { ...x, actualStart: patch.actualStart !== undefined ? patch.actualStart : x.actualStart, actualFinish: patch.actualFinish !== undefined ? patch.actualFinish : x.actualFinish } : x));
+  };
   const approveTask = (id) => {
     const tk = tasks.find((x) => x.id === id); if (!tk || !canApproveTask(tk)) return;
-    setTasks((p) => p.map((x) => x.id === id ? { ...x, status: "done", completed: true, workdone: 100, completedAt: x.completedAt || Date.now(), approvedBy: me ? me.name : "" } : x));
+    setTasks((p) => p.map((x) => x.id === id ? { ...x, status: "done", completed: true, workdone: 100, completedAt: x.completedAt || Date.now(), approvedBy: me ? me.name : "", ...ngayThucTe(x, "done") } : x));
     log({ action: "task_workdone", projectId: tk.projectId, projectName: projName(tk.projectId), taskId: id, taskTitle: tk.title, from: "chờ duyệt", to: "hoàn thành" });
   };
-  const setStatus = (id, status) => {
+  const setStatus = async (id, status) => {
     if (!canEdit || !STATUS_ORDER.includes(status)) return;
+    { const tkH = tasks.find((x) => x.id === id); if (tkH && status === "review" && tkH.status !== "review" && await chanGuiDuyet(tkH)) return; }   // H4
     { const tk0 = tasks.find((x) => x.id === id);   // A9: đổi trạng thái trước đây không được ghi lịch sử
       if (tk0 && tk0.status !== status) log({ action: "task_field", field: "status", projectId: tk0.projectId, projectName: projName(tk0.projectId), taskId: id, taskTitle: tk0.title, from: t.statuses[tk0.status] || tk0.status, to: t.statuses[status] || status }); }
-    setTasks((p) => p.map((x) => x.id === id ? { ...x, status, completed: status === "done", completedAt: status === "done" ? (x.completedAt || Date.now()) : null, workdone: status === "done" ? 100 : x.workdone, approvedBy: status === "done" ? (x.approvedBy || (me ? me.name : "")) : "" } : x));
+    setTasks((p) => p.map((x) => x.id === id ? { ...x, status, completed: status === "done", completedAt: status === "done" ? (x.completedAt || Date.now()) : null, workdone: status === "done" ? 100 : x.workdone, approvedBy: status === "done" ? (x.approvedBy || (me ? me.name : "")) : "", ...ngayThucTe(x, status) } : x));
   };
   const setApprover = (id, approver) => { if (!canEdit) return; setTasks((p) => p.map((x) => x.id === id ? { ...x, approver: approver === "leader" ? "leader" : "teamlead" } : x)); };
   const promoteStarted = () => {
@@ -1442,7 +1528,7 @@ function ProjectManagerInner() {
             if (ends.length) { const st = addD(ends[ends.length - 1], 1); nx = { ...nx, startDate: st }; if (nx.duration && !nx.dueDate) nx = { ...nx, dueDate: addD(st, nx.duration) }; ch = true; }
           }
         }
-        if (nx.status === "todo" && nx.startDate && nx.startDate <= today && !nx.completed) { nx = { ...nx, status: "doing" }; ch = true; }
+        if (nx.status === "todo" && nx.startDate && nx.startDate <= today && !nx.completed) { nx = { ...nx, status: "doing", actualStart: nx.actualStart || today }; ch = true; }
         return nx;
       });
       return ch ? n : p;
@@ -1465,10 +1551,12 @@ function ProjectManagerInner() {
     tasks.forEach((tk) => { if (tk.status === "review" && canApproveTask(tk)) out.push({ id: "ap-" + tk.id, type: "approve", ts: tk.assignedAt || tk.createdAt || 0, taskId: tk.id, text: (lang === "vi" ? "Chờ bạn duyệt: " : "Awaiting approval: ") + (tk.title || t.untitled) }); });
     tasks.forEach((tk) => { if ((tk.assignees || []).includes(currentUserId) && !tk.completed && tk.dueDate && new Date(tk.dueDate + "T00:00:00") < today) out.push({ id: "od-" + tk.id, type: "overdue", ts: new Date(tk.dueDate + "T00:00:00").getTime(), taskId: tk.id, text: (lang === "vi" ? "Trễ hạn: " : "Overdue: ") + (tk.title || t.untitled) }); });
     (dailyReports || []).forEach((r) => { (r.comments || []).forEach((c) => { if (c.authorId !== currentUserId && (r.memberId === currentUserId || c.reviewerId === currentUserId)) out.push({ id: "cm-" + c.id, type: "comment", ts: c.ts || 0, report: true, text: (lang === "vi" ? "Bình luận báo cáo từ " : "Report comment from ") + c.author }); }); });
-    return out.sort((a, b) => (b.ts || 0) - (a.ts || 0)).slice(0, 40);
-  }, [tasks, dailyReports, me, currentUserId, lang]); // eslint-disable-line
-  const notifUnread = notifications.filter((n) => (n.ts || 0) > notifSeen).length;
-  const markNotifSeen = () => { const now = Date.now(); setNotifSeen(now); try { localStorage.setItem("pm_notif_seen", String(now)); } catch (e) {} };
+    for (const sn of serverNotifs) out.push({ id: "sv-" + sn.id, svId: sn.id, type: sn.type, ts: sn.ts || 0, text: sn.text, taskId: sn.taskId, logId: sn.logId, projectId: sn.projectId, read: !!sn.read, server: true });
+    return out.sort((a, b) => (b.ts || 0) - (a.ts || 0)).slice(0, 60);
+  }, [tasks, dailyReports, me, currentUserId, lang, serverNotifs]); // eslint-disable-line
+  const notifUnread = notifications.filter((n) => n.server ? !n.read : (n.ts || 0) > notifSeen).length;
+  const markNotifSeen = () => { const now = Date.now(); setNotifSeen(now); try { localStorage.setItem("pm_notif_seen", String(now)); } catch (e) {}
+    if (serverMode && serverNotifs.some((x) => !x.read)) { setServerNotifs((p) => p.map((x) => ({ ...x, read: true }))); api("/api/notifications/read", { method: "POST", body: JSON.stringify({ all: true }) }).catch(() => {}); } };
   const saveDailyReport = (date, items) => {
     if (!me) return; const now = Date.now();
     setDailyReports((p) => {
@@ -1476,7 +1564,7 @@ function ProjectManagerInner() {
       const rep2 = { id: ex ? ex.id : uid(), memberId: currentUserId, memberName: me.name, dept: me.dept || "", date, items: items.filter((it) => (it.moTa || "").trim() || it.taskId).map((it) => ({ id: it.id || uid(), taskId: it.taskId || "", taskTitle: it.taskTitle || "", moTa: it.moTa || "", pct: (it.pct === "" || it.pct == null) ? null : Math.max(0, Math.min(100, Number(it.pct) || 0)), vuongMac: it.vuongMac || "" })), comments: ex ? ex.comments : [], submittedAt: ex && ex.submittedAt ? ex.submittedAt : now, updatedAt: now };
       return ex ? p.map((r) => r.id === rep2.id ? rep2 : r) : [...p, rep2];
     });
-    items.forEach((it) => { if (it.taskId && it.pct != null && it.pct !== "") { const tk = tasks.find((x) => x.id === it.taskId); if (tk && tk.primaryAssigneeId === currentUserId) setWorkdone(it.taskId, Math.max(0, Math.min(100, Number(it.pct) || 0))); } });
+    items.forEach((it) => { if (it.taskId && it.pct != null && it.pct !== "") { const tk = tasks.find((x) => x.id === it.taskId); if (tk && (tk.primaryAssigneeId === currentUserId || (!memberById[tk.primaryAssigneeId] && (tk.assignees || []).includes(currentUserId)))) setWorkdone(it.taskId, Math.max(0, Math.min(100, Number(it.pct) || 0))); } });
   };
   const addReportComment = (reportId, text, reviewerId) => {
     if (!me || !text.trim()) return;
@@ -1541,7 +1629,13 @@ function ProjectManagerInner() {
     if (!(myRole === "owner" || me?.isLeader)) return;
     const map = {};
     tasks.filter((x) => x.projectId === pid).forEach((x) => { const s = x.startDate || x.dueDate, e = x.dueDate || x.startDate; if (s && e) map[x.id] = { s, e }; });
-    setProjects((pp) => pp.map((p) => p.id === pid ? { ...p, baseline: { savedAt: Date.now(), by: me?.name || "", tasks: map } } : p));
+    /* P3: bản đang dùng được cất vào baselines (tối đa 10) trước khi ghi bản mới — so được BL0 / BL1 / ... */
+    setProjects((pp) => pp.map((p) => {
+      if (p.id !== pid) return p;
+      const cu = p.baseline && p.baseline.tasks ? [{ id: uid(), ten: p.baseline.ten || ("BL" + (p.baselines || []).length), savedAt: p.baseline.savedAt || 0, by: p.baseline.by || "", tasks: p.baseline.tasks }] : [];
+      const bls = [...(p.baselines || []), ...cu].slice(-10);
+      return { ...p, baselines: bls, baseline: { savedAt: Date.now(), by: me?.name || "", ten: "BL" + bls.length, tasks: map } };
+    }));
     log({ action: "baseline_save", projectId: pid, projectName: projName(pid), to: String(Object.keys(map).length) });
     antMessage.success(t.baselineSaved);
   };
@@ -1618,7 +1712,7 @@ function ProjectManagerInner() {
     setTrash((tr) => [entry, ...tr]);
     setProjects((p) => p.filter((x) => x.id !== pid)); setSections((s) => s.filter((x) => x.projectId !== pid));
     setTasks((x) => x.filter((y) => y.projectId !== pid)); setActiveProject("dashboard");
-    log({ action: "project_delete", projectName: proj.name });
+    log({ action: "project_delete", projectId: pid, projectName: proj.name });   // I1: có projectId để lọc theo phạm vi
     setUndoInfo({ id: pid, name: proj.name });
     setTimeout(() => setUndoInfo((u) => (u && u.id === pid ? null : u)), 8000); };
   const restoreProject = (pid) => {
@@ -1639,7 +1733,7 @@ function ProjectManagerInner() {
     if (myRole !== "owner") return;
     const e0 = trash.find((e) => e.id === pid);
     setTrash((tr) => tr.filter((e) => e.id !== pid));
-    log({ action: "trash_purge", projectName: e0 ? e0.name : pid, to: e0 && e0.kind === "task" ? t.taskKind : t.projects });
+    log({ action: "trash_purge", projectId: e0 && e0.kind === "task" ? e0.projectId : pid, projectName: e0 ? e0.name : pid, to: e0 && e0.kind === "task" ? t.taskKind : t.projects });   // I1
   };
   const importFromCSV = (text) => {
     if (!canEdit || !project) return;
@@ -1755,6 +1849,7 @@ function ProjectManagerInner() {
   /* P1: gom việc theo trạng thái (mặc định, kiểu Asana) hay theo giai đoạn thi công (WBS).
      Dữ liệu `sections` đã có sẵn từ mẫu dự án — trước đây chỉ dùng để ghi lịch sử. */
   const [memberModal, setMemberModal] = useState(false);
+  const [duyetModal, setDuyetModal] = useState(false);   // H4
   const [groupBy, setGroupBy] = useState(() => { try { return localStorage.getItem("pm_groupby") || "status"; } catch { return "status"; } });
   useEffect(() => { try { localStorage.setItem("pm_groupby", groupBy); } catch {} }, [groupBy]);
   const groups = useMemo(() => groupBy === "section"
@@ -1819,6 +1914,7 @@ function ProjectManagerInner() {
           <SideItem active={false} onClick={() => { setModal("export"); setNavOpen(false); }} icon={<Download size={17} />} label={t.download} />
           {canManage && serverMode && <SideItem active={false} onClick={() => { setModal("settings"); setNavOpen(false); }} icon={<Settings size={17} />} label={t.settings} />}
           <SideItem active={false} onClick={() => { setModal("connect"); setNavOpen(false); }} icon={<Share2 size={17} />} label={t.collaborate} />
+          {serverMode && <SideItem active={false} onClick={() => { setModal("gopy"); setNavOpen(false); }} icon={<MessageSquare size={17} />} label={t.gopY} />}
           {canManage && <SideItem active={false} onClick={() => { setModal("trash"); setNavOpen(false); }} icon={<Trash2 size={17} />} label={t.trashTitle} badge={trash.length || null} />}
         </nav>
         <div className="px-5 mt-1 mb-1.5 flex items-center justify-between">
@@ -1832,7 +1928,7 @@ function ProjectManagerInner() {
               <button key={p.id} onClick={() => { setActiveProject(p.id); setView("list"); setNavOpen(false); }}
                 className={`group w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-colors ${activeProject === p.id ? "text-white" : "hover:bg-slate-100 text-slate-600"}`} style={activeProject === p.id ? { background: "#c2410c" } : undefined}>
                 <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: p.color }} />
-                <span className="flex-1 text-left truncate">{p.name}</span>
+                <span className="flex-1 text-left truncate">{p.name || t.untitledProject}</span>
                 {count > 0 && <span className="text-xs text-slate-500">{count}</span>}
               </button>
             );
@@ -1878,14 +1974,14 @@ function ProjectManagerInner() {
           ) : project ? (
             <h1 className="text-lg font-semibold flex items-center gap-2 min-w-0">
               <span className="w-3 h-3 rounded-full shrink-0" style={{ background: project.color }} />
-              <span className="truncate">{project.name}</span>
+              <span className="truncate">{project.name || t.untitledProject}</span>
               {(project.members || []).length > 0 && <AntTag color="orange" style={{ margin: 0 }} title={t.projMembersLocked}><Lock size={11} style={{ verticalAlign: "-1px" }} /> {(project.members || []).length}</AntTag>}
             </h1>
           ) : <h1 className="text-lg font-semibold text-slate-500">{t.welcome}</h1>}
           <div className="flex-1" />
           {feat("notifications") && (
             <AntPopover trigger="click" placement="bottomRight" open={notifOpen} onOpenChange={(o) => { setNotifOpen(o); if (o) markNotifSeen(); }}
-              content={<NotifPanel t={t} lang={lang} items={notifications} onOpen={(n) => { setNotifOpen(false); if (n.taskId) setDetailTask(n.taskId); else if (n.report) setActiveProject("dailyreport"); }} />}>
+              content={<NotifPanel t={t} lang={lang} items={notifications} onOpen={(n) => { setNotifOpen(false); if (n.taskId) setDetailTask(n.taskId); else if (n.logId && n.projectId) { setActiveProject(n.projectId); setView("construction"); } else if (n.report) setActiveProject("dailyreport"); }} />}>
               <button className="relative p-2 text-slate-500 hover:text-orange-600 rounded-lg hover:bg-slate-50" title={lang === "vi" ? "Thông báo" : "Notifications"}>
                 <AntBadge count={notifUnread} size="small" style={{ backgroundColor: "#c2410c" }}><Bell size={19} /></AntBadge>
               </button>
@@ -1896,6 +1992,7 @@ function ProjectManagerInner() {
             <>
               <AntInput allowClear value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t.searchPlaceholder} prefix={<Search size={15} className="text-slate-500" />} style={{ width: 180 }} />
               {(myRole === "owner" || me?.isLeader) && <AntBtn icon={<UserCheck size={15} />} onClick={() => setMemberModal(true)} title={t.projMembers} />}
+              {(myRole === "owner" || me?.isLeader) && <AntBtn icon={<ListChecks size={15} />} onClick={() => setDuyetModal(true)} title={t.duyetRules} type={project.duyet && (project.duyet.canAnh || project.duyet.canViecCon || (project.duyet.qcIds || []).length) ? "primary" : "default"} ghost={!!(project.duyet && (project.duyet.canAnh || project.duyet.canViecCon || (project.duyet.qcIds || []).length))} />}
               <AntBadge dot={hasFilters}><AntBtn icon={<Filter size={15} />} onClick={() => setShowFilters((v) => !v)} type={hasFilters ? "primary" : "default"} ghost={hasFilters}>{t.filter}</AntBtn></AntBadge>
               {canEdit && <AntBtn type="primary" icon={<Plus size={16} />} onClick={() => { const nt = addTask("todo"); if (nt) setDetailTask(nt.id); }}>{t.addTask}</AntBtn>}
             </>
@@ -1924,7 +2021,7 @@ function ProjectManagerInner() {
         )}
 
         <div className="flex-1 overflow-auto">
-          {activeProject === "dashboard" && <Dashboard t={t} lang={lang} projects={projects} tasks={tasks} members={workMembers} memberById={memberById} onOpenProject={(id) => { setActiveProject(id); setView("list"); }} onOpenTask={(id) => setDetailTask(id)} />}
+          {activeProject === "dashboard" && <Dashboard t={t} lang={lang} projects={projects} tasks={tasks} members={workMembers} memberById={memberById} dailyReports={dailyReports} finance={finance} canSeeHealth={serverMode && (myRole === "owner" || !!me?.isLeader)} reportDeadline={reportDeadline} onOpenProject={(id) => { setActiveProject(id); setView("list"); }} onOpenTask={(id) => setDetailTask(id)} />}
           {activeProject === "history" && (canViewHistory
             ? <HistoryView t={t} lang={lang} history={history} projects={projects} canDelete={myRole === "owner"} canAudit={myRole === "owner" || !!me?.isLeader} onDelete={deleteHistoryEntry} />
             : <div className="h-full flex flex-col items-center justify-center text-slate-500"><Lock size={44} className="mb-3 opacity-40" /><p className="text-lg font-medium text-slate-500">{t.historyLocked}</p></div>)}
@@ -1942,13 +2039,15 @@ function ProjectManagerInner() {
           {project && view === "calendar" && <CalendarView t={t} lang={lang} tasks={projectTasks} onOpenTask={(id) => setDetailTask(id)} />}
           {project && view === "defects" && <DefectView t={t} lang={lang} canEdit={canEdit} memberById={memberById} members={workMembers} defects={projectDefects} onAdd={addDefect} onOpenTask={(id) => setDetailTask(id)} />}
           {project && view === "timeline" && <TimelineView t={t} lang={lang} canEdit={canEdit} tasks={projectTasksAll} visibleIds={visibleTaskIds} memberById={memberById} project={project} canBaseline={myRole === "owner" || !!me?.isLeader} onSaveBaseline={async () => { if (!project.baseline || await askConfirm(antModal, t, t.baselineConfirm)) saveBaseline(project.id); }} onSaveLich={(l) => setProjects((pp) => pp.map((p) => p.id === project.id ? { ...p, lich: l } : p))} onOpenTask={openTaskCb} onReschedule={rescheduleCb} />}
-          {project && view === "construction" && <ConstructionSiteView t={t} lang={lang} project={project} me={me} myRole={myRole} members={members} features={features} canEdit={canEdit} boqItems={((finance.boq || {})[project.id] || {}).items || []} onSetLoggers={(ids) => setProjectSiteLoggers(project.id, ids)} onDefects={(ds) => { ds.forEach(addDefect); antMessage.success(t.chkDefectsMade.replace("{n}", String(ds.length))); }} />}
+          {project && view === "construction" && <ConstructionSiteView t={t} lang={lang} project={project} me={me} myRole={myRole} members={members} features={features} recordTypes={recordTypes} canEdit={canEdit} boqItems={((finance.boq || {})[project.id] || {}).items || []} onSetLoggers={(ids) => setProjectSiteLoggers(project.id, ids)} onDefects={(ds) => { ds.forEach(addDefect); antMessage.success(t.chkDefectsMade.replace("{n}", String(ds.length))); }} />}
           {!project && !isBoardlessView && (
             <div className="h-full flex flex-col items-center justify-center text-center text-slate-500"><Folder size={48} className="mb-3 opacity-40" /><p className="text-lg font-medium text-slate-500">{t.welcome}</p><p className="text-sm">{t.welcomeHint}</p></div>
           )}
         </div>
       </main>
 
+      {duyetModal && project && <DuyetRulesModal t={t} lang={lang} project={project} members={workMembers} onClose={() => setDuyetModal(false)}
+        onSave={(duyet) => { setProjects((pp) => pp.map((p) => p.id === project.id ? { ...p, duyet } : p)); log({ action: "project_members", projectId: project.id, projectName: project.name, to: t.duyetRules }); setDuyetModal(false); }} />}
       {memberModal && project && (
         <ProjectMembersModal t={t} lang={lang} project={project} members={workMembers}
           onClose={() => setMemberModal(false)}
@@ -1963,7 +2062,7 @@ function ProjectManagerInner() {
           projTasks={tasks.filter((x) => x.projectId === task.projectId && x.kind !== "defect")}
           onClose={() => setDetailTask(null)} onPatch={(patch) => patchTask(detailTask, patch)}
           onAssign={(a, p) => setAssign(detailTask, a, p)} onWorkdone={(v) => setWorkdone(detailTask, v)}
-          onDepends={(deps) => setDepends(detailTask, deps)}
+          onDepends={(deps) => setDepends(detailTask, deps)} onActual={(patch) => setActual(detailTask, patch)} duyet={quyTacDuyet(task.projectId)}
           onReminder={(l) => setReminder(detailTask, l)} onDelete={() => removeTask(detailTask)} onComment={(text) => addComment(detailTask, text)} onStatus={(st) => setStatus(detailTask, st)} onApprove={() => approveTask(detailTask)} onReject={(reason) => rejectTask(detailTask, reason)} onApprover={(a) => setApprover(detailTask, a)} canApprove={canApproveTask(task)} assignableIds={assignableIds} canRemind={feat("notifications")} serverMode={serverMode} />;
       })()}
 
@@ -1980,6 +2079,7 @@ function ProjectManagerInner() {
           <button onClick={() => restoreProject(undoInfo.id)} className="text-sm font-semibold text-orange-300 hover:text-orange-200">{t.undo}</button>
         </div>
       )}
+      {modal === "gopy" && <GopYModal t={t} lang={lang} view={String(activeProject) + "/" + String(view)} onClose={() => setModal(null)} />}
       {modal === "settings" && <SettingsModal t={t} lang={lang} onLoad={loadSettings} onSave={saveSettings} onFeatures={setFeatures} onClose={() => setModal(null)} membersCount={members.length} onOpenMembers={() => setModal("members")} />}
     </div>
   );
@@ -2065,7 +2165,7 @@ function ThungRacHoSo({ t, lang, project, loai, onClose, onDoi }) {
   );
 }
 
-function RecordsView({ t, lang, project, canEdit, onDefects }) {
+function RecordsView({ t, lang, project, canEdit, onDefects, recordTypes }) {
   const { modal: antModal } = AntApp.useApp();
   const [racMo, setRacMo] = useState(false);        // R6: hộp thùng rác hồ sơ
   const [records, setRecords] = useState([]);
@@ -2130,12 +2230,12 @@ function RecordsView({ t, lang, project, canEdit, onDefects }) {
           ))}
         </div>
       )}
-      {modal && <RecordModal t={t} lang={lang} project={project} onClose={() => setModal(false)} onSaved={() => { setModal(false); load(); }} onDefects={onDefects} />}
+      {modal && <RecordModal t={t} lang={lang} project={project} recordTypes={recordTypes} onClose={() => setModal(false)} onSaved={() => { setModal(false); load(); }} onDefects={onDefects} />}
       {racMo && <ThungRacHoSo t={t} lang={lang} project={project} loai="records" onClose={() => setRacMo(false)} onDoi={load} />}
     </div>
   );
 }
-function RecordModal({ t, lang, project, onClose, onSaved, onDefects }) {
+function RecordModal({ t, lang, project, onClose, onSaved, onDefects, recordTypes }) {
   const now = new Date();
   const iso = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
   const [date, setDate] = useState(iso);
@@ -2183,7 +2283,7 @@ function RecordModal({ t, lang, project, onClose, onSaved, onDefects }) {
       footer={<AntBtn type="primary" loading={busy} disabled={!note.trim() && !bangKiem.length} onClick={submit}>{busy ? t.recSaving : t.save}</AntBtn>}>
       <div className="space-y-3" style={{ maxHeight: "68vh", overflowY: "auto" }}>
         <label className="block"><span className="text-xs text-slate-500">{t.recDate}</span><input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inp} /></label>
-        <label className="block"><span className="text-xs text-slate-500">{t.recType}</span><AntSelect value={type} onChange={(v) => setType(v)} style={{ width: "100%", marginTop: 2 }} options={[{ value: t.recFieldType, label: t.recFieldType }, { value: t.recMeetingType, label: t.recMeetingType }, { value: t.recDirectiveType, label: t.recDirectiveType }, { value: t.recAcceptType, label: t.recAcceptType }, { value: t.recSafetyType, label: t.recSafetyType }, { value: t.recPermitType, label: t.recPermitType }]} /></label>
+        <label className="block"><span className="text-xs text-slate-500">{t.recType}</span><AntSelect value={type} onChange={(v) => setType(v)} style={{ width: "100%", marginTop: 2 }} options={[...((recordTypes || []).map((x) => ({ value: x, label: x }))), { value: t.recFieldType, label: t.recFieldType }, { value: t.recMeetingType, label: t.recMeetingType }, { value: t.recDirectiveType, label: t.recDirectiveType }, { value: t.recAcceptType, label: t.recAcceptType }, { value: t.recSafetyType, label: t.recSafetyType }, { value: t.recPermitType, label: t.recPermitType }]} /></label>
         {laNghiemThu && (
           <div className="rounded-xl border border-slate-200 p-3 space-y-2.5">
             <label className="block"><span className="text-xs text-slate-500">{t.chkTemplate}</span>
@@ -2224,7 +2324,7 @@ function RecordModal({ t, lang, project, onClose, onSaved, onDefects }) {
             )}
           </div>
         )}
-        <label className="block"><span className="text-xs text-slate-500">{t.recNumber}</span><AntInput value={number} onChange={(e) => setNumber(e.target.value)} placeholder={t.recNumberPh} /></label>
+        <label className="block"><span className="text-xs text-slate-500">{t.recNumber}</span><AntInput value={number} onChange={(e) => setNumber(e.target.value)} placeholder={t.recNumberAuto} /></label>
         <label className="block"><span className="text-xs text-slate-500">{t.recNote}</span><AntInput.TextArea value={note} onChange={(e) => setNote(e.target.value)} rows={2} /></label>
         <div><span className="text-xs text-slate-500">{t.recFiles}</span>
           <input type="file" multiple accept="image/*,application/pdf" className="w-full mt-0.5 text-sm"
@@ -2236,7 +2336,7 @@ function RecordModal({ t, lang, project, onClose, onSaved, onDefects }) {
   );
 }
 
-function ConstructionSiteView({ t, lang, project, me, myRole, members, features, canEdit, boqItems, onSetLoggers, onDefects }) {
+function ConstructionSiteView({ t, lang, project, me, myRole, members, features, canEdit, boqItems, onSetLoggers, onDefects, recordTypes }) {
   const cfeat = (k) => (features || {})[k] !== false;
   const [tab, setTab] = useState(cfeat("sitelog") ? "site" : "records");
   const loggers = project.siteLoggers || [];
@@ -2250,7 +2350,7 @@ function ConstructionSiteView({ t, lang, project, me, myRole, members, features,
       </div>
       {tab === "hse" ? <HSEView t={t} lang={lang} project={project} />
         : (tab === "site" && cfeat("sitelog")) ? <SiteLogView t={t} lang={lang} project={project} me={me} myRole={myRole} members={members} boqItems={boqItems} onSetLoggers={onSetLoggers} />
-        : <RecordsView t={t} lang={lang} project={project} canEdit={canRecord} onDefects={onDefects} />}
+        : <RecordsView t={t} lang={lang} project={project} canEdit={canRecord} onDefects={onDefects} recordTypes={recordTypes} />}
     </div>
   );
 }
@@ -2612,7 +2712,7 @@ function SiteLogModal({ t, lang, project, log, boqItems, onClose, onSaved }) {
     if (busy) return;
     if (!work.trim() || !hasPhotos) { setErr(t.siteRequired); return; }
     setBusy(true); setErr("");
-    const body = { id: log ? log.id : undefined, projectId: project.id, projectName: project.name, date,
+    const body = { id: log ? log.id : undefined, expectedUpdatedAt: log ? (log.updatedAt || log.createdAt || 0) : undefined, projectId: project.id, projectName: project.name, date,
       weatherAM: wAM, weatherPM: wPM, manpower, work, equipment, issues, nextPlan,
       thoiTiet, nhanLuc, thietBi, khoiLuong, suCo, ykienGiamSat, trangThai: napLuon ? "danop" : trangThai };
     const r = await api("/api/sitelogs", { method: "POST", body: JSON.stringify(body) });
@@ -2769,6 +2869,27 @@ function ProjectMembersModal({ t, lang, project, members, onClose, onSave }) {
   );
 }
 
+/* H4: quy tắc nghiệm thu của dự án — máy chủ (validateSharedWrite) và ứng dụng (chanGuiDuyet) cùng kiểm. */
+function DuyetRulesModal({ t, lang, project, members, onClose, onSave }) {
+  const d0 = (project.duyet && typeof project.duyet === "object") ? project.duyet : {};
+  const [canAnh, setCanAnh] = useState(!!d0.canAnh);
+  const [canViecCon, setCanViecCon] = useState(!!d0.canViecCon);
+  const [qc, setQc] = useState(Array.isArray(d0.qcIds) ? d0.qcIds : []);
+  return (
+    <AntModal open onCancel={onClose} width={440}
+      title={<span className="flex items-center gap-2"><ListChecks size={18} className="text-orange-500" />{t.duyetRules}</span>}
+      footer={<AntBtn type="primary" onClick={() => onSave({ canAnh, canViecCon, qcIds: qc })}>{t.save}</AntBtn>}>
+      <div className="space-y-3">
+        <label className="flex items-start gap-2 cursor-pointer"><AntCheckbox checked={canViecCon} onChange={(e) => setCanViecCon(e.target.checked)} /><span className="text-sm text-slate-700">{t.duyetCanViecCon}</span></label>
+        <label className="flex items-start gap-2 cursor-pointer"><AntCheckbox checked={canAnh} onChange={(e) => setCanAnh(e.target.checked)} /><span className="text-sm text-slate-700">{t.duyetCanAnh}</span></label>
+        <div><span className="text-xs text-slate-500">{t.duyetQC}</span>
+          <AntSelect mode="multiple" value={qc} onChange={setQc} style={{ width: "100%", marginTop: 4 }} optionFilterProp="label" placeholder="—"
+            options={members.map((m) => ({ value: m.id, label: m.name + (m.dept ? " · " + m.dept : "") }))} /></div>
+        <p className="text-xs text-slate-500">{t.duyetHint}</p>
+      </div>
+    </AntModal>
+  );
+}
 function SiteAssignModal({ t, lang, project, members, onClose, onSave }) {
   const [sel, setSel] = useState(project.siteLoggers || []);
   const toggle = (id) => setSel((pp) => pp.includes(id) ? pp.filter((x) => x !== id) : [...pp, id]);
@@ -2890,6 +3011,7 @@ function ListView({ t, lang, canEdit, memberById, sections, groupBy, groupOf, ta
   const [adding, setAdding] = useState({});
   const [newSection, setNewSection] = useState(false);
   const [sectionName, setSectionName] = useState("");
+  const [gioiHan, setGioiHan] = useState({});          // A2: nhóm > 200 việc hiện dần, không vẽ cả nghìn dòng một lúc
   if (sections.length === 0) return <Empty t={t} />;
   return (
     <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-6">
@@ -2900,7 +3022,8 @@ function ListView({ t, lang, canEdit, memberById, sections, groupBy, groupOf, ta
           <section key={sec.id || "_none"}>
             <NhanNhom t={t} name={sec.name} wbs={sec.wbs} items={items} />
             <div className="bg-white rounded-xl border border-slate-200 overflow-hidden divide-y divide-slate-100">
-              {items.map((task) => <TaskRow key={task.id} task={task} t={t} lang={lang} canEdit={canEdit} memberById={memberById} blocked={blockedIds && blockedIds.has(task.id)} onToggle={onToggle} onOpen={() => onOpenTask(task.id)} />)}
+              {items.slice(0, gioiHan[sec.id] || 200).map((task) => <TaskRow key={task.id} task={task} t={t} lang={lang} canEdit={canEdit} memberById={memberById} blocked={blockedIds && blockedIds.has(task.id)} onToggle={onToggle} onOpen={() => onOpenTask(task.id)} />)}
+              {items.length > (gioiHan[sec.id] || 200) && <button onClick={() => setGioiHan((g) => ({ ...g, [sec.id]: (g[sec.id] || 200) + 200 }))} className="w-full px-4 py-2 text-sm text-orange-600 hover:bg-orange-50 text-left">{t.showMore} ({items.length - (gioiHan[sec.id] || 200)})</button>}
               {items.length === 0 && <div className="px-4 py-3 text-sm text-slate-500">{t.allTasksDone}</div>}
               {canEdit && (adding[sec.id] ? (
                 <AntInput autoFocus placeholder={t.quickAdd} variant="borderless" style={{ padding: "8px 16px" }}
@@ -3273,7 +3396,36 @@ function CalendarView({ t, lang, tasks, onOpenTask }) {
 }
 
 /* ============================ DASHBOARD ============================ */
-function Dashboard({ t, lang, projects, tasks, onOpenProject, onOpenTask, members, memberById }) {
+/* Hoàn thiện 06/09: chỉ số dùng thật, tính từ dữ liệu sẵn có — để biết công trường có dùng phần mềm hay vẫn Excel/Zalo. */
+function SucKhoeVanHanh({ t, lang, dailyReports, finance, tasks, reportDeadline }) {
+  const [logs, setLogs] = useState(null);
+  useEffect(() => { let huy = false; api("/api/sitelogs").then((r) => { if (!huy) setLogs(r.ok ? (r.body.logs || []) : []); }); return () => { huy = true; }; }, []);
+  const now = Date.now(), tu = now - 30 * 86400000;
+  const isoTu = new Date(tu).toISOString().slice(0, 10);
+  const nk = (logs || []).filter((l) => l.date >= isoTu && l.trangThai !== "nhap");
+  const nkDung = nk.filter((l) => (l.updatedAt || l.createdAt || 0) <= new Date(l.date + "T17:30:00").getTime() + 86400000).length;
+  const bc = (dailyReports || []).filter((r) => r.date >= isoTu && r.submittedAt);
+  const bcDung = bc.filter((r) => r.submittedAt <= reportDeadline(r.date)).length;
+  const thang = new Date().toISOString().slice(0, 7);
+  const soKy = Object.values((finance && finance.boq) || {}).reduce((a, b) => a + ((b && b.kys) || []).filter((k) => String(k.denNgay || "").startsWith(thang)).length, 0);
+  const xong30 = (tasks || []).filter((x) => x.completed && x.completedAt && x.completedAt >= tu).length;
+  const pct = (a, b) => (b ? Math.round(a / b * 100) + "%" : null);
+  const o = [
+    { l: t.nkDungHan, v: pct(nkDung, nk.length), s: nkDung + "/" + nk.length },
+    { l: t.bcDungHan, v: pct(bcDung, bc.length), s: bcDung + "/" + bc.length },
+    { l: t.kyThangNay, v: String(soKy), s: "" },
+    { l: t.viecXong30, v: String(xong30), s: "" },
+  ];
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 p-4">
+      <div className="text-sm font-semibold text-slate-700 mb-2 flex items-center gap-1.5"><Gauge size={15} className="text-orange-500" />{t.sucKhoeVH}</div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {o.map((x) => <div key={x.l} className="min-w-0"><div className="text-xl font-bold tabular-nums" style={{ color: x.v == null ? "#94a3b8" : "#0f172a" }}>{x.v == null ? "—" : x.v}</div><div className="text-xs text-slate-500">{x.l}{x.s ? " · " + x.s : ""}{x.v == null ? " · " + t.chuaCoSoLieu : ""}</div></div>)}
+      </div>
+    </div>
+  );
+}
+function Dashboard({ t, lang, projects, tasks, onOpenProject, onOpenTask, members, memberById, dailyReports, finance, canSeeHealth, reportDeadline }) {
   const [dashProject, setDashProject] = useState("");
   const scope = dashProject ? tasks.filter((x) => x.projectId === dashProject) : tasks;
   const total = scope.length, done = scope.filter((x) => x.completed).length;
@@ -3321,6 +3473,7 @@ function Dashboard({ t, lang, projects, tasks, onOpenProject, onOpenTask, member
         ))}
       </div>
 
+      {canSeeHealth && <SucKhoeVanHanh t={t} lang={lang} dailyReports={dailyReports} finance={finance} tasks={scope} reportDeadline={reportDeadline} />}
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl border border-slate-200 p-5 min-w-0">
           <h3 className="font-semibold mb-4">{t.chartStatus}</h3>
@@ -3357,7 +3510,7 @@ function Dashboard({ t, lang, projects, tasks, onOpenProject, onOpenTask, member
               <div key={g.proj.id}>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: g.proj.color }} />
-                  <button onClick={() => onOpenProject(g.proj.id)} className="min-w-0 flex-1 text-left text-sm font-semibold text-slate-700 hover:text-orange-600 transition truncate">{g.proj.name}</button>
+                  <button onClick={() => onOpenProject(g.proj.id)} className="min-w-0 flex-1 text-left text-sm font-semibold text-slate-700 hover:text-orange-600 transition truncate">{g.proj.name || t.untitledProject}</button>
                   <span className="text-xs text-slate-500 shrink-0">{g.items.length}</span>
                 </div>
                 <div className="space-y-1 pl-3 ml-1 border-l-2" style={{ borderColor: g.proj.color + "55" }}>
@@ -3384,7 +3537,7 @@ function Dashboard({ t, lang, projects, tasks, onOpenProject, onOpenTask, member
             const ppct = ptasks.length ? Math.round((pd / ptasks.length) * 100) : 0;
             return (
               <button key={p.id} onClick={() => onOpenProject(p.id)} className="w-full text-left group">
-                <div className="flex items-center gap-2 mb-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ background: p.color }} /><span className="text-sm font-medium text-slate-700 group-hover:text-orange-600 transition">{p.name}</span><span className="text-xs text-slate-500">{pd}/{ptasks.length}</span><span className="ml-auto text-xs font-medium text-slate-500">{ppct}%</span></div>
+                <div className="flex items-center gap-2 mb-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ background: p.color }} /><span className="text-sm font-medium text-slate-700 group-hover:text-orange-600 transition">{p.name || t.untitledProject}</span><span className="text-xs text-slate-500">{pd}/{ptasks.length}</span><span className="ml-auto text-xs font-medium text-slate-500">{ppct}%</span></div>
                 <div className="h-2 bg-slate-100 rounded-full overflow-hidden"><div className="h-full rounded-full transition-all" style={{ width: `${ppct}%`, background: p.color }} /></div>
               </button>
             );
@@ -3409,7 +3562,7 @@ function MyWork({ t, lang, me, tasks, projects, memberById, onOpenTask }) {
     <section>
       <div className="flex items-center gap-2 mb-2"><span className="w-2 h-2 rounded-full" style={{ background: color }} /><h3 className="font-semibold text-slate-700">{label}</h3><span className="text-xs text-slate-500">{items.length}</span></div>
       <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 overflow-hidden">
-        {items.map((task) => { const proj = projects.find((p) => p.id === task.projectId); const isPrimary = task.primaryAssigneeId === me?.id; return (
+        {items.map((task) => { const proj = projects.find((p) => p.id === task.projectId); const isPrimary = task.primaryAssigneeId === me?.id || (!memberById[task.primaryAssigneeId] && (task.assignees || []).includes(me?.id)); return (
           <div key={task.id} className="group flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 cursor-pointer transition" onClick={() => onOpenTask(task.id)}>
             {isPrimary ? <Star size={16} className="text-amber-500 shrink-0" fill="#f59e0b" /> : <span className="w-4 shrink-0" />}
             <span className="flex-1 min-w-0 text-sm text-slate-700 truncate">{task.title || t.untitled}</span>
@@ -3456,7 +3609,7 @@ function DailyReportView({ t, lang, me, myRole, currentUserId, members, memberBy
   const buildItems = () => {
     const its = (existing && existing.items ? existing.items : []).map((it) => ({ ...it })).filter((it) => { if (!it.taskId) return true; const tk = tasks.find((x) => x.id === it.taskId); return !tk || tk.status !== "done"; });
     const have = new Set(its.map((it) => it.taskId).filter(Boolean));
-    autoTasks.forEach((tk) => { if (!have.has(tk.id)) its.push({ id: uid(), taskId: tk.id, taskTitle: tk.title, moTa: "", pct: tk.primaryAssigneeId === currentUserId ? (tk.workdone || 0) : null, vuongMac: "" }); });
+    autoTasks.forEach((tk) => { if (!have.has(tk.id)) its.push({ id: uid(), taskId: tk.id, taskTitle: tk.title, moTa: "", pct: (tk.primaryAssigneeId === currentUserId || (!memberById[tk.primaryAssigneeId] && (tk.assignees || []).includes(currentUserId))) ? (tk.workdone || 0) : null, vuongMac: "" }); });
     if (its.length === 0) its.push({ id: uid(), taskId: "", taskTitle: "", moTa: "", pct: null, vuongMac: "" });
     return its;
   };
@@ -3526,7 +3679,7 @@ function DailyReportView({ t, lang, me, myRole, currentUserId, members, memberBy
             {existing && existing.submittedAt ? <span className="text-xs text-green-600 flex items-center gap-1"><CheckCircle2 size={13} />{t.reportSubmitted}</span> : null}
           </div>
           <p className="text-xs text-slate-500">{t.reportDeadlineNote}</p>
-          {items.map((it) => { const tk = tasks.find((x) => x.id === it.taskId); const isPrim = tk && tk.primaryAssigneeId === currentUserId; return (
+          {items.map((it) => { const tk = tasks.find((x) => x.id === it.taskId); const isPrim = tk && (tk.primaryAssigneeId === currentUserId || (!memberById[tk.primaryAssigneeId] && (tk.assignees || []).includes(currentUserId))); return (
             <div key={it.id} className="rounded-lg border border-slate-200 p-2.5 space-y-2">
               <div className="flex items-center gap-2">
                 <AntSelect value={it.taskId} onChange={(v) => setItem(it.id, "taskId", v)} style={{ flex: 1 }} showSearch optionFilterProp="label"
@@ -3633,7 +3786,7 @@ function InstallmentList({ items, t, lang, label, color, onAdd, onDelete, onEdit
               <input type="date" value={eDate} onChange={(e) => setEDate(e.target.value)} className="text-xs border border-slate-200 rounded px-1.5 py-1 focus:outline-none" />
               <MoneyInput value={eAmount} onChange={setEAmount} lang={lang} onEnter={saveEdit} className="w-28 text-xs border border-slate-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-orange-300" />
               <AntInput size="small" value={eNote} onChange={(e) => setENote(e.target.value)} placeholder={t.note} onPressEnter={saveEdit} style={{ flex: 1, minWidth: 80 }} />
-              <button onClick={saveEdit} className="p-1 text-green-600 hover:text-green-700" title={t.save}><Check size={15} /></button>
+              <button onClick={saveEdit} className="p-1 text-green-600 hover:text-green-700" title={t.save} aria-label={t.save}><Check size={15} /></button>
               <button onClick={() => setEditId(null)} className="p-1 text-slate-500 hover:text-slate-600" title={t.cancel}><X size={15} /></button>
             </div>
           ) : (
@@ -4143,13 +4296,19 @@ function gopBaChieu(goc, cuaToi, cuaHo, keyOf) {
      2) trừ giữ lại bảo hành (thường 5%)
      3) trừ khấu trừ tạm ứng (theo tỷ lệ tạm ứng đã nhận)
      4) cộng VAT tính trên phần còn lại sau khấu trừ  */
-function tinhDeNghi({ giaTriKy, tlGiuLai, tlKhauTru, tlVAT }) {
+/* N8/VAT: hai cách tính gặp ngoài đời — (B, mặc định, như cũ) VAT trên giá trị SAU giữ lại & khấu trừ;
+   (A) VAT trên giá trị kỳ, giữ lại và khấu trừ trừ sau VAT. Chọn theo mẫu Đề nghị thanh toán của công ty. */
+function tinhDeNghi({ giaTriKy, tlGiuLai, tlKhauTru, tlVAT, vatTren }) {
   const gt = Number(giaTriKy) || 0;
   const giuLai = gt * (Number(tlGiuLai) || 0) / 100;
   const khauTru = gt * (Number(tlKhauTru) || 0) / 100;
+  if (vatTren === "giaTriKy") {
+    const vat = gt * (Number(tlVAT) || 0) / 100;
+    return { giaTriKy: gt, giuLai, khauTru, truocVAT: gt, vat, coVAT: gt + vat, tong: gt + vat - giuLai - khauTru, vatTren: "giaTriKy" };
+  }
   const truocVAT = gt - giuLai - khauTru;
   const vat = truocVAT * (Number(tlVAT) || 0) / 100;
-  return { giaTriKy: gt, giuLai, khauTru, truocVAT, vat, tong: truocVAT + vat };
+  return { giaTriKy: gt, giuLai, khauTru, truocVAT, vat, coVAT: truocVAT + vat, tong: truocVAT + vat, vatTren: "sauKhauTru" };
 }
 
 /* Q1: dòng BOQ phát sinh. voTrangThai: "" (gốc) | "dexuat" | "duyet" | "tuchoi".
@@ -4188,7 +4347,7 @@ function DeNghiThanhToan({ t, lang, finance, onChange, proj, ky, giaTriKy, canEd
   const cuaDA = tatCa[proj] || {};
   const dn = cuaDA[ky.id] || { tlGiuLai: 5, tlKhauTru: 0, tlVAT: 8, soHieu: "", ngay: "", ghiChu: "" };
   const dat = (patch) => onChange({ ...finance, deNghi: { ...tatCa, [proj]: { ...cuaDA, [ky.id]: { ...dn, ...patch } } } });
-  const kq = tinhDeNghi({ giaTriKy, tlGiuLai: dn.tlGiuLai, tlKhauTru: dn.tlKhauTru, tlVAT: dn.tlVAT });
+  const kq = tinhDeNghi({ giaTriKy, tlGiuLai: dn.tlGiuLai, tlKhauTru: dn.tlKhauTru, tlVAT: dn.tlVAT, vatTren: dn.vatTren });
   const oSo = (nhan, key, hau) => (
     <label className="flex items-center gap-1.5">
       <span className="text-xs text-slate-500 whitespace-nowrap">{nhan}</span>
@@ -4205,7 +4364,7 @@ function DeNghiThanhToan({ t, lang, finance, onChange, proj, ky, giaTriKy, canEd
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-3.5">
       <div className="flex flex-wrap items-center gap-3 mb-2">
-        <h3 className="text-sm font-semibold text-slate-700">{t.payReq} — {(lang === "vi" ? "Kỳ " : "IPC ") + ky.soKy}</h3>
+        <h3 className="text-sm font-semibold text-slate-700">{t.payReq} — {(lang === "vi" ? "Kỳ " : "IPC ") + (ky.soKy ?? "?")}</h3>
         <label className="flex items-center gap-1.5"><span className="text-xs text-slate-500">{t.payReqNo}</span>
           <AntInput size="small" disabled={!canEdit} value={dn.soHieu || ""} onChange={(e) => dat({ soHieu: e.target.value })} style={{ width: 120 }} /></label>
         <label className="flex items-center gap-1.5"><span className="text-xs text-slate-500">{t.recDate}</span>
@@ -4215,13 +4374,23 @@ function DeNghiThanhToan({ t, lang, finance, onChange, proj, ky, giaTriKy, canEd
         {oSo(t.payRetention, "tlGiuLai", "%")}
         {oSo(t.payAdvance, "tlKhauTru", "%")}
         {oSo(t.payVAT, "tlVAT", "%")}
+        <label className="flex items-center gap-1.5"><span className="text-xs text-slate-500 whitespace-nowrap">{t.vatTren}</span>
+          <AntSelect size="small" disabled={!canEdit} value={dn.vatTren || "sauKhauTru"} onChange={(v) => dat({ vatTren: v })} style={{ minWidth: 230 }}
+            options={[{ value: "sauKhauTru", label: t.vatSauKhauTru }, { value: "giaTriKy", label: t.vatGiaTriKy }]} /></label>
       </div>
       <div className="divide-y divide-slate-100">
         {dong(t.payPeriodValue, kq.giaTriKy, "#0f172a")}
-        {dong(t.payRetention + " (" + (dn.tlGiuLai || 0) + "%)", -kq.giuLai, "#dc2626")}
-        {dong(t.payAdvance + " (" + (dn.tlKhauTru || 0) + "%)", -kq.khauTru, "#dc2626")}
-        {dong(t.payBeforeVAT, kq.truocVAT, "#0f172a")}
-        {dong(t.payVAT + " (" + (dn.tlVAT || 0) + "%)", kq.vat, "#0ea5e9")}
+        {kq.vatTren === "giaTriKy" ? <>
+          {dong(t.payVAT + " (" + (dn.tlVAT || 0) + "%)", kq.vat, "#0ea5e9")}
+          {dong(t.payWithVAT, kq.coVAT, "#0f172a")}
+          {dong(t.payRetention + " (" + (dn.tlGiuLai || 0) + "%)", -kq.giuLai, "#dc2626")}
+          {dong(t.payAdvance + " (" + (dn.tlKhauTru || 0) + "%)", -kq.khauTru, "#dc2626")}
+        </> : <>
+          {dong(t.payRetention + " (" + (dn.tlGiuLai || 0) + "%)", -kq.giuLai, "#dc2626")}
+          {dong(t.payAdvance + " (" + (dn.tlKhauTru || 0) + "%)", -kq.khauTru, "#dc2626")}
+          {dong(t.payBeforeVAT, kq.truocVAT, "#0f172a")}
+          {dong(t.payVAT + " (" + (dn.tlVAT || 0) + "%)", kq.vat, "#0ea5e9")}
+        </>}
         {dong(t.payTotal, kq.tong, "#16a34a", true)}
       </div>
       <p className="text-xs text-slate-500 mt-2">{t.payHint}</p>
@@ -4234,6 +4403,10 @@ function BOQTab({ t, lang, finance, onChange, projects, proj, tasks, inv, canEdi
   const [kySel, setKySel] = useState("");
   const [importOpen, setImportOpen] = useState(false);
   const [csvText, setCsvText] = useState("");
+  const mobile = useIsMobile();
+  /* Q4: khối lượng đã THI CÔNG lấy từ các dòng khối lượng của nhật ký thi công có gắn hạng mục BOQ (boqId). */
+  const [nhatKy, setNhatKy] = useState([]);
+  useEffect(() => { if (!proj) { setNhatKy([]); return; } let huy = false; api("/api/sitelogs?projectId=" + encodeURIComponent(proj)).then((r) => { if (!huy && r.ok) setNhatKy(Array.isArray(r.body.logs) ? r.body.logs : []); }); return () => { huy = true; }; }, [proj]);
   const boqAll = finance.boq || {};
   const fmtQty = (n) => { const v = Number(n) || 0; try { return new Intl.NumberFormat(lang === "vi" ? "vi-VN" : "en-US", { maximumFractionDigits: 3 }).format(v); } catch { return String(v); } };
   // Đọc số cả kiểu VN (1.234,56) lẫn kiểu Anh (1,234.56)
@@ -4299,6 +4472,11 @@ function BOQTab({ t, lang, finance, onChange, projects, proj, tasks, inv, canEdi
   const luyKeTruoc = (itemId) => kys.slice(0, kyIdx < 0 ? kys.length : kyIdx).reduce((s, k) => s + (Number((k.kl || {})[itemId]) || 0), 0);
   const klKyNay = (itemId) => (ky ? Number((ky.kl || {})[itemId]) || 0 : 0);
   const setKlKyNay = (itemId, v) => { if (!ky) return; write({ items, kys: kys.map((k) => k.id === ky.id ? { ...k, kl: { ...(k.kl || {}), [itemId]: v } } : k) }); };
+  /* Q4: ba con số của một hạng mục — thi công (nhật ký, theo ngày) -> nghiệm thu (kỳ) -> đã đề nghị thanh toán (kỳ có số / ngày). */
+  const thiCong = (itemId) => nhatKy.reduce((a, l) => a + ((l.khoiLuong || []).filter((r) => r && r.boqId === itemId).reduce((b, r) => b + (Number(r.kl) || 0), 0)), 0);
+  const dnCua = ((finance.deNghi || {})[proj]) || {};
+  const daDeNghi = (itemId) => kys.filter((k) => { const d = dnCua[k.id]; return d && (d.soHieu || d.ngay); }).reduce((s, k) => s + (Number((k.kl || {})[itemId]) || 0), 0);
+  const luyKeTatCa = (itemId) => kys.reduce((s, k) => s + (Number((k.kl || {})[itemId]) || 0), 0);
 
   const addItem = () => write({ items: [...items, { id: uid(), stt: "", ten: "", donVi: "", laNhom: false, khoiLuong: "", donGia: "", taskIds: [] }], kys });
   /* Q1: thêm một dòng PHÁT SINH — mặc định ở trạng thái Đề xuất, chưa tính vào tổng. */
@@ -4313,7 +4491,7 @@ function BOQTab({ t, lang, finance, onChange, projects, proj, tasks, inv, canEdi
   const addKy = () => { const soKy = kys.length ? Math.max(...kys.map((k) => Number(k.soKy) || 0)) + 1 : 1;
     const nk = { id: uid(), soKy, denNgay: new Date().toISOString().slice(0, 10), kl: {} };
     write({ items, kys: [...kys, nk] }); setKySel(nk.id); };
-  const delKy = async () => { if (!ky) return; if (!(await askDanger(antModal, t, (lang === "vi" ? "Xóa kỳ nghiệm thu " : "Delete period ") + "#" + ky.soKy + "?"))) return;
+  const delKy = async () => { if (!ky) return; if (!(await askDanger(antModal, t, (lang === "vi" ? "Xóa kỳ nghiệm thu " : "Delete period ") + "#" + (ky.soKy ?? "?") + "?"))) return;
     write({ items, kys: kys.filter((k) => k.id !== ky.id) }); setKySel(""); };
 
   const projTasks = tasks.filter((x) => x.projectId === proj);
@@ -4322,7 +4500,10 @@ function BOQTab({ t, lang, finance, onChange, projects, proj, tasks, inv, canEdi
   const suggestKyNay = (it) => {
     const linked = projTasks.filter((x) => (it.taskIds || []).includes(x.id));
     if (!linked.length || !ky) return null;
-    const avg = linked.reduce((s, x) => s + (Number(x.workdone) || 0), 0) / linked.length;
+    /* Q4: trung bình CÓ TRỌNG SỐ theo số ngày của việc (việc 10 ngày nặng hơn việc 1 ngày). */
+    const w = (x) => Math.max(1, Number(x.duration) || (parseISO(x.startDate) && parseISO(x.dueDate) ? Math.round((parseISO(x.dueDate) - parseISO(x.startDate)) / DAY_MS) + 1 : 1));
+    const tongW = linked.reduce((s, x) => s + w(x), 0);
+    const avg = linked.reduce((s, x) => s + (Number(x.workdone) || 0) * w(x), 0) / tongW;
     const v = Math.max(0, (Number(it.khoiLuong) || 0) * avg / 100 - luyKeTruoc(it.id));
     return Math.round(v * 1000) / 1000;
   };
@@ -4367,7 +4548,7 @@ function BOQTab({ t, lang, finance, onChange, projects, proj, tasks, inv, canEdi
   const exportKyCSV = () => {
     if (!ky) return;
     const esc = (v) => { let w = String(v == null ? "" : v); if (/^[=+\-@]/.test(w)) w = "'" + w; w = w.replace(/"/g, '""'); return /[",\n;]/.test(w) ? '"' + w + '"' : w; };
-    const kyLabel = (lang === "vi" ? "KL kỳ " : "Period qty ") + ky.soKy;
+    const kyLabel = (lang === "vi" ? "KL kỳ " : "Period qty ") + (ky.soKy ?? "?");
     const header = lang === "vi"
       ? ["STT", "Tên công tác", "ĐVT", "KL hợp đồng", "Lũy kế kỳ trước", kyLabel, "Lũy kế đến kỳ này", "% KL"]
       : ["No.", "Work item", "Unit", "Contract qty", "Prev. cumulative", kyLabel, "Cumulative", "% Qty"];
@@ -4382,7 +4563,7 @@ function BOQTab({ t, lang, finance, onChange, projects, proj, tasks, inv, canEdi
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a"); a.href = url;
-      a.download = ((projName(proj) || "BOQ") + " - nghiem thu ky " + ky.soKy + (ky.denNgay ? " - " + ky.denNgay : "") + ".csv").replace(/[\\/:*?"<>|]+/g, "_");
+      a.download = ((projName(proj) || "BOQ") + " - nghiem thu ky " + (ky.soKy ?? "?") + (ky.denNgay ? " - " + ky.denNgay : "") + ".csv").replace(/[\\/:*?"<>|]+/g, "_");
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1500);
     } catch {}
@@ -4396,7 +4577,7 @@ function BOQTab({ t, lang, finance, onChange, projects, proj, tasks, inv, canEdi
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-sm text-slate-500">{lang === "vi" ? "Kỳ nghiệm thu:" : "Period:"}</span>
         {kys.length > 0 && <AntSelect size="small" value={ky ? ky.id : undefined} onChange={(v) => setKySel(v)} style={{ minWidth: 150 }}
-          options={kys.map((k) => ({ value: k.id, label: (lang === "vi" ? "Kỳ " : "IPC ") + k.soKy + (k.denNgay ? " · " + k.denNgay.split("-").reverse().join("/") : "") }))} />}
+          options={kys.map((k) => ({ value: k.id, label: (lang === "vi" ? "Kỳ " : "IPC ") + (k.soKy ?? "?") + (k.denNgay ? " · " + k.denNgay.split("-").reverse().join("/") : "") }))} />}
         {ky && <input type="date" value={ky.denNgay || ""} onChange={(e) => write({ items, kys: kys.map((k) => k.id === ky.id ? { ...k, denNgay: e.target.value } : k) })} className="text-sm" style={boqCellStyle} />}
         <AntBtn size="small" icon={<Plus size={13} />} onClick={addKy} disabled={!canEdit}>{lang === "vi" ? "Kỳ mới" : "New period"}</AntBtn>
         {ky && !kyKhoa && <AntBtn size="small" danger onClick={delKy} disabled={!canEdit}>{t.delete}</AntBtn>}
@@ -4439,12 +4620,35 @@ function BOQTab({ t, lang, finance, onChange, projects, proj, tasks, inv, canEdi
         <DeNghiThanhToan t={t} lang={lang} finance={finance} onChange={onChange} proj={proj}
           ky={ky} giaTriKy={totKyNay} canEdit={canEdit} />
       )}
-      {items.length === 0 ? <Empty2 icon={<Receipt size={44} />} text={t.boqEmpty} /> : (
+      {items.length === 0 ? <Empty2 icon={<Receipt size={44} />} text={t.boqEmpty} /> : mobile ? (
+        /* Q9: điện thoại — mỗi hạng mục một thẻ: tên, KL hợp đồng, kỳ này (nhập được), lũy kế, %, thi công */
+        <div className="space-y-2">
+          {items.map((it) => {
+            if (it.laNhom) return <div key={it.id} className="text-xs font-semibold text-slate-600 pt-2">{it.stt ? it.stt + ". " : ""}{it.ten}</div>;
+            const klHd = Number(it.khoiLuong) || 0, lkTr = luyKeTruoc(it.id), kn = klKyNay(it.id), lk = lkTr + kn, tc = thiCong(it.id);
+            return (
+              <div key={it.id} className="bg-white rounded-xl border border-slate-200 px-3 py-2" style={laVO(it) && it.voTrangThai !== "duyet" ? { opacity: 0.65, background: "#fffbeb" } : undefined}>
+                <div className="text-sm font-medium text-slate-700">{(laVO(it) ? it.voSo : it.stt) ? (laVO(it) ? it.voSo : it.stt) + ". " : ""}{it.ten || "—"} <span className="text-xs text-slate-500">{it.donVi}</span></div>
+                <div className="grid grid-cols-4 gap-1 mt-1 text-xs">
+                  <div><div className="text-slate-500">{t.boqQty}</div><div className="tabular-nums font-medium">{fmtQty(klHd)}</div></div>
+                  <div><div className="text-slate-500">{ky ? (lang === "vi" ? "Kỳ " : "IPC ") + (ky.soKy ?? "?") : "—"}</div>
+                    {ky && !kyKhoa && canEdit ? <BoqNum v={(ky.kl || {})[it.id]} onCh={(v) => setKlKyNay(it.id, v)} w={70} /> : <div className="tabular-nums font-medium">{fmtQty(kn)}</div>}</div>
+                  <div><div className="text-slate-500">{lang === "vi" ? "Lũy kế" : "Cumul."}</div><div className="tabular-nums font-medium" style={{ color: klHd > 0 && lk > klHd ? "#dc2626" : undefined }}>{fmtQty(lk)} <span className="text-slate-500">({klHd > 0 ? Math.round(lk / klHd * 100) : 0}%)</span></div></div>
+                  <div><div className="text-slate-500">{t.boqThiCong}</div><div className="tabular-nums font-medium" style={{ color: tc > lk ? "#d97706" : undefined }}>{tc ? fmtQty(tc) : "—"}</div></div>
+                </div>
+              </div>
+            );
+          })}
+          <div className="text-sm font-semibold text-slate-700 flex justify-between px-1"><span>{lang === "vi" ? "Tổng cộng" : "Total"}</span><span className="tabular-nums text-emerald-600">{fmtMoney(totLuyKe, lang)} / {fmtMoney(totVal, lang)}</span></div>
+        </div>
+      ) : (
         <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
-          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: ky ? 1120 : 760 }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: ky ? 1300 : 940 }}>
             <thead><tr className="text-xs text-slate-500 border-b border-slate-200">
               {th(t.boqCode)}{th(t.boqName)}{th(t.boqUnit)}{th(t.boqQty, 1)}{th(t.boqPrice, 1)}{th(t.boqAmount, 1)}
-              {ky && <>{th(lang === "vi" ? "LK trước" : "Prev cum.", 1)}{th((lang === "vi" ? "Kỳ " : "IPC ") + ky.soKy, 1)}{th(lang === "vi" ? "Lũy kế" : "Cumul.", 1)}{th(t.boqPercent, 1)}{th(t.boqDoneVal, 1)}</>}
+              {ky && <>{th(lang === "vi" ? "LK trước" : "Prev cum.", 1)}{th((lang === "vi" ? "Kỳ " : "IPC ") + (ky.soKy ?? "?"), 1)}{th(lang === "vi" ? "Lũy kế" : "Cumul.", 1)}{th(t.boqPercent, 1)}{th(t.boqDoneVal, 1)}</>}
+              <th style={{ padding: "6px 6px", textAlign: "right", whiteSpace: "nowrap" }} title={t.boqThiCongTip}>{t.boqThiCong}</th>
+              <th style={{ padding: "6px 6px", textAlign: "right", whiteSpace: "nowrap" }} title={t.boqXuatHDTip}>{t.boqXuatHD}</th>
               {th(t.boqLinkTasks)}{th("")}
             </tr></thead>
             <tbody>
@@ -4465,7 +4669,7 @@ function BOQTab({ t, lang, finance, onChange, projects, proj, tasks, inv, canEdi
                 if (it.laNhom) return (
                   <tr key={it.id} style={{ background: "#f8fafc" }} className="border-b border-slate-100">
                     <td style={{ padding: "4px 6px" }}><BoqTxt v={it.stt} onCh={(v) => updItem(it.id, { stt: v })} w={64} bold /></td>
-                    <td style={{ padding: "4px 6px" }} colSpan={(ky ? 10 : 5) + 1}><BoqTxt v={it.ten} onCh={(v) => updItem(it.id, { ten: v })} w="100%" bold /></td>
+                    <td style={{ padding: "4px 6px" }} colSpan={(ky ? 10 : 5) + 3}><BoqTxt v={it.ten} onCh={(v) => updItem(it.id, { ten: v })} w="100%" bold /></td>
                     {acts}
                   </tr>
                 );
@@ -4509,6 +4713,8 @@ function BOQTab({ t, lang, finance, onChange, projects, proj, tasks, inv, canEdi
                       {tdR((klHd > 0 ? Math.round(lk / klHd * 100) : 0) + "%", (klHd > 0 && lk > klHd) ? "text-red-500 font-semibold" : "text-slate-500")}
                       {tdR(fmtMoney(lk * dg, lang), "text-emerald-600")}
                     </>}
+                    {(() => { const tc = thiCong(it.id), nt = luyKeTatCa(it.id); return tdR(tc ? fmtQty(tc) + (tc > nt ? " ↑" : "") : "—", tc > nt ? "text-amber-600" : "text-slate-500"); })()}
+                    {tdR(daDeNghi(it.id) ? fmtQty(daDeNghi(it.id)) : "—", "text-slate-500")}
                     <td style={{ padding: "4px 6px", minWidth: 150 }}>
                       <AntSelect mode="multiple" size="small" maxTagCount={1} value={it.taskIds || []} onChange={(v) => updItem(it.id, { taskIds: v })}
                         style={{ width: "100%", minWidth: 140 }} placeholder="—" options={taskOpts} optionFilterProp="label" />
@@ -4528,7 +4734,7 @@ function BOQTab({ t, lang, finance, onChange, projects, proj, tasks, inv, canEdi
                 {tdR((totVal > 0 ? Math.round(totLuyKe / totVal * 100) : 0) + "%")}
                 {tdR(fmtMoney(totLuyKe, lang), "text-emerald-600")}
               </>}
-              <td colSpan={2} />
+              <td colSpan={4} />
             </tr></tfoot>
           </table>
         </div>
@@ -4539,15 +4745,15 @@ function BOQTab({ t, lang, finance, onChange, projects, proj, tasks, inv, canEdi
 }
 
 function NotifPanel({ t, lang, items, onOpen }) {
-  const icon = (ty) => ty === "approve" ? <CheckCircle2 size={15} className="text-orange-500" /> : ty === "overdue" ? <AlertTriangle size={15} className="text-red-500" /> : <MessageSquare size={15} className="text-sky-500" />;
+  const icon = (ty) => ty === "approve" || ty === "approved" ? <CheckCircle2 size={15} className="text-orange-500" /> : ty === "overdue" ? <AlertTriangle size={15} className="text-red-500" /> : ty === "assign" ? <UserCheck size={15} className="text-orange-500" /> : ty === "return" ? <X size={15} className="text-red-500" /> : ty === "sitelog" || ty === "unlock" ? <ScrollText size={15} className="text-sky-500" /> : <MessageSquare size={15} className="text-sky-500" />;
   return (
     <div style={{ width: 320, maxHeight: 380, overflowY: "auto" }}>
       <div className="text-sm font-semibold text-slate-700 px-1 pb-2">{lang === "vi" ? "Thông báo" : "Notifications"}</div>
       {items.length === 0 ? <p className="text-sm text-slate-500 px-1 py-6 text-center">{lang === "vi" ? "Không có thông báo." : "No notifications."}</p> :
         items.map((n) => (
-          <button key={n.id} onClick={() => onOpen(n)} className="w-full flex items-start gap-2 text-left px-2 py-2 rounded-lg hover:bg-slate-50">
+          <button key={n.id} onClick={() => onOpen(n)} className={"w-full flex items-start gap-2 text-left px-2 py-2 rounded-lg hover:bg-slate-50" + (n.server && !n.read ? " bg-orange-50/60" : "")}>
             <span className="mt-0.5 shrink-0">{icon(n.type)}</span>
-            <span className="flex-1 text-sm text-slate-600">{n.text}</span>
+            <span className="flex-1 text-sm text-slate-600">{n.text}{n.server && n.ts ? <span className="block text-[11px] text-slate-500">{relTime(n.ts, lang)}</span> : null}</span>
           </button>
         ))}
     </div>
@@ -4897,7 +5103,11 @@ const GanttRow = memo(function GanttRow({ it, top, t, lang, canEdit, memberById,
               </div>
               <div className="relative flex-1" style={{ height: "100%" }}>
                 {blS && blE && <div title={t.baselineLabel + ": " + bl.s.split("-").reverse().join("/") + " → " + bl.e.split("-").reverse().join("/")}
-                  style={{ position: "absolute", left: Math.round((blS - min) / DAY_MS) * PX, width: Math.max((Math.round((blE - blS) / DAY_MS) + 1) * PX - 3, 8), top: 32, height: 4, borderRadius: 2, background: "#64748b", opacity: 0.85 }} />}
+                  style={{ position: "absolute", left: Math.round((blS - min) / DAY_MS) * PX, width: Math.max((Math.round((blE - blS) / DAY_MS) + 1) * PX - 3, 8), top: 34, height: 3, borderRadius: 2, background: "#64748b", opacity: 0.85 }} />}
+                {/* P4: thanh thực tế mảnh (xanh) — từ ngày bắt đầu thực tế tới ngày kết thúc thực tế, hoặc tới hôm nay nếu chưa xong */}
+                {(it.tk.actualStart || it.tk.actualFinish) && (() => { const as = parseISO(it.tk.actualStart) || it.start; const af = parseISO(it.tk.actualFinish) || (it.tk.completed ? it.end : today0()); if (!as || af < as) return null;
+                  return <div title={t.actualLegend + ": " + isoOf(as).split("-").reverse().join("/") + " → " + (it.tk.actualFinish ? isoOf(af).split("-").reverse().join("/") : "…")}
+                    style={{ position: "absolute", left: Math.round((as - min) / DAY_MS) * PX, width: Math.max((Math.round((af - as) / DAY_MS) + 1) * PX - 3, 6), top: 30, height: 3, borderRadius: 2, background: it.tk.completed ? "#0f766e" : "#0ea5e9", opacity: 0.95 }} />; })()}
                 {it.tk.milestone ? (
                   <div onMouseDown={(ev) => canEdit && setDrag({ id: it.tk.id, startX: ev.clientX, origStart: it.start, origEnd: it.end, deltaDays: 0, mode: "move" })}
                     onTouchStart={(ev) => canEdit && setDrag({ id: it.tk.id, startX: ev.touches[0].clientX, origStart: it.start, origEnd: it.end, deltaDays: 0, mode: "move" })}
@@ -4970,7 +5180,19 @@ function TimelineView({ t, lang, canEdit, tasks, visibleIds, memberById, project
     return () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); window.removeEventListener("touchmove", move); window.removeEventListener("touchend", up); };
   }, [drag, onReschedule]);
 
-  const baseline = (project && project.baseline && project.baseline.tasks) || null;
+  /* P3: chọn bản kế hoạch gốc để so (mặc định: bản đang dùng). */
+  const [blSel, setBlSel] = useState("");
+  const blObj = blSel ? ((project && project.baselines) || []).find((b) => b.id === blSel) : (project && project.baseline);
+  const baseline = (blObj && blObj.tasks) || null;
+  const mobile = useIsMobile();
+  /* P3: % kế hoạch đến hôm nay (theo baseline, trọng số = số ngày) so với % thực tế (workdone) -> SPI. */
+  const tienDo = useMemo(() => {
+    if (!baseline) return null; const hom = today0(); let pv = 0, ev = 0, w = 0;
+    for (const tk of tasks) { const b = baseline[tk.id]; if (!b) continue; const s = parseISO(b.s), e = parseISO(b.e); if (!s || !e) continue;
+      const dur = Math.max(1, Math.round((e - s) / DAY_MS) + 1); const kh = hom < s ? 0 : hom > e ? 1 : (Math.round((hom - s) / DAY_MS) + 1) / dur;
+      pv += kh * dur; ev += ((tk.workdone || 0) / 100) * dur; w += dur; }
+    return w ? { pv: pv / w, ev: ev / w, spi: pv > 0 ? ev / pv : null } : null;
+  }, [baseline, tasks]);
 
   /* A1: CPM + khung thời gian chỉ phụ thuộc DỮ LIỆU việc, không phụ thuộc thao tác kéo.
      Đưa vào useMemo nên kéo thanh không còn tính lại đường găng mỗi khung hình.
@@ -5113,6 +5335,7 @@ function TimelineView({ t, lang, canEdit, tasks, visibleIds, memberById, project
 
   const dangLoc = visibleIds && items.length !== allItems.length;
   if (!nen || items.length === 0) return <div className="p-6"><Empty2 icon={<CalendarRange size={44} />} text={t.noTimelineData} /></div>;
+  if (mobile) return <GanttTheDiDong t={t} lang={lang} items={items} nen={nen} baseline={baseline} onOpenTask={onOpenTask} tienDo={tienDo} />;
   const { min, totalDays, slackOf, violated, hasCycle, ticks, todayOff, showToday } = nen;
   const tuDong = Math.max(0, Math.floor(cuon / ROW) - DEM);
   const denDong = Math.min(items.length, Math.ceil((cuon + KHUNG_H) / ROW) + DEM);
@@ -5127,6 +5350,8 @@ function TimelineView({ t, lang, canEdit, tasks, visibleIds, memberById, project
         <span className="flex items-center gap-1.5"><svg width="22" height="8"><line x1="0" y1="4" x2="22" y2="4" stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="3 2" /></svg>{t.depLine}</span>
         {showToday && <span className="flex items-center gap-1.5"><span className="inline-block" style={{ width: 2, height: 12, background: "#0ea5e9" }} />{t.today}</span>}
         {baseline && <span className="flex items-center gap-1.5"><span className="inline-block w-4 rounded-sm" style={{ height: 4, background: "#94a3b8" }} />{t.baselineLabel}</span>}
+        <span className="flex items-center gap-1.5"><span className="inline-block w-4 rounded-sm" style={{ height: 3, background: "#0ea5e9" }} />{t.actualLegend}</span>
+        {tienDo && <span className="font-medium text-slate-700">{t.planPct}: {Math.round(tienDo.pv * 100)}% · {t.actPct}: {Math.round(tienDo.ev * 100)}% · {t.spi}: <b style={{ color: tienDo.spi == null ? "#64748b" : tienDo.spi < 0.9 ? "#dc2626" : "#16a34a" }}>{tienDo.spi == null ? "—" : tienDo.spi.toFixed(2)}</b></span>}
         {dangLoc && <span className="text-slate-500">• {t.ganttFiltered}</span>}
         {undated > 0 && <span className="text-slate-500">• {undated} {t.undatedHint}</span>}
         {hasCycle && <span className="text-red-500 flex items-center gap-1"><AlertTriangle size={13} />{t.cycleWarn}</span>}
@@ -5137,6 +5362,8 @@ function TimelineView({ t, lang, canEdit, tasks, visibleIds, memberById, project
             <AntBtn size="small" icon={<CalendarDays size={14} />}>{t.workCalendar}</AntBtn>
           </AntPopover>
         </span>
+        {project && (project.baselines || []).length > 0 && <AntSelect size="small" value={blSel} onChange={setBlSel} style={{ minWidth: 150 }}
+          options={[{ value: "", label: (project.baseline && project.baseline.ten) || "BL" + (project.baselines || []).length }, ...(project.baselines || []).slice().reverse().map((b) => ({ value: b.id, label: (b.ten || "BL") + (b.savedAt ? " · " + new Date(b.savedAt).toLocaleDateString(lang === "vi" ? "vi-VN" : "en-US") : "") }))]} />}
         {canBaseline && <span><AntBtn size="small" onClick={onSaveBaseline}>{baseline ? t.baselineUpdate : t.baselineSave}</AntBtn>{baseline && project.baseline.savedAt ? <span className="text-slate-500 ml-2">{new Date(project.baseline.savedAt).toLocaleDateString(lang === "vi" ? "vi-VN" : "en-US")}</span> : null}</span>}
       </div>
       <div className="bg-white rounded-xl border border-slate-200" style={{ overflow: "auto", maxHeight: KHUNG_H }}
@@ -5182,6 +5409,76 @@ function TimelineView({ t, lang, canEdit, tasks, visibleIds, memberById, project
           </div>
         </div>
       </div>
+      {baseline && <DuongS t={t} lang={lang} baseline={baseline} tasks={tasks} />}
+    </div>
+  );
+}
+/* P3: đường S — % kế hoạch (theo kế hoạch gốc) và % thực tế theo tuần. Thực tế = việc xong tính ở ngày kết thúc thực tế
+   (hoặc ngày duyệt), việc đang làm tính % hiện tại ở hôm nay. */
+function DuongS({ t, lang, baseline, tasks }) {
+  const diem = useMemo(() => {
+    const ds = []; let min = null, max = null, W = 0;
+    for (const tk of tasks) { const b = baseline[tk.id]; if (!b) continue; const s = parseISO(b.s), e = parseISO(b.e); if (!s || !e) continue;
+      const dur = Math.max(1, Math.round((e - s) / DAY_MS) + 1); W += dur; ds.push({ tk, s, e, dur }); if (!min || s < min) min = s; if (!max || e > max) max = e; }
+    if (!ds.length || !W) return null;
+    const hom = today0(); if (hom > max) max = hom;
+    const pts = []; const tuan = 7 * DAY_MS;
+    for (let d = new Date(min.getTime()); d <= new Date(max.getTime() + tuan); d = new Date(d.getTime() + tuan)) {
+      let pv = 0, ev = 0;
+      for (const x of ds) {
+        pv += (d < x.s ? 0 : d > x.e ? 1 : (Math.round((d - x.s) / DAY_MS) + 1) / x.dur) * x.dur;
+        const xong = x.tk.completed ? (parseISO(x.tk.actualFinish) || (x.tk.completedAt ? new Date(x.tk.completedAt) : null)) : null;
+        if (xong && xong <= d) ev += x.dur; else if (!xong && d >= hom && d < new Date(hom.getTime() + tuan)) ev += ((x.tk.workdone || 0) / 100) * x.dur;
+      }
+      pts.push({ d, pv: pv / W, ev: d <= new Date(hom.getTime() + tuan) ? ev / W : null });
+    }
+    return { pts, min, max };
+  }, [baseline, tasks]);
+  if (!diem) return null;
+  const Wd = 720, H = 150, padL = 36, padB = 22, padT = 10;
+  const n = diem.pts.length; const x = (i) => padL + (n > 1 ? i / (n - 1) : 0) * (Wd - padL - 10); const y = (v) => padT + (1 - v) * (H - padT - padB);
+  const duong = (key) => diem.pts.filter((p) => p[key] != null).map((p, i, arr) => (i ? "L" : "M") + x(diem.pts.indexOf(p)) + " " + y(p[key])).join(" ");
+  return (
+    <div className="mt-4 bg-white rounded-xl border border-slate-200 p-3">
+      <div className="text-xs font-semibold text-slate-600 mb-1 flex items-center gap-3">{t.sCurve}
+        <span className="flex items-center gap-1 font-normal"><span className="inline-block w-4" style={{ height: 2, background: "#94a3b8" }} />{t.baselineLabel}</span>
+        <span className="flex items-center gap-1 font-normal"><span className="inline-block w-4" style={{ height: 2, background: "#f97316" }} />{t.actPct}</span></div>
+      <svg viewBox={"0 0 " + Wd + " " + H} style={{ width: "100%", height: "auto", maxHeight: 220 }}>
+        {[0, 0.25, 0.5, 0.75, 1].map((v) => <g key={v}><line x1={padL} x2={Wd - 10} y1={y(v)} y2={y(v)} stroke="#e2e8f0" /><text x={padL - 4} y={y(v) + 4} fontSize="10" fill="#94a3b8" textAnchor="end">{Math.round(v * 100)}%</text></g>)}
+        <path d={duong("pv")} fill="none" stroke="#94a3b8" strokeWidth="2" />
+        <path d={duong("ev")} fill="none" stroke="#f97316" strokeWidth="2.5" />
+        {diem.pts.map((p, i) => (i % Math.max(1, Math.round(n / 8)) === 0 || i === n - 1) ? <text key={i} x={x(i)} y={H - 6} fontSize="10" fill="#64748b" textAnchor="middle">{p.d.getDate() + "/" + (p.d.getMonth() + 1)}</text> : null)}
+      </svg>
+    </div>
+  );
+}
+/* U4: Gantt trên điện thoại — mỗi việc một thẻ. */
+function GanttTheDiDong({ t, lang, items, nen, baseline, onOpenTask, tienDo }) {
+  const fmt = (d) => d.getDate() + "/" + (d.getMonth() + 1);
+  return (
+    <div className="p-3 space-y-2">
+      <p className="text-xs text-slate-500">{t.ganttMobileHint}</p>
+      {tienDo && <p className="text-xs font-medium text-slate-700">{t.planPct}: {Math.round(tienDo.pv * 100)}% · {t.actPct}: {Math.round(tienDo.ev * 100)}% · {t.spi}: {tienDo.spi == null ? "—" : tienDo.spi.toFixed(2)}</p>}
+      {items.map((it) => {
+        const crit = !nen.hasCycle && nen.slackOf[it.tk.id] === 0 && !it.tk.completed;
+        const bl = baseline ? baseline[it.tk.id] : null; const blE = bl && parseISO(bl.e); const drift = blE ? Math.round((it.end - blE) / DAY_MS) : 0;
+        return (
+          <button key={it.tk.id} onClick={() => onOpenTask(it.tk.id)} className="w-full text-left bg-white rounded-xl border border-slate-200 px-3 py-2">
+            <div className="flex items-center gap-2">
+              <span className={"flex-1 text-sm truncate " + (it.tk.completed ? "line-through text-slate-500" : "text-slate-700")}>{it.tk.milestone ? "◆ " : ""}{it.tk.title || t.untitled}</span>
+              {crit && <span className="text-[10px] font-bold text-red-600 bg-red-50 rounded px-1 py-0.5">{t.criticalBadge}</span>}
+              {drift > 0 && <span className="text-[10px] font-bold text-red-600">+{drift}{lang === "vi" ? "ng" : "d"}</span>}
+              {nen.violated.has(it.tk.id) && <AlertTriangle size={13} className="text-red-500" />}
+            </div>
+            <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
+              <span className="tabular-nums">{fmt(it.start)} → {fmt(it.end)}</span>
+              {it.tk.actualStart && <span className="text-sky-600 tabular-nums">· {t.actualLegend}: {it.tk.actualStart.slice(8, 10)}/{it.tk.actualStart.slice(5, 7)}{it.tk.actualFinish ? " → " + it.tk.actualFinish.slice(8, 10) + "/" + it.tk.actualFinish.slice(5, 7) : " → …"}</span>}
+              <span className="ml-auto tabular-nums font-medium" style={{ color: it.tk.completed ? "#10b981" : "#f97316" }}>{it.tk.workdone || 0}%</span>
+            </div>
+            <div className="h-1.5 rounded bg-slate-100 mt-1.5 overflow-hidden"><div style={{ width: (it.tk.workdone || 0) + "%", height: "100%", background: it.tk.completed ? "#10b981" : crit ? "#dc2626" : "#f97316" }} /></div>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -5327,6 +5624,8 @@ function buildReportHTML({ t, lang, project, projects, tasks, members, finance, 
 function AuditView({ t, lang, projects, proj }) {
   const [rows, setRows] = useState(null);
   const [loi, setLoi] = useState("");
+  const [tuan, setTuan] = useState(null);   // A11: tóm tắt theo người 7 ngày qua
+  useEffect(() => { let huy = false; api("/api/audit/tuan?ngay=7").then((r) => { if (!huy && r.ok) setTuan(r.body); }); return () => { huy = true; }; }, []);
   useEffect(() => {
     let huy = false;
     (async () => {
@@ -5344,8 +5643,17 @@ function AuditView({ t, lang, projects, proj }) {
   const nhan = (e) => (t.auditEntity[e.entity] || e.entity) + (e.name ? " “" + e.name + "”" : "");
   const truong = (e) => t.auditField[e.field] || t.field[e.field] || e.field;
   const rutGon = (v) => { const x = String(v == null ? "" : v); return x.length > 60 ? x.slice(0, 60) + "…" : (x || t.emptyVal); };
+  const tomTat = tuan && tuan.tong > 0 && !proj ? (
+    <div className="bg-white rounded-xl border border-slate-200 px-4 py-3 mb-3">
+      <div className="text-sm font-semibold text-slate-700 mb-1">{t.aiSuaGi} · {tuan.tong} {t.thayDoi}</div>
+      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600">
+        {tuan.nguoi.slice(0, 8).map((r) => <span key={r.actor}><b>{r.actor}</b> {r.so} · {r.top.slice(0, 3).map((x) => { const [en, f] = x.loai.split(":"); return (t.auditEntity[en] || en) + " " + (t.auditField[f] || t.field[f] || f) + " ×" + x.so; }).join(", ")}</span>)}
+      </div>
+    </div>
+  ) : null;
   return (
     <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100">
+      {tomTat}
       {rows.map((e, i) => (
         <div key={i} className="px-4 py-2.5">
           <p className="text-sm text-slate-700">
@@ -5357,7 +5665,7 @@ function AuditView({ t, lang, projects, proj }) {
             <p className="text-xs text-slate-600 mt-0.5 break-words"><span className="line-through opacity-70">{rutGon(e.from)}</span> → <span className="font-medium">{rutGon(e.to)}</span></p>
           )}
           <p className="text-xs text-slate-500 mt-0.5">
-            {new Date(e.ts).toLocaleString(lang === "vi" ? "vi-VN" : "en-US", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+            {!Number.isFinite(e.ts) ? "—" : new Date(e.ts).toLocaleString(lang === "vi" ? "vi-VN" : "en-US", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" })}
             {e.ip ? " · " + e.ip : ""}{e.rev ? " · rev " + e.rev : ""}
           </p>
         </div>
@@ -5377,13 +5685,14 @@ function HistoryView({ t, lang, history, projects, canDelete, canAudit, onDelete
       case "task_create": case "task_delete": case "task_complete": case "task_reopen":
         return `${A[e.action]} ${q(e.taskTitle)}${where}`;
       case "comment_add": return `${A.comment_add} ${q(e.taskTitle)}${where}`;
-      case "task_assign": return `${A.task_assign} ${q(e.taskTitle)} → ${e.to}${e.primaryName ? ` (★ ${e.primaryName})` : ""}${where}`;
+      case "task_assign": return `${A.task_assign} ${q(e.taskTitle)} → ${e.to ?? ""}${e.primaryName ? ` (★ ${e.primaryName})` : ""}${where}`;
       case "task_workdone": return `${A.task_workdone} ${q(e.taskTitle)}: ${e.from} → ${e.to}${where}`;
       case "task_reject": return `${A.task_reject} ${q(e.taskTitle)}: “${e.to}”${where}`;
       case "task_reminder": return `${A.task_reminder} ${q(e.taskTitle)}: ${e.to}${where}`;
       case "section_add": return `${A.section_add} “${e.to}”${where}`;
       case "project_create": return `${A.project_create} “${e.projectName}”`;
       case "project_delete": return `${A.project_delete} “${e.projectName}”`;
+      case "csv_import": return `${A.csv_import} “${e.projectName}”: ${e.to}`;
       case "member_add": return `${A.member_add} ${e.to}`;
       case "member_remove": return `${A.member_remove} ${e.to}`;
       case "history_grant": return `${A.history_grant} ${e.to}`;
@@ -5392,11 +5701,11 @@ function HistoryView({ t, lang, history, projects, canDelete, canAudit, onDelete
       case "member_cap": return `${A.member_cap} ${e.to}: ${(t.caps && t.caps[e.capKey]) || e.capKey} ${e.val ? "✓" : "✕"}`;
       case "task_field": {
         const fname = t.field[e.field] || e.field; let detail = "";
-        if (e.field === "priority") detail = `: ${t.priorities[e.fromKey]} → ${t.priorities[e.toKey]}`;
+        if (e.field === "priority") detail = `: ${t.priorities[e.fromKey] || e.fromKey || t.emptyVal} → ${t.priorities[e.toKey] || e.toKey || t.emptyVal}`;
         else if (e.field === "section" || e.field === "dueDate" || e.field === "title") detail = `: ${e.from || t.emptyVal} → ${e.to || t.emptyVal}`;
         return `${A.task_field} ${fname}${detail} · ${q(e.taskTitle)}${where}`;
       }
-      default: return e.action;
+      default: return A[e.action] || String(e.action || "");
     }
   };
   const rows = history.filter((e) => !proj || e.projectId === proj);
@@ -5426,7 +5735,7 @@ function HistoryView({ t, lang, history, projects, canDelete, canAudit, onDelete
               <Avatar name={e.actor} size={30} />
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-slate-700"><span className="font-semibold">{e.actor}</span> {describe(e)}</p>
-                <p className="text-xs text-slate-500 mt-0.5" title={new Date(e.ts).toLocaleString()}>{relTime(e.ts, lang)} · {new Date(e.ts).toLocaleString(lang === "vi" ? "vi-VN" : "en-US", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+                <p className="text-xs text-slate-500 mt-0.5" title={Number.isFinite(e.ts) ? new Date(e.ts).toLocaleString() : ""}>{relTime(e.ts, lang)} · {!Number.isFinite(e.ts) ? "—" : new Date(e.ts).toLocaleString(lang === "vi" ? "vi-VN" : "en-US", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
               </div>
               {canDelete && <button onClick={async () => { if (await askDanger(antModal, t, lang === "vi" ? "Xóa dòng lịch sử này?" : "Delete this history entry?")) onDelete(e.id); }} className="text-slate-500 hover:text-red-500 p-1 shrink-0 self-center" title={t.delete}><Trash2 size={14} /></button>}
             </div>
@@ -5485,7 +5794,7 @@ function TaskFiles({ t, lang, task, canEdit }) {
     </div>
   );
 }
-function TaskDetail({ t, lang, task, members, memberById, me, canEdit, canWorkdone, sections, projTasks, onClose, onPatch, onAssign, onWorkdone, onReminder, onDepends, onDelete, onComment, onStatus, onApprove, onReject, onApprover, canApprove, assignableIds, canRemind, serverMode }) {
+function TaskDetail({ t, lang, task, members, memberById, me, canEdit, canWorkdone, sections, projTasks, onClose, onPatch, onAssign, onWorkdone, onReminder, onDepends, onActual, duyet, onDelete, onComment, onStatus, onApprove, onReject, onApprover, canApprove, assignableIds, canRemind, serverMode }) {
   const [tagInput, setTagInput] = useState("");
   const [subInput, setSubInput] = useState("");
   const [comment, setComment] = useState("");
@@ -5552,6 +5861,17 @@ function TaskDetail({ t, lang, task, members, memberById, me, canEdit, canWorkdo
               ))}
             </div>
             {!canWorkdone && <p className="text-xs text-slate-500 mt-2">{t.workdoneHint}</p>}
+            {duyet && (duyet.canAnh || duyet.canViecCon) && task.status !== "done" && <p className="text-xs text-amber-600 mt-2 flex items-start gap-1"><ListChecks size={13} className="mt-0.5 shrink-0" />{[duyet.canViecCon && t.duyetCanViecCon, duyet.canAnh && t.duyetCanAnh].filter(Boolean).join(" · ")}</p>}
+          </div>
+          {/* P4: kế hoạch (startDate/dueDate) tách khỏi thực tế (actualStart/actualFinish) */}
+          <div className="rounded-xl border border-slate-200 p-3">
+            <div className="text-sm font-medium text-slate-600 flex items-center gap-1.5 mb-1.5"><CalendarDays size={15} />{t.actualStart} / {t.actualFinish}</div>
+            <div className="flex gap-2 items-center">
+              <input type="date" value={task.actualStart || ""} disabled={!canWorkdone} onChange={(e) => onActual && onActual({ actualStart: e.target.value })} className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 flex-1 min-w-0" />
+              <input type="date" value={task.actualFinish || ""} disabled={!canWorkdone} onChange={(e) => onActual && onActual({ actualFinish: e.target.value })} className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 flex-1 min-w-0" />
+            </div>
+            {task.actualFinish && task.dueDate && (() => { const a = parseISO(task.actualFinish), b = parseISO(task.dueDate); if (!a || !b) return null; const d = Math.round((a - b) / DAY_MS); return d ? <p className="text-xs mt-1 font-medium" style={{ color: d > 0 ? "#dc2626" : "#16a34a" }}>{d > 0 ? "+" + d + " " + t.daysUnit + " " + t.treThat : Math.abs(d) + " " + t.daysUnit + " " + t.somThat}</p> : null; })()}
+            <p className="text-xs text-slate-500 mt-1">{t.actualHint}</p>
           </div>
 
           <div className="space-y-3">
@@ -5606,7 +5926,7 @@ function TaskDetail({ t, lang, task, members, memberById, me, canEdit, canWorkdo
                       <div className="space-y-1.5 mb-2">
                         {deps.map((d) => (
                           <div key={d.id} className="flex flex-wrap items-center gap-1.5 rounded-lg bg-slate-50 px-2 py-1.5">
-                            <span className="flex-1 min-w-[45%] text-sm text-slate-700 truncate">{byId(d.id)?.title || t.untitled}</span>
+                            <span className="flex-1 min-w-[45%] text-sm text-slate-700 truncate">{byId(d.id) ? (byId(d.id).title || t.untitled) : <span className="italic text-slate-500">{t.deletedTask}</span>}</span>
                             <AntSelect size="small" value={d.type} onChange={(v) => doiLoai(d.id, v)} style={{ width: 78 }}
                               options={LOAI_PT.map((k) => ({ value: k, label: k }))} />
                             <span className="flex items-center gap-1">
@@ -5859,7 +6179,7 @@ function MembersModal({ t, members, meId, canManage, actorIsOwner, serverMode, f
   const visibleCaps = CAP_KEYS.filter((k) => !((k === "canViewFinance" && F.finance === false) || (k === "canViewWorkload" && F.workload === false) || (k === "canViewHistory" && F.history === false)));
   const CAP_ICON = { canAssign: Pencil, canViewFinance: Wallet, canViewHistory: History, canViewWorkload: Gauge, canManageMembers: UserPlus, isLeader: Crown, isTeamlead: UserCheck, noReport: Send };
   const CAP_COLOR = { canAssign: "#f97316", canViewFinance: "#0d9488", canViewHistory: "#d97706", canViewWorkload: "#0284c7", canManageMembers: "#db2777", isLeader: "#9333ea", isTeamlead: "#0891b2", noReport: "#64748b" };
-  const canAdd = name.trim() && isEmail(email) && (!serverMode || pw.length >= 4);
+  const canAdd = name.trim() && isEmail(email) && (!serverMode || (pw.length >= 8 && /[A-Za-z]/.test(pw) && /[0-9]/.test(pw)));
   const doAdd = () => { if (!canAdd) return; const c = { ...caps }; if (!actorIsOwner) { delete c.canManageMembers; delete c.isLeader; delete c.isTeamlead; } onAdd(name, email, pw, { role: "member", dept, ...c }); setName(""); setEmail(""); setPw(""); setDept(""); setCaps({ canAssign: false, canViewFinance: false, canViewHistory: false, canViewWorkload: false, canManageMembers: false, isLeader: false, isTeamlead: false, noReport: false }); };
   const CapBox = ({ k, val, on, disabled }) => { const Icon = CAP_ICON[k]; return (
     <label className="flex items-center gap-1 text-xs cursor-pointer" title={t.capHints[k]} style={{ color: val ? CAP_COLOR[k] : "#94a3b8" }}>
@@ -5901,7 +6221,7 @@ function MembersModal({ t, members, meId, canManage, actorIsOwner, serverMode, f
                 {!isOwner && (
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-3 pl-1">
                     {visibleCaps.map((k) => (
-                      <CapBox key={k} k={k} val={!!m[k]} disabled={!canManage || (OWNER_ONLY_CAPS.includes(k) && !actorIsOwner)} on={(v) => onSetCap(m.id, k, v)} />
+                      <CapBox key={k} k={k} val={!!m[k]} disabled={!canManage || (OWNER_ONLY_CAPS.includes(k) && !actorIsOwner) || (!actorIsOwner && m.id === meId)} on={(v) => onSetCap(m.id, k, v)} />
                     ))}
                   </div>
                 )}
@@ -5960,7 +6280,7 @@ function SettingsModal({ t, lang, onLoad, onSave, onFeatures, onClose, membersCo
   const smtp = s.smtp || {}; const backup = s.backup || {};
   const setSmtp = (k, v) => setS((p) => ({ ...p, smtp: { ...(p.smtp || {}), [k]: v } }));
   const setBackup = (k, v) => setS((p) => ({ ...p, backup: { ...(p.backup || {}), [k]: v } }));
-  const save = async () => { const ok = await onSave({ appName: s.appName, appUrl: s.appUrl, backup: { email: backup.email || "" }, smtp, features: feats }); if (ok && onFeatures) onFeatures(feats); setMsg(ok ? t.settingsSaved : t.setupFailed); };
+  const save = async () => { const ok = await onSave({ appName: s.appName, appUrl: s.appUrl, backup: { email: backup.email || "" }, smtp, features: feats, recordTypes: s.recordTypes || [] }); if (ok && onFeatures) onFeatures(feats); setMsg(ok ? t.settingsSaved : t.setupFailed); };
   const Inp = ({ label, value, onChange, type = "text", ph = "" }) => (
     <label className="block"><span className="text-xs text-slate-500">{label}</span>
       <input value={value || ""} type={type} placeholder={ph} onChange={(e) => onChange(e.target.value)} className="w-full mt-0.5 text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400" /></label>
@@ -5999,6 +6319,10 @@ function SettingsModal({ t, lang, onLoad, onSave, onFeatures, onClose, membersCo
         </div>
         <Inp label={t.appNameLabel} value={s.appName} onChange={(v) => setS((p) => ({ ...p, appName: v }))} />
         <Inp label={t.appUrlLabel} value={s.appUrl} onChange={(v) => setS((p) => ({ ...p, appUrl: v }))} ph="http://192.168.1.x:3000" />
+        <label className="block"><span className="text-xs text-slate-500">{t.recTypesLabel}</span>
+          <textarea rows={3} value={(s.recordTypes || []).join("\n")} onChange={(e) => setS((p) => ({ ...p, recordTypes: e.target.value.split("\n").map((x) => x.trim()).filter(Boolean) }))}
+            className="w-full mt-0.5 text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400" placeholder={"Biên bản nghiệm thu công việc\nBiên bản nghiệm thu vật liệu\nBiên bản nghiệm thu giai đoạn"} /></label>
+        <SucKhoeMayChu t={t} lang={lang} />
         {feats.notifications !== false && (<>
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 space-y-2">
           <div className="text-sm font-semibold text-amber-700 flex items-center gap-1.5"><Banknote size={15} />{t.backupSection}</div>
@@ -6024,6 +6348,43 @@ function SettingsModal({ t, lang, onLoad, onSave, onFeatures, onClose, membersCo
   );
 }
 
+/* Hoàn thiện 06/09: thẻ sức khỏe máy chủ cho quản trị viên không phải tác giả (đọc /api/health). */
+function SucKhoeMayChu({ t, lang }) {
+  const [h, setH] = useState(null);
+  const [pwa, setPwa] = useState(null);
+  useEffect(() => { let huy = false; api("/api/health").then((r) => { if (!huy) setH(r.ok ? r.body : { loi: true }); }); return () => { huy = true; }; }, []);
+  useEffect(() => { try { if (navigator.serviceWorker) navigator.serviceWorker.getRegistrations().then((rs) => setPwa(rs.some((r) => r.active || r.installing || r.waiting))).catch(() => setPwa(false)); else setPwa(false); } catch { setPwa(false); } }, []);
+  const mb = (b) => (b == null ? "—" : (b / 1048576 >= 1024 ? (b / 1073741824).toFixed(1) + " GB" : Math.round(b / 1048576) + " MB"));
+  if (!h) return null;
+  if (h.loi) return null;
+  const row = (k, v, mau) => <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500">{k}</span><span className="tabular-nums font-medium" style={{ color: mau || "#334155" }}>{v}</span></div>;
+  return (
+    <div className="rounded-lg border border-slate-200 p-3 space-y-1.5">
+      <div className="text-sm font-semibold text-slate-700 flex items-center gap-1.5"><Gauge size={15} className="text-orange-500" />{t.sucKhoeMC} <span className="text-xs font-normal text-slate-500">v{h.version} · Node {h.node}{h.https ? " · HTTPS" : ""}</span></div>
+      {row(t.skDuLieu, mb(h.dataBytes) + " / 8 MB", h.dataBytes > 6 * 1048576 ? "#dc2626" : undefined)}
+      {row(t.skSnapshot, h.snapshotMoiNhat ? (h.snapshotMoiNhat + (h.snapshotTuoiNgay ? " · " + h.snapshotTuoiNgay + " " + t.skNgay : "")) : t.skChua, h.snapshotTuoiNgay > 2 || !h.snapshotMoiNhat ? "#dc2626" : undefined)}
+      {row(t.skDia, mb(h.diaTrongBytes), h.diaTrongBytes != null && h.diaTrongBytes < 500 * 1048576 ? "#dc2626" : undefined)}
+      {row(t.skEmail, h.emailSanSang ? t.skSanSang + (h.emailSaoLuu ? " · " + h.emailSaoLuu : "") : t.skChuaCauHinh, h.emailSanSang ? undefined : "#d97706")}
+      {row(t.skSaoLuu, h.saoLuuTuan || t.skChua)}
+      {row(t.skUptime, h.uptimeGio + " " + t.skGio)}
+      {row(t.skPwa, pwa == null ? "…" : pwa ? t.skPwaOn : t.skPwaOff, pwa ? undefined : "#64748b")}
+      {h.canhBao && h.canhBao.length ? <ul className="text-xs text-red-600 list-disc pl-4 pt-1 space-y-0.5">{h.canhBao.map((c, i) => <li key={i}>{c}</li>)}</ul> : <p className="text-xs text-green-600 pt-1">{t.skOk}</p>}
+    </div>
+  );
+}
+/* Nút Góp ý: câu hỏi duy nhất cần trả lời là "cái gì bắt bạn mở Excel / Zalo thay vì phần mềm". */
+function GopYModal({ t, lang, view, onClose }) {
+  const { message: antMessage } = AntApp.useApp();
+  const [text, setText] = useState(""); const [busy, setBusy] = useState(false);
+  const gui = async () => { if (!text.trim() || busy) return; setBusy(true); const r = await api("/api/feedback", { method: "POST", body: JSON.stringify({ text, view }) }); setBusy(false); if (r.ok) { antMessage.success(t.gopYSent); onClose(); } else antMessage.error(loiMayChu(r, t, t.saveFailed)); };
+  return (
+    <AntModal open onCancel={onClose} width={440} title={<span className="flex items-center gap-2"><MessageSquare size={18} className="text-orange-500" />{t.gopY}</span>}
+      footer={<AntBtn type="primary" loading={busy} disabled={!text.trim()} onClick={gui}>{t.gopYSend}</AntBtn>}>
+      <p className="text-xs text-slate-500 mb-2">{t.gopYHint}</p>
+      <AntInput.TextArea rows={5} value={text} onChange={(e) => setText(e.target.value)} maxLength={2000} showCount autoFocus />
+    </AntModal>
+  );
+}
 /* ============================ AUTH SCREEN (setup / login) ============================ */
 function AuthScreen({ mode, t, lang, setLang, error, onSubmit, sourceUrl }) {
   const [name, setName] = useState("");

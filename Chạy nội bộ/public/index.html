@@ -34,6 +34,12 @@
 <body>
   <div id="root"></div>
   <script src="shim.js?v=6568b7fe"></script>
-  <script src="app.js?v=32928015"></script>
+  <script src="app.js?v=0588c724"></script>
+  <script>
+    /* PWA: service worker chỉ chạy trong ngữ cảnh an toàn (HTTPS hoặc localhost) — bản HTTP trong LAN bỏ qua, không lỗi. */
+    if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+      navigator.serviceWorker.register("sw.js").catch(function () {});
+    }
+  </script>
 </body>
 </html>

@@ -30,6 +30,10 @@ này, nên máy cá nhân và CI không bao giờ lệch nhau.
 | `test-hoi-quy-lan2.mjs` | Các lỗi hồi quy R1–R12 của báo cáo audit lần 2 — đường lỗi mà bộ test cũ không phủ |
 | `test-hoi-quy-lan3.mjs` | Bốn lỗi còn lại của audit lần 3 (N1–N4): báo cáo ngày trộn dự án, mở khóa nhật ký, lập nhật ký ngoài dự án, thùng rác lộ tên dự án ẩn |
 | `test-hoi-quy-lan4.mjs` | Ba cạnh của audit lần 4 (F1–F4): dự án giới hạn chỉ còn trong thùng rác, dòng báo cáo không id, dòng trỏ việc đã xóa, từ điển audit |
+| `test-hoi-quy-lan5.mjs` | "Kiểm tra toàn bộ" 06/09: bất biến không rò rỉ / không ghi đè / không từ chối sai chạy cho mọi vai trò; 15 điểm vá (G1, K1–K8, K11, K25, từ điển) |
+| `test-manh-me.mjs` | Chịu lỗi (fuzz 06/09): body méo không 500; khối chung / tài chính chỉ lưu đúng cấu trúc; rev có giới hạn; tài chính bắt buộc expectedRev; email, cài đặt, hồ sơ kiểm kiểu; audit không nhiễu; dữ liệu cũ thiếu trường không chặn nhân viên (L1); đường dẫn tĩnh không lộ tệp |
+| `test-hoan-thien.mjs` | Hoàn thiện 06/09: CAS nhật ký / biên bản (409 stale), dọn id khi xóa tài khoản, hợp đồng khung, gộp lịch sử của mình, số biên bản tự cấp + loại biên bản, rev tài chính theo dự án (Q6), dataVersion, /api/client-error, /api/feedback, /api/health, tóm tắt audit tuần, thông báo trong app (giao việc / nộp nhật ký / duyệt), quy tắc nghiệm thu (việc con, ảnh, QC), ngày thực tế |
+| `test-tu-dien-audit.mjs` | Tĩnh, không cần máy chủ: mọi thực thể / trường audit máy chủ ghi, mọi action lịch sử client, mọi mã lỗi có message đều phải có bản dịch vi + en; mục lịch sử phải mang projectId |
 | `test-restore.mjs` | Khôi phục dữ liệu từ snapshot |
 | `test-lich-gantt.mjs` | Logic lịch & CPM: kéo k ngày = k ngày, 4 loại phụ thuộc, lag, lịch làm việc, mốc |
 | `test-gop-xung-dot.mjs` | Gộp ba chiều khi hai người lưu cùng lúc — không được mất thao tác của ai |

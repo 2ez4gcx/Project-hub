@@ -69,6 +69,7 @@ const DA_DUYET_DICH_CHUNG = {
   forbidden: "đều là 'không có quyền'",
   notfound: "đều là 'không thấy trong thùng rác'",
   scope_merge_failed: "cùng một sự cố, chỉ khác loại dữ liệu",
+  sitelog_locked: "đều là 'nhật ký đã duyệt nên khóa' (sửa / thêm ảnh / xóa) — tách khỏi 'locked' của khóa đăng nhập 06/09",
 };
 const nhieuCau = Object.keys(soLanDung).filter((m) => soLanDung[m].size > 1);
 const chuaDuyet = nhieuCau.filter((m) => maDich.includes(m) && !DA_DUYET_DICH_CHUNG[m]);
