@@ -257,3 +257,8 @@ cạnh; không được thay thế hay giấu đi. Xóa ghi danh là **chấm d�
 > giấy phép đã trao không thu hồi được. AGPL chỉ áp dụng từ **v4.2.0** trở đi.
 
 Phần mềm do **Khuong Doan** phát triển — <https://khuongdoan.com/>
+
+<sub>Phần mềm miễn phí và sẽ luôn như vậy. Nếu nó giúp ích cho công ty bạn và bạn muốn mời tác giả một ly cà phê, quét mã MoMo bên dưới. Không bắt buộc, không kèm quyền lợi gì thêm.</sub>
+
+<a href="docs/anh/ung-ho-momo.png"><img src="docs/anh/ung-ho-momo.png" alt="Mã QR MoMo ủng hộ tác giả" width="120"></a>
+
