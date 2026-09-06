@@ -255,6 +255,14 @@ function phamViDuAn(me, st) {
     if (!Array.isArray(p.members) || !p.members.length) th.add(p.id);                    // dự án mở
     else if (p.members.includes(me.id)) th.add(p.id);
   }
+  /* N4 (audit lần 3): dự án ĐÃ XÓA nằm trong thùng rác cũng phải xét thành viên — dự án mở hoặc
+     có mình thì vẫn thấy (để còn khôi phục được), dự án giới hạn mà mình không thuộc thì ẩn cả tên. */
+  for (const e of (Array.isArray(st && st.trash) ? st.trash : [])) {
+    const pj = e && e.project;
+    if (!e || !e.id || !pj) continue;
+    const mem = Array.isArray(pj.members) ? pj.members : [];
+    if (!mem.length || mem.includes(me.id)) th.add(e.id);
+  }
   return th;
 }
 /* Bản rút gọn của khối dữ liệu chung, chỉ còn những dự án người này được vào.
@@ -281,7 +289,10 @@ function locTheoPhamVi(st, thay) {
       if (!x || !Array.isArray(x.items)) return x;
       return { ...x, items: x.items.filter((it) => trong(duAnCuaViec(st, it && it.taskId))) };
     }),
-    trash: (st.trash || []).filter((x) => x && (trong(x.projectId) || thay.has(x.id))),
+    /* N4 (audit lần 3): mục DỰ ÁN trong thùng rác không mang projectId nên trước đây lọt qua
+       trong(undefined) — người ngoài dự án thấy tên dự án giới hạn đã xóa. Nay: mục công việc
+       lọc theo projectId, mục dự án lọc theo chính id (phamViDuAn đã xét thành viên của nó). */
+    trash: (st.trash || []).filter((x) => x && (x.kind === "task" ? trong(x.projectId) : thay.has(x.id))),
   };
 }
 /* Ghép phần người bị hạn chế gửi lên (đã lọc) trở lại bản đầy đủ: giữ nguyên mọi bản ghi
@@ -313,8 +324,23 @@ function ghepTheoPhamVi(cur, inc, thay) {
       const ra = (inc.dailyReports || []).map((x) => {
         if (!x || !Array.isArray(x.items)) return x;
         const cu = banCu.get(x.id);
-        const an = (cu && Array.isArray(cu.items)) ? cu.items.filter((it) => !trong(duAnCuaViec(cur, it && it.taskId))) : [];
-        return an.length ? { ...x, items: [...x.items, ...an] } : x;
+        if (!cu || !Array.isArray(cu.items)) return x;                    // báo cáo mới của chính người gửi
+        const anDong = (it) => !trong(duAnCuaViec(cur, it && it.taskId));
+        if (!cu.items.some(anDong)) return x;                             // không có dòng ẩn -> nhận nguyên bản gửi
+        /* N1 (audit lần 3): ghép kiểu [dòng gửi] + [dòng ẩn] làm ĐỔI THỨ TỰ khi dòng ẩn vốn đứng
+           trước -> luật 7 coi là "sửa báo cáo của người khác" và từ chối MỌI lần lưu của người
+           bị giới hạn. Nay đi theo thứ tự bản gốc: dòng ẩn giữ nguyên chỗ, dòng hiện lấy bản
+           người gửi (theo id), dòng người gửi thêm mới nối vào cuối. */
+        const gui = new Map(x.items.filter((it) => it && it.id).map((it) => [it.id, it]));
+        const items = [];
+        for (const it of cu.items) {
+          if (!it) continue;
+          if (anDong(it)) { items.push(it); continue; }
+          if (it.id && gui.has(it.id)) { items.push(gui.get(it.id)); gui.delete(it.id); }
+          // dòng hiện không còn trong bản gửi = người gửi đã xóa nó (chỉ hợp lệ với báo cáo của họ — luật 7 xét)
+        }
+        for (const it of x.items) if (it && (!it.id || gui.has(it.id))) { items.push(it); if (it.id) gui.delete(it.id); }
+        return { ...x, items };
       });
       const idsMoi = new Set(ra.map((x) => x && x.id));
       for (const [id, x] of banCu) if (!idsMoi.has(id)) ra.push(x);      // báo cáo hoàn toàn nằm ngoài phạm vi
@@ -813,9 +839,12 @@ function taskExists(tid) { try { const d = loadData(); const shared = JSON.parse
 function canRecordProject(me, projectId) {
   if (!me) return false;
   if (me.role === "owner" || me.isLeader) return true;
-  if (me.isTeamlead && me.dept === "Site") return true;
   const pr = projectOf(projectId);
   if (!pr) return false;
+  /* N3 (audit lần 3): dự án đã khai thành viên thì người ngoài — kể cả Teamlead bộ phận Site —
+     không được lập nhật ký / biên bản cho dự án đó (trước đây lập được rồi không xem lại được). */
+  if (Array.isArray(pr.members) && pr.members.length && !pr.members.includes(me.id)) return false;
+  if (me.isTeamlead && me.dept === "Site") return true;
   return (pr.siteLoggers || []).includes(me.id);
 }
 /* ---- SIẾT QUYỀN XEM FILE THEO DỰ ÁN (v3.8) ----
@@ -1386,7 +1415,15 @@ const requestHandler = async (req, res) => {
     const logs = loadSiteLogs(); const rec = logs.find((r) => r.id === b.id && !r.deletedAt);
     if (!rec) return json(res, 404, { error: "notfound" });
     if (!canRecordProject(me, rec.projectId)) return json(res, 403, { error: "forbidden" });
-    if (b.duyet === false) { rec.trangThai = "danop"; rec.duyetBoi = ""; rec.duyetLuc = 0; }
+    const truoc = rec.trangThai || "nhap";
+    if (b.duyet === false) {
+      /* N2 (audit lần 3): tháo con dấu "đã duyệt" chỉ Chủ sở hữu / Lãnh đạo. Teamlead Site duyệt
+         được nhưng không được mở khóa — nếu không người lập tự tháo, sửa, rồi tự đóng dấu lại. */
+      if (rec.trangThai === "daduyet" && !(me.role === "owner" || me.isLeader)) {
+        return json(res, 403, { error: "forbidden", message: "Nhật ký ngày " + rec.date + " đã được duyệt — chỉ Chủ sở hữu hoặc Lãnh đạo mới mở khóa được." });
+      }
+      rec.trangThai = "danop"; rec.duyetBoi = ""; rec.duyetLuc = 0;
+    }
     else {
       /* R7: phải qua bước "Đã nộp" mới duyệt được — trước đây duyệt thẳng bản còn Nháp,
          nên con dấu "Chỉ huy trưởng đã duyệt" có thể đóng lên một bản chưa ai nộp. */
@@ -1398,6 +1435,12 @@ const requestHandler = async (req, res) => {
     }
     saveSiteLogs(logs);
     slog((b.duyet === false ? "Mở khóa" : "Duyệt") + " nhật ký thi công " + rec.date + " dự án " + rec.folder + " bởi " + me.email);
+    /* N2: duyệt / mở khóa đổi giá trị pháp lý của hồ sơ -> để lại vết trong nhật ký kiểm toán */
+    try {
+      auditWrite([{ ts: Date.now(), rev: null, actor: me.name || me.email, actorId: me.id, ip: clientIp(req), entity: "sitelog",
+        id: rec.id, name: "Nhật ký " + rec.date, field: b.duyet === false ? "mở khóa nhật ký" : "duyệt nhật ký",
+        from: truoc, to: rec.trangThai, projectId: rec.projectId, projectName: rec.projectName || "" }]);
+    } catch {}
     return json(res, 200, { ok: true, trangThai: rec.trangThai, duyetBoi: rec.duyetBoi, duyetLuc: rec.duyetLuc });
   }
   /* R6: khôi phục nhật ký thi công từ thùng rác. Nếu ngày đó đã có nhật ký khác thì báo rõ

@@ -336,8 +336,8 @@ const T = {
     histServerHint: "Do máy chủ tự ghi — không sửa/xóa được từ ứng dụng.",
     histServerHead: "500 vết gần nhất",
     auditNoServer: "Chỉ có khi chạy chế độ máy chủ (LAN/NAS), và chỉ Chủ sở hữu / Lãnh đạo xem được.",
-    auditEntity: { project: "dự án", task: "công việc", boq: "khối lượng (BOQ)", contract: "hợp đồng", report: "báo cáo", trash: "thùng rác" },
-    auditField: { "tạo mới": "đã tạo", "xóa": "đã xóa", "xóa vĩnh viễn": "đã xóa vĩnh viễn", workdone: "sửa % hoàn thành", dueDate: "sửa hạn chót", startDate: "sửa ngày bắt đầu", duration: "sửa thời lượng", status: "đổi trạng thái", title: "đổi tên", priority: "đổi ưu tiên", assignees: "đổi người làm", section: "chuyển hạng mục", donGia: "sửa đơn giá", khoiLuong: "sửa khối lượng hợp đồng", khoiLuongKy: "sửa khối lượng kỳ nghiệm thu", giaTri: "sửa giá trị hợp đồng" },
+    auditEntity: { project: "dự án", task: "công việc", boq: "khối lượng (BOQ)", contract: "hợp đồng", report: "báo cáo", trash: "thùng rác", sitelog: "nhật ký thi công" },
+    auditField: { "tạo mới": "đã tạo", "xóa": "đã xóa", "xóa vĩnh viễn": "đã xóa vĩnh viễn", workdone: "sửa % hoàn thành", dueDate: "sửa hạn chót", startDate: "sửa ngày bắt đầu", duration: "sửa thời lượng", status: "đổi trạng thái", title: "đổi tên", priority: "đổi ưu tiên", assignees: "đổi người làm", section: "chuyển hạng mục", donGia: "sửa đơn giá", khoiLuong: "sửa khối lượng hợp đồng", khoiLuongKy: "sửa khối lượng kỳ nghiệm thu", giaTri: "sửa giá trị hợp đồng", "duyệt nhật ký": "đã duyệt nhật ký", "mở khóa nhật ký": "đã mở khóa nhật ký" },
   },
   en: {
     __ma: "en",
@@ -634,8 +634,8 @@ const T = {
     histServerHint: "Written by the server — cannot be edited or deleted from the app.",
     histServerHead: "latest 500 entries",
     auditNoServer: "Available only in server mode (LAN/NAS), and only to Owner / Leader.",
-    auditEntity: { project: "project", task: "task", boq: "BOQ item", contract: "contract", report: "report", trash: "trash" },
-    auditField: { "tạo mới": "created", "xóa": "deleted", "xóa vĩnh viễn": "purged", workdone: "changed progress", dueDate: "changed due date", startDate: "changed start date", duration: "changed duration", status: "changed status", title: "renamed", priority: "changed priority", assignees: "changed assignees", section: "moved section", donGia: "changed unit price", khoiLuong: "changed contract quantity", khoiLuongKy: "changed period quantity", giaTri: "changed contract value" },
+    auditEntity: { project: "project", task: "task", boq: "BOQ item", contract: "contract", report: "report", trash: "trash", sitelog: "site log" },
+    auditField: { "tạo mới": "created", "xóa": "deleted", "xóa vĩnh viễn": "purged", workdone: "changed progress", dueDate: "changed due date", startDate: "changed start date", duration: "changed duration", status: "changed status", title: "renamed", priority: "changed priority", assignees: "changed assignees", section: "moved section", donGia: "changed unit price", khoiLuong: "changed contract quantity", khoiLuongKy: "changed period quantity", giaTri: "changed contract value", "duyệt nhật ký": "approved the site log", "mở khóa nhật ký": "unlocked the site log" },
   },
 };
 

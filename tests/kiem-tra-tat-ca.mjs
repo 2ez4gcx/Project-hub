@@ -79,6 +79,7 @@ if (up) {
   cases += runTest("test-thanh-vien-du-an.mjs");
   cases += runTest("test-chi-phi-qs.mjs");
   cases += runTest("test-hoi-quy-lan2.mjs");
+  cases += runTest("test-hoi-quy-lan3.mjs");
   cases += runTest("test-restore.mjs", [DATA, String(RESTORE_PORT)]);
 }
 try { srv.kill(); } catch {}

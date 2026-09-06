@@ -1,5 +1,45 @@
 # Lịch sử phiên bản — Trạm Dự Án
 
+## v4.2.2 — 06/09/2026 — VÁ BỐN LỖI CÒN LẠI CỦA AUDIT LẦN 3
+
+Báo cáo audit lần 3 (`docs/danh-gia/2026-09-06 - Audit lan 3 (v4.2.1).md`, điểm 7,1/10) xác
+nhận R1–R12 của lần 2 đã vá đúng, nhưng còn **một lỗi cao và ba lỗi trung bình** — tất cả nằm
+trong tính năng "Thành viên dự án" và luồng duyệt nhật ký thi công. Bản này vá cả bốn, mỗi lỗi
+kèm ca test đi đúng đường lỗi (`tests/test-hoi-quy-lan3.mjs`, 28 ca).
+
+### ⚠ THAY ĐỔI HÀNH VI
+1. **Mở khóa nhật ký thi công đã duyệt: chỉ Chủ sở hữu / Lãnh đạo.** Teamlead bộ phận Site
+   vẫn duyệt được, nhưng không tháo được con dấu đã đóng (N2). Duyệt và mở khóa nay đều để
+   lại vết trong "Nhật ký máy chủ" (ai, lúc nào, từ trạng thái nào).
+2. **Dự án đã giới hạn thành viên: người ngoài không lập được nhật ký / biên bản** cho dự án
+   đó, kể cả Teamlead bộ phận Site (N3). Dự án mở và người trong danh sách thành viên không
+   đổi gì.
+
+### Lỗi đã vá
+- **N1 (cao) — Biến thể mới của R1.** Khi báo cáo ngày của *người khác* có dòng thuộc dự án
+  ẩn đứng **trước** dòng thuộc dự án mở, máy chủ ghép lại làm đổi thứ tự dòng, rồi tự coi đó
+  là "sửa báo cáo của người khác" và **từ chối mọi lần lưu** của người bị giới hạn (403). Nay
+  ghép theo đúng thứ tự bản gốc: dòng ẩn giữ nguyên chỗ, dòng nhìn thấy lấy bản người gửi,
+  dòng mới nối vào cuối. Test phủ cả bốn cách sắp: dòng ẩn trước, sau, chỉ ẩn, và báo cáo
+  của chính mình có xen dòng ẩn.
+- **N2 (trung bình)** — Teamlead Site tự mở khóa được nhật ký đã duyệt rồi sửa và tự duyệt
+  lại. Xem thay đổi hành vi 1.
+- **N3 (trung bình)** — `canRecordProject` không xét thành viên dự án. Xem thay đổi hành vi 2.
+- **N4 (thấp)** — Người ngoài dự án thấy **tên dự án giới hạn đã xóa** trong thùng rác. Nay
+  mục thùng rác của dự án được lọc theo thành viên của chính dự án đó; dự án *mở* đã xóa vẫn
+  hiện để còn khôi phục được, và không mục nào bị mất khi người bị giới hạn lưu.
+
+### Kiểm thử
+384 → **412 ca**, 29 → **30 mục** trong cổng kiểm soát. Thêm `test-hoi-quy-lan3.mjs` chạy
+ngay sau `test-hoi-quy-lan2.mjs`.
+
+### Còn để ngỏ (không đổi)
+P3/P4 · Q4 · Q6 · Q9/U4 · H4 · H6 · U6 · U7 · A2 · A4 · A11 · công thức VAT của Đề nghị thanh
+toán (cần kế toán chốt) · N5 hợp đồng không gắn dự án bị ẩn với người bị giới hạn · N6 sửa tại
+chỗ mục lịch sử của chính mình khi bị giới hạn · N7 xoay vòng nhật ký kiểm toán.
+
+---
+
 ## v4.2.1 — 04/09/2026 — SOÁT TOÀN BỘ REPO VÀ PHẦN SONG NGỮ
 
 ### Lỗi: bản NAS vẫn hướng dẫn xin "mã gia hạn giấy phép"

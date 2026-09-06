@@ -28,6 +28,7 @@ này, nên máy cá nhân và CI không bao giờ lệch nhau.
 | `test-thanh-vien-du-an.mjs` | Thành viên theo dự án: lọc khi đọc, **ghép lại khi ghi** để không mất dữ liệu ẩn |
 | `test-chi-phi-qs.mjs` | Quyền xem/sửa tài chính, phát sinh VO, ngân sách – chi phí, đề nghị thanh toán, khóa kỳ |
 | `test-hoi-quy-lan2.mjs` | Các lỗi hồi quy R1–R12 của báo cáo audit lần 2 — đường lỗi mà bộ test cũ không phủ |
+| `test-hoi-quy-lan3.mjs` | Bốn lỗi còn lại của audit lần 3 (N1–N4): báo cáo ngày trộn dự án, mở khóa nhật ký, lập nhật ký ngoài dự án, thùng rác lộ tên dự án ẩn |
 | `test-restore.mjs` | Khôi phục dữ liệu từ snapshot |
 | `test-lich-gantt.mjs` | Logic lịch & CPM: kéo k ngày = k ngày, 4 loại phụ thuộc, lag, lịch làm việc, mốc |
 | `test-gop-xung-dot.mjs` | Gộp ba chiều khi hai người lưu cùng lúc — không được mất thao tác của ai |

@@ -1,4 +1,37 @@
 ═══════════════════════════════════════════════════════════════
+  TRẠM DỰ ÁN v4.2.2 — VÁ BỐN LỖI CÒN LẠI CỦA ĐỢT AUDIT
+═══════════════════════════════════════════════════════════════
+
+ ⚠ HAI THỨ LÀM KHÁC BẢN CŨ
+
+ 1. Nhật ký thi công đã được duyệt: chỉ CHỦ SỞ HỮU hoặc LÃNH ĐẠO mới mở
+    khóa được. Teamlead bộ phận Site vẫn duyệt được như trước, nhưng
+    không tự tháo con dấu nữa. Duyệt và mở khóa đều có vết trong
+    "Nhật ký máy chủ".
+ 2. Dự án đã giới hạn thành viên: người KHÔNG thuộc dự án không lập
+    được nhật ký / biên bản cho dự án đó nữa (trước đây lập được rồi
+    lại không xem được). Dự án mở không đổi gì.
+
+ LỖI ĐÃ SỬA
+
+ • Bật "Thành viên dự án" mà có một báo cáo ngày liệt kê việc của dự
+   án giới hạn TRƯỚC việc của dự án mở, thì người ngoài dự án đó không
+   lưu được gì (báo "Không được sửa nội dung báo cáo ngày của người
+   khác"). Đã sửa — nay lưu bình thường, báo cáo của người khác giữ
+   nguyên từng dòng và đúng thứ tự.
+ • Người ngoài dự án vẫn thấy tên dự án giới hạn đã xóa trong thùng
+   rác. Đã ẩn; dự án mở đã xóa vẫn hiện để còn khôi phục.
+
+ Sau bản này có thể bật "Thành viên dự án" trên máy thật.
+
+CÁCH CẬP NHẬT
+ Chép đè cả thư mục (TRỪ thư mục "data") rồi khởi động lại.
+ Bảo mọi người bấm Ctrl+F5 một lần.
+
+Phần mềm do Khuong Doan phát triển — https://khuongdoan.com/
+
+
+═══════════════════════════════════════════════════════════════
   TRẠM DỰ ÁN v4.2.1 — SỬA TÀI LIỆU CŨ VÀ PHẦN TIẾNG ANH
 ═══════════════════════════════════════════════════════════════
 
